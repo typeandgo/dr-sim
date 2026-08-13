@@ -13,3 +13,9 @@ dist.pem
 
 # Planlama ve tasarım dokümanları — yerelde tutulur, repoda yayınlanmaz
 dr-sim-extension/
+
+# Senaryo preset'leri: eklenti paketine hiç girmiyorlar (src/presets/'i hiçbir kaynak
+# import etmiyor), yalnızca ekip içi paylaşım için üretiliyorlar. Public repoda gerçek
+# bir ürünün endpoint yüzeyini taşıdıkları için takipten çıkarıldılar; dosyalar yerelde
+# durur ve `npm run preset` ile her an yeniden üretilebilir.
+src/presets/*.json
