@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SETTINGS, FAULT_PRESETS } from '@/core/constants';
 import { createTranslator } from '@/core/i18n';
 import type { Rule, Settings } from '@/core/types';
-import { faultLabel, faultPresetId, policyStatusLine, policySummary } from './policy-text';
+import { faultLabel, faultPresetId, policyStatusLine } from './policy-text';
 
 const rule = (key: string, state: 'allow' | 'block'): Rule => ({
   key,
@@ -63,24 +63,6 @@ describe('ui/policy-text', () => {
 
     it('geçiş politikasında arıza tipi yazılmaz', () => {
       expect(policyStatusLine(settings({ defaultPolicy: 'pass' }), t)).toBe("Kural yazılmayan EP'ler geçiyor · 0 kural");
-    });
-  });
-
-  describe('policySummary — Ayarlar’daki detay', () => {
-    it('kural kırılımını ve sonucu yazar', () => {
-      const summary = policySummary(settings({
-        rules: [rule('GET /a', 'allow'), rule('GET /b', 'allow'), rule('GET /c', 'block')],
-      }), t);
-      expect(summary).toContain("3 EP'ye kural yazılmış (2 izinli · 1 engelli)");
-      expect(summary).toContain('503 dönecek');
-    });
-
-    it('kural yokken bunu açıkça söyler', () => {
-      expect(policySummary(settings(), t)).toContain('Henüz hiçbir EP’ye kural yazılmamış');
-    });
-
-    it('geçiş politikasında sonuç cümlesi değişir', () => {
-      expect(policySummary(settings({ defaultPolicy: 'pass' }), t)).toContain('normal çalışacak');
     });
   });
 });

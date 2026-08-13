@@ -1,8 +1,9 @@
 import type { Translate } from '@/core/i18n';
 import type { FaultConfig, Settings } from '@/core/types';
 
-// Varsayılan politika metinleri — panel (kısa durum satırı) ve Ayarlar (detaylı özet)
-// aynı kaynaktan beslensin diye tek yerde tutulur (Revizyon 19).
+// Politika ve arıza metinleri. Revizyon 44'te Ayarlar'daki detaylı özet kaldırıldı
+// (politika anahtarı panele döndü, özetin kırılımı Kurallar bölümünde zaten var);
+// geriye paneldeki durum satırı ile arıza etiketleri kaldı.
 
 export const faultLabel = (fault: FaultConfig, t: Translate): string => {
   if (fault.kind === 'network') return t('fault.networkError');
@@ -17,30 +18,12 @@ export const faultPresetId = (fault: FaultConfig): string => {
   return `http-${fault.status}`;
 };
 
-const ruleCounts = (settings: Settings): { total: number; allow: number; block: number } => ({
-  total: settings.rules.length,
-  allow: settings.rules.filter((rule) => rule.state === 'allow').length,
-  block: settings.rules.filter((rule) => rule.state === 'block').length,
-});
-
 // Panelde görünen tek satır: ne olduğu + kural sayısı
 export const policyStatusLine = (settings: Settings, t: Translate): string => {
-  const { total } = ruleCounts(settings);
+  const total = settings.rules.length;
   const behaviour = settings.defaultPolicy === 'block'
     ? t('policy.statusBlock', { fault: faultLabel(settings.fault, t) })
     : t('policy.statusPass');
 
   return `${behaviour} · ${t('policy.ruleCount', { count: total })}`;
-};
-
-// Ayarlar sayfasındaki detaylı özet
-export const policySummary = (settings: Settings, t: Translate): string => {
-  const { total, allow, block } = ruleCounts(settings);
-  const breakdown = total
-    ? t('policy.summaryRules', { total, allow, block })
-    : t('policy.summaryNoRules');
-
-  return settings.defaultPolicy === 'block'
-    ? t('policy.summaryBlock', { breakdown, fault: faultLabel(settings.fault, t) })
-    : t('policy.summaryPass', { breakdown });
 };

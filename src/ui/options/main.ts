@@ -10,7 +10,7 @@ import type { FaultConfig, NormalizationRules, Settings, UiState } from '@/core/
 import { button, h, setText } from '../dom/h';
 import { localeOf, translatorFor } from '../locale';
 import { hasOriginPermission, requestOriginPermission } from '../permissions';
-import { faultPresetId, policySummary } from '../policy-text';
+import { faultPresetId } from '../policy-text';
 import { createConnection } from '../state/connection';
 import '../styles/main.scss';
 import '../styles/components.scss';
@@ -51,27 +51,6 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
     });
     return { row: h('label', { class: 'drsim-field' }, [h('span', { class: 'drsim-label', text: label }), input]), input };
   };
-
-  // --- varsayılan davranış (Revizyon 19: panelden buraya taşındı)
-  const policySummaryEl = h('p', { class: 'drsim-hint', aria: { live: 'polite' } });
-  policySummaryEl.id = 'drsim-policy-summary';
-
-  const policyRadio = (value: 'block' | 'pass', label: string): { row: HTMLElement; input: HTMLInputElement } => {
-    const input = h('input', {
-      type: 'radio',
-      name: 'drsim-default-policy',
-      value,
-      on: {
-        change: () => {
-          void connection.send(COMMANDS.SET_DEFAULT_POLICY, { policy: value });
-        },
-      },
-    });
-    return { row: h('label', { class: 'drsim-radio' }, [input, h('span', { text: label })]), input };
-  };
-
-  const policyBlock = policyRadio('block', t('options.policyBlock'));
-  const policyPass = policyRadio('pass', t('options.policyPass'));
 
   // --- arıza (Revizyon 23: panelden buraya taşındı)
   const setFault = (patch: Partial<FaultConfig>): void => {
@@ -181,15 +160,6 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
 
   mount.replaceChildren(
     h('h1', { class: 'drsim-header__title', text: t('options.title') }),
-    section(t('options.defaultBehaviour'), [
-      h('div', {
-        class: 'drsim-radio-group drsim-radio-group--stacked',
-        role: 'radiogroup',
-        dataset: { test: 'dr-sim-default-policy' },
-        aria: { describedby: 'drsim-policy-summary', label: t('options.policyAria') },
-      }, [policyBlock.row, policyPass.row]),
-      policySummaryEl,
-    ]),
     section(t('options.fault'), [
       faultSelect,
       faultBodyRow,
@@ -307,10 +277,6 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
   return (state: UiState): void => {
     const { settings } = state;
     normalization = settings.normalization;
-
-    policyBlock.input.checked = settings.defaultPolicy === 'block';
-    policyPass.input.checked = settings.defaultPolicy === 'pass';
-    setText(policySummaryEl, policySummary(settings, t));
 
     if (faultSelect.value !== faultPresetId(settings.fault)) faultSelect.value = faultPresetId(settings.fault);
     if (document.activeElement !== faultBody && faultBody.value !== settings.fault.body) {

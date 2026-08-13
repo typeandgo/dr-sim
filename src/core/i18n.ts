@@ -61,17 +61,16 @@ export const EN = {
   'scope.notInjected': 'Not injected into this page ({host}) — requests cannot be captured. Grant access with "Run on this page", then reload.',
 
   // --- politika
+  'policy.title': 'Default behaviour',
+  'policy.aria': 'Default policy',
+  'policy.optionBlock': 'Block',
+  'policy.optionPass': 'Pass',
   'policy.reset': 'Reset',
   'policy.resetTitle': 'Clear the rule list — start a new DR round clean',
   'policy.resetConfirm': 'All rules will be deleted and every EP returns to the default behaviour. Continue?',
-  'policy.settingsTitle': 'Change the default behaviour and fault type in Settings',
   'policy.statusBlock': "EPs without a rule are blocked ({fault})",
   'policy.statusPass': "EPs without a rule pass through",
   'policy.ruleCount': '{count} rules',
-  'policy.summaryRules': '{total} EPs have rules ({allow} allowed · {block} blocked).',
-  'policy.summaryNoRules': 'No EP has a rule yet.',
-  'policy.summaryBlock': '{breakdown} Every other request to the domain will return {fault}.',
-  'policy.summaryPass': '{breakdown} Every other request will work normally.',
 
   // --- arıza
   'fault.networkError': 'network error',
@@ -166,10 +165,6 @@ export const EN = {
 
   // --- ayarlar sayfası
   'options.title': 'DR-SIM — Settings',
-  'options.defaultBehaviour': 'Default behaviour',
-  'options.policyAria': 'Default policy',
-  'options.policyBlock': 'Block — EPs I write no rule for return a fault',
-  'options.policyPass': 'Pass — EPs I write no rule for work normally',
   'options.fault': 'Fault',
   'options.faultBody': 'Body (JSON)',
   'options.faultDelay': 'Delay (ms)',
@@ -276,17 +271,16 @@ export const TR: Record<MessageKey, string> = {
   'scope.pageAddFailed': 'Sayfa eklenemedi.',
   'scope.notInjected': 'Bu sayfaya ({host}) enjekte edilmiyor — istekler yakalanamaz. "Bu sayfada çalıştır" ile izin ver, sonra sayfayı yenile.',
 
+  'policy.title': 'Varsayılan davranış',
+  'policy.aria': 'Varsayılan politika',
+  'policy.optionBlock': 'Bloklansın',
+  'policy.optionPass': 'Geçsin',
   'policy.reset': 'Sıfırla',
   'policy.resetTitle': 'Kural listesini temizle — yeni bir DR turuna temiz başla',
   'policy.resetConfirm': 'Tüm kurallar silinecek ve her EP varsayılan davranışa dönecek. Devam edilsin mi?',
-  'policy.settingsTitle': 'Varsayılan davranışı ve arıza tipini Ayarlar’dan değiştir',
   'policy.statusBlock': "Kural yazılmayan EP'ler bloklanıyor ({fault})",
   'policy.statusPass': "Kural yazılmayan EP'ler geçiyor",
   'policy.ruleCount': '{count} kural',
-  'policy.summaryRules': "{total} EP'ye kural yazılmış ({allow} izinli · {block} engelli).",
-  'policy.summaryNoRules': 'Henüz hiçbir EP’ye kural yazılmamış.',
-  'policy.summaryBlock': '{breakdown} Domaine giden diğer tüm istekler {fault} dönecek.',
-  'policy.summaryPass': '{breakdown} Diğer tüm istekler normal çalışacak.',
 
   'fault.networkError': 'network error',
   'fault.timeout': '{seconds} sn sonra timeout',
@@ -371,10 +365,6 @@ export const TR: Record<MessageKey, string> = {
   'error.settings-read': 'Ayarlar okunamadı, varsayılanlara dönüldü.',
 
   'options.title': 'DR-SIM — Ayarlar',
-  'options.defaultBehaviour': 'Varsayılan davranış',
-  'options.policyAria': 'Varsayılan politika',
-  'options.policyBlock': 'Bloklansın — kural yazmadığım EP’ler arıza döner',
-  'options.policyPass': 'Geçsin — kural yazmadığım EP’ler normal çalışır',
   'options.fault': 'Arıza',
   'options.faultBody': 'Gövde (JSON)',
   'options.faultDelay': 'Gecikme (ms)',

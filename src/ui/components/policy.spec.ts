@@ -37,12 +37,36 @@ describe('ui/policy', () => {
     document.body.replaceChildren();
   });
 
-  it('politika radio’ları panelde değildir (Revizyon 19)', () => {
+  it('politika anahtarı paneldedir ve etkin seçenek işaretlidir (Revizyon 44)', () => {
+    const { root, component } = setup();
+    component.update(state({ defaultPolicy: 'block' }));
+
+    const group = root.querySelector<HTMLElement>('[data-test="dr-sim-default-policy"]')!;
+    const [blockOption, passOption] = [...group.children] as HTMLElement[];
+
+    expect(group.getAttribute('role')).toBe('radiogroup');
+    expect(blockOption!.getAttribute('aria-checked')).toBe('true');
+    expect(passOption!.getAttribute('aria-checked')).toBe('false');
+    expect(blockOption!.className).toContain('drsim-chip-button--active');
+  });
+
+  it('seçeneğe basınca SET_DEFAULT_POLICY gider', () => {
+    const { root, ctx, component } = setup();
+    component.update(state({ defaultPolicy: 'block' }));
+
+    ([...root.querySelector('[data-test="dr-sim-default-policy"]')!.children] as HTMLElement[])[1]!.click();
+
+    expect(ctx.send).toHaveBeenCalledWith(COMMANDS.SET_DEFAULT_POLICY, { policy: 'pass' });
+  });
+
+  it('durum satırı politika anahtarını açıklar (aria-describedby)', () => {
     const { root, component } = setup();
     component.update(state());
 
-    expect(root.querySelector('[data-test="dr-sim-default-policy"]')).toBeNull();
-    expect(root.querySelector('[data-test="dr-sim-policy-status"]')).not.toBeNull();
+    const group = root.querySelector<HTMLElement>('[data-test="dr-sim-default-policy"]')!;
+    const status = root.querySelector<HTMLElement>('[data-test="dr-sim-policy-status"]')!;
+
+    expect(group.getAttribute('aria-describedby')).toBe(status.id);
   });
 
   it('durum satırı politikayı ve kural sayısını yazar', () => {
