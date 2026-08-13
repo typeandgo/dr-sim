@@ -191,7 +191,7 @@ const TR: GuideChapter[] = [
         kind: 'list',
         items: [
           'Panelde hiç istek görünmüyor: domaini eklediğinden ve sayfayı yenilediğinden emin ol. Eklenti sayfaya yüklenme anında girer, o yüzden yenilemek şart.',
-          'Chrome izin penceresi açılmadı: Ayarlar sayfasındaki Site izinleri bölümünden elle verebilirsin.',
+          'Chrome izin penceresi açılmadı: domain eklenmemiştir, tekrar Ekle’ye bas. Daha önce izin verip sonra geri aldıysan domain sarı görünür ve yanındaki “İzin ver” ile geri kazandırabilirsin.',
           'Her şey bloklanıyor, sayfa hiç açılmıyor: bu beklenen davranıştır, testin kendisidir. Gereken EP’lere izin vererek ilerle; hızlıca çıkmak istersen anahtarı OFF yap.',
           '“Bu sayfa türünde eklenti çalışamaz” yazıyor: tarayıcının kendi sayfalarında (chrome:// ile başlayanlar, eklenti mağazası) hiçbir eklenti çalışamaz. Normal bir web sayfasına geç.',
           'Sayfa açılıyor ama hiçbir şey engellenmiyor: anahtar ON mu, domain doğru mu ve varsayılan davranış beklediğin gibi mi, sırayla kontrol et.',
@@ -383,7 +383,7 @@ const EN: GuideChapter[] = [
         kind: 'list',
         items: [
           'No requests show up in the panel: make sure you added the domain and reloaded the page. The extension enters the page as it loads, so a reload is required.',
-          'The Chrome permission dialog never appeared: you can grant it by hand from the Site permissions section on this page.',
+          'The Chrome permission dialog never appeared: the domain was not added, so press Add again. If you granted access earlier and then withdrew it, the domain turns amber and the “Allow” button next to it restores access.',
           'Everything is blocked and the page never opens: that is the expected behaviour, it is the test itself. Move forward by allowing the EPs that are needed; if you want out quickly, flip the switch to OFF.',
           'It says the extension cannot run on this kind of page: no extension can run on the browser’s own pages (those starting with chrome://, the extension store). Switch to an ordinary web page.',
           'The page opens but nothing is being blocked: check in order whether the switch is ON, whether the domain is right, and whether the default behaviour is what you expect.',

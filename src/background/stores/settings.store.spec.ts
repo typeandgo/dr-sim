@@ -70,6 +70,54 @@ describe('background/settings.store', () => {
     });
   });
 
+  describe('reset', () => {
+    it('varsayılana döner ve kalıcı kaydı siler', async () => {
+      const store = createSettingsStore();
+      await store.load();
+      await store.update({ enabled: true, defaultPolicy: 'pass', rules: [], locale: 'tr' });
+
+      const result = await store.reset();
+
+      expect(result).toEqual(DEFAULT_SETTINGS);
+      expect(store.get()).toEqual(DEFAULT_SETTINGS);
+      expect(chromeMock.storage.local.remove).toHaveBeenCalledWith(STORAGE_KEYS.SETTINGS);
+    });
+
+    // İptal edilmezse debounce'lu yazma temizlikten sonra tetiklenip
+    // eski ayarları geri yazardı — sıfırlama sessizce geri alınırdı
+    it('bekleyen yazmayı iptal eder, eski ayarlar geri gelmez', async () => {
+      const store = createSettingsStore();
+      await store.load();
+      await store.update({ defaultPolicy: 'pass' });
+
+      await store.reset();
+      await new Promise((resolve) => setTimeout(resolve, 400));
+
+      expect(chromeMock.storage.local.__data[STORAGE_KEYS.SETTINGS]).toBeUndefined();
+      expect(store.get().defaultPolicy).toBe('block');
+    });
+
+    it('revizyon artar — açık paneller yeni durumu alır', async () => {
+      const store = createSettingsStore();
+      await store.load();
+      const before = store.revision();
+
+      await store.reset();
+
+      expect(store.revision()).toBeGreaterThan(before);
+    });
+
+    it('depo silinemezse kullanıcıya bildirilir', async () => {
+      const store = createSettingsStore();
+      await store.load();
+      chromeMock.storage.local.remove.mockRejectedValueOnce(new Error('dolu'));
+
+      await store.reset();
+
+      expect(store.notice()).toBe('settings-write');
+    });
+  });
+
   describe('store yaşam döngüsü', () => {
     it('depodaki ayarı yükler', async () => {
       chromeMock.storage.local.__data[STORAGE_KEYS.SETTINGS] = { schemaVersion: 1, enabled: true };

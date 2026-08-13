@@ -57,6 +57,7 @@ export const COMMANDS = {
   EXPORT_REPORT: 'EXPORT_REPORT',
   UPDATE_SETTINGS: 'UPDATE_SETTINGS',
   DISMISS_NOTICE: 'DISMISS_NOTICE',
+  HARD_RESET: 'HARD_RESET',
 } as const;
 
 export const SIMULATED_HEADER = 'x-drsim-simulated';

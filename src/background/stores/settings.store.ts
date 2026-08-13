@@ -85,6 +85,7 @@ export const normalizeSettings = (raw: unknown): Settings => {
 export interface SettingsStore {
   load: () => Promise<Settings>;
   get: () => Settings;
+  reset: () => Promise<Settings>;
   update: (patch: Partial<Settings>) => Promise<Settings>;
   mutate: (fn: (current: Settings) => Settings) => Promise<Settings>;
   revision: () => number;
@@ -160,6 +161,29 @@ export const createSettingsStore = (): SettingsStore => {
   return {
     load,
     get: () => cache,
+    // Kurulum anına dönüş. Bekleyen debounce'lu yazma İPTAL EDİLİR: yoksa
+    // temizlikten sonra tetiklenip eski ayarları geri yazardı.
+    reset: async () => {
+      if (writeTimer) {
+        clearTimeout(writeTimer);
+        writeTimer = null;
+      }
+      pendingWrite = null;
+
+      cache = { ...DEFAULT_SETTINGS };
+      revision += 1;
+      loaded = true;
+      notice = null;
+
+      try {
+        await chrome.storage.local.remove(STORAGE_KEYS.SETTINGS);
+      } catch {
+        notice = 'settings-write';
+      }
+
+      notify();
+      return cache;
+    },
     update: (patch) => commit({ ...cache, ...patch }),
     mutate: (fn) => commit(fn(cache)),
     revision: () => revision,

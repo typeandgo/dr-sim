@@ -63,6 +63,14 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
   };
 
   const chips = h('ul', { class: 'drsim-chips', dataset: { test: 'dr-sim-domain-chips' } });
+
+  // İzin geri alınınca chip sarıya döner ve "İzin ver" görünür; bu satır nedenini
+  // yazar. Arka plan `granted`'ı canlı doğruladığı için artık ulaşılabilir bir durum.
+  const permissionLost = h('p', {
+    class: 'drsim-hint drsim-hint--error',
+    dataset: { test: 'dr-sim-permission-lost' },
+  });
+  permissionLost.hidden = true;
   const empty = h('p', {
     class: 'drsim-hint drsim-hint--error',
     dataset: { test: 'dr-sim-domain-empty' },
@@ -98,6 +106,7 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
       error,
       empty,
       chips,
+      permissionLost,
     ]),
     h('section', { class: 'drsim-section' }, [
       h('div', { class: 'drsim-section__head' }, [
@@ -213,6 +222,10 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
       setText(empty, hasDomain ? '' : ctx.t('scope.noDomains'));
       empty.hidden = hasDomain;
       chips.hidden = !hasDomain;
+
+      const lost = state.settings.domains.some((domain) => domain.granted === false);
+      setText(permissionLost, lost ? ctx.t('scope.permissionLost') : '');
+      permissionLost.hidden = !lost;
 
       // Tek satır, tam adres (Revizyon 9). Oturum varsa SPA gezinmesinde canlı
       // güncellenen kendi route bilgimizi kullanırız; yoksa sekmenin URL'i.

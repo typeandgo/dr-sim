@@ -10,7 +10,6 @@ import type { FaultConfig, NormalizationRules, Settings, UiState } from '@/core/
 import { button, h, setText } from '../dom/h';
 import { localeOf, translatorFor } from '../locale';
 import { openGuide } from '../open-guide';
-import { hasOriginPermission, requestOriginPermission } from '../permissions';
 import { faultPresetId } from '../policy-text';
 import { createConnection } from '../state/connection';
 import '../styles/main.scss';
@@ -146,6 +145,19 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
     },
   });
 
+  // --- hard reset
+  // Geri alınamaz olduğu için tek onay yeterli değil gibi görünebilir, ama
+  // metin ne silineceğini kalem kalem sayıyor ve buton sayfanın en altında,
+  // ayrı ve kırmızı duruyor — kazara tıklanacak bir yerde değil.
+  const resetStatus = h('span', { class: 'drsim-hint', aria: { live: 'polite' } });
+
+  const hardReset = async (): Promise<void> => {
+    if (!window.confirm(t('options.resetConfirm'))) return;
+
+    const result = await connection.send(COMMANDS.HARD_RESET);
+    setText(resetStatus, t(result.ok ? 'options.resetDone' : 'options.resetFailed'));
+  };
+
   // --- dil (Revizyon 41)
   const languageSelect = h('select', {
     class: 'drsim-select',
@@ -155,10 +167,6 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
     h('option', { value: 'auto', text: t('options.languageAuto') }),
     ...LOCALES.map((locale) => h('option', { value: locale, text: LANGUAGE_NAMES[locale] })),
   ]);
-
-  // --- site izinleri
-  // Yedek yüzey: bazı Chrome sürümlerinde side panel'den izin dialogu açılmayabiliyor.
-  const permissionList = h('ul', { class: 'drsim-list' });
 
   mount.replaceChildren(
     h('h1', { class: 'drsim-header__title', text: t('options.title') }),
@@ -205,14 +213,21 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
       ]),
       h('p', { class: 'drsim-hint', text: t('options.languageHint') }),
     ]),
-    section(t('options.sitePermissions'), [
-      h('p', { class: 'drsim-hint', text: t('options.permissionHint') }),
-      permissionList,
-    ]),
     section(t('options.shortcuts'), [
       button(t('options.editShortcuts'), () => {
         void chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
       }, { class: 'drsim-button drsim-button--compact' }),
+    ]),
+    // En altta ve tek kırmızı buton: yanlışlıkla tıklanacak bir yerde durmamalı
+    section(t('options.reset'), [
+      h('p', { class: 'drsim-hint', text: t('options.resetHint') }),
+      h('div', { class: 'drsim-section__actions' }, [
+        button(t('options.resetButton'), () => void hardReset(), {
+          class: 'drsim-button drsim-button--compact drsim-button--danger',
+          dataset: { test: 'dr-sim-hard-reset' },
+        }),
+        resetStatus,
+      ]),
     ]),
     section(t('options.contact'), [
       h('p', { class: 'drsim-hint' }, [
@@ -223,7 +238,6 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
     ]),
   );
 
-  let renderedPermissions = '';
   let renderedRules = '';
 
   const renderRules = (rules: Settings['rules']): void => {
@@ -252,38 +266,6 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
         ]),
       ]),
     ])));
-  };
-
-  const renderPermissions = (patterns: string[]): void => {
-    const signature = patterns.join('|');
-    if (signature === renderedPermissions) return;
-    renderedPermissions = signature;
-
-    if (!patterns.length) {
-      permissionList.replaceChildren(h('li', { class: 'drsim-empty', text: t('options.permissionsEmpty') }));
-      return;
-    }
-
-    permissionList.replaceChildren(...patterns.map((pattern) => {
-      const status = h('span', { class: 'drsim-hint', text: t('options.permissionChecking') });
-
-      const grant = button(t('common.allow'), () => {
-        void requestOriginPermission(pattern).then((granted) => {
-          setText(status, t(granted ? 'options.permissionGranted' : 'options.permissionRefused'));
-          grant.hidden = granted;
-        });
-      }, { class: 'drsim-button drsim-button--compact' });
-
-      void hasOriginPermission(pattern).then((granted) => {
-        setText(status, t(granted ? 'options.permissionGranted' : 'options.permissionPending'));
-        grant.hidden = granted;
-      });
-
-      return h('li', { class: 'drsim-item' }, [
-        h('div', { class: 'drsim-item__main' }, [h('span', { class: 'drsim-ep', text: pattern }), grant]),
-        status,
-      ]);
-    }));
   };
 
   return (state: UiState): void => {
@@ -327,10 +309,6 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
 
     if (languageSelect.value !== settings.locale) languageSelect.value = settings.locale;
 
-    renderPermissions([
-      ...settings.domains.map((domain) => domain.pattern),
-      ...settings.pageHosts.map((host) => host.pattern),
-    ]);
   };
 };
 

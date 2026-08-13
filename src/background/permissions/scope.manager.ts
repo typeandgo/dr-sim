@@ -49,6 +49,19 @@ export const hasDomainPermission = async (pattern: string): Promise<boolean> => 
   }
 };
 
+// Verilmiş TÜM host izinlerini bırakır (hard reset).
+// Manifest'te statik host izni yoktur, dolayısıyla `getAll().origins` yalnızca
+// kullanıcının çalışma anında verdiklerini içerir — zorunlu izinler etkilenmez.
+export const releaseAllPermissions = async (): Promise<void> => {
+  try {
+    const granted = await chrome.permissions.getAll();
+    const origins = granted.origins ?? [];
+    if (origins.length) await chrome.permissions.remove({ origins });
+  } catch {
+    // izinler bırakılamazsa sıfırlamanın geri kalanı yine de sürer
+  }
+};
+
 // Bir domain silinirken, aynı origin başka bir domain tarafından kullanılmıyorsa izni kaldır
 export const releaseDomainPermission = async (pattern: string, remaining: DomainScope[]): Promise<void> => {
   const origin = toOriginPattern(pattern);

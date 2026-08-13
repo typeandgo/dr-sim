@@ -90,6 +90,7 @@ export interface SessionStore {
   clearInventory: (tabId: number) => void;
   clearLogs: (tabId: number, which?: 'success' | 'fail') => void;
   remove: (tabId: number) => void;
+  clear: () => Promise<void>;
   hydrate: () => Promise<void>;
   persist: () => Promise<void>;
   prune: (now: number) => void;
@@ -243,6 +244,20 @@ export const createSessionStore = (now: () => number = Date.now): SessionStore =
     remove: (tabId) => {
       sessions.delete(tabId);
       schedulePersist();
+    },
+    // Tüm sekmelerin envanteri ve logları. Bekleyen yazma iptal edilir ki
+    // temizlikten sonra eski oturumları geri yazmasın.
+    clear: async () => {
+      sessions.clear();
+      if (persistTimer) {
+        clearTimeout(persistTimer);
+        persistTimer = null;
+      }
+      try {
+        await chrome.storage.session.remove(STORAGE_KEYS.SESSIONS);
+      } catch {
+        // oturum verisi kritik değil
+      }
     },
     hydrate: async () => {
       try {

@@ -100,6 +100,50 @@ describe('background/service-worker — komut yüzeyi', () => {
       expect(await run(COMMANDS.REMOVE_DOMAIN, { id: 'yok' })).toEqual({ ok: false, error: 'not-found' });
     });
 
+    // İzin chrome://extensions'dan geri alınabilir. Eskiden `granted` yalnızca
+    // ekleme anında hesaplanıp bir daha doğrulanmıyordu: kayıt sonsuza kadar
+    // `true` kalıyor, panel uyarmıyor, eklenti sessizce enjekte etmeyi bırakıyordu.
+    it('geri alınan izin bir sonraki uyanışta yakalanır', async () => {
+      await run(COMMANDS.ADD_DOMAIN, { pattern: 'api.example.com' });
+      expect(buildState(null).settings.domains[0]?.granted).toBe(true);
+
+      // Kullanıcı chrome://extensions'dan erişimi geri aldı
+      chromeMock.permissions.contains.mockResolvedValue(false);
+      chromeMock.permissions.onRemoved.emit();
+
+      await vi.waitFor(() => {
+        expect(buildState(null).settings.domains[0]?.granted).toBe(false);
+      });
+    });
+
+    it('izin geri verilince durum kendiliğinden düzelir', async () => {
+      await run(COMMANDS.ADD_DOMAIN, { pattern: 'api.example.com' });
+
+      chromeMock.permissions.contains.mockResolvedValue(false);
+      chromeMock.permissions.onRemoved.emit();
+      await vi.waitFor(() => {
+        expect(buildState(null).settings.domains[0]?.granted).toBe(false);
+      });
+
+      chromeMock.permissions.contains.mockResolvedValue(true);
+      chromeMock.permissions.onAdded.emit();
+      await vi.waitFor(() => {
+        expect(buildState(null).settings.domains[0]?.granted).toBe(true);
+      });
+    });
+
+    it('izinli kalan domainde gereksiz yazma yapılmaz', async () => {
+      await run(COMMANDS.ADD_DOMAIN, { pattern: 'api.example.com' });
+      const before = buildState(null).revision;
+
+      chromeMock.permissions.onRemoved.emit();
+      await vi.waitFor(() => {
+        expect(chromeMock.permissions.contains).toHaveBeenCalled();
+      });
+
+      expect(buildState(null).revision).toBe(before);
+    });
+
     it('izin verilmemiş sayfa host’u eklenmez', async () => {
       chromeMock.permissions.contains.mockResolvedValueOnce(false);
 
@@ -264,6 +308,81 @@ describe('background/service-worker — komut yüzeyi', () => {
 
       expect(chromeMock.alarms.create).toHaveBeenCalledWith('drsim-auto-off', { delayInMinutes: 45 });
       expect(buildState(null).autoOffAt).not.toBeNull();
+    });
+  });
+
+  describe('HARD_RESET', () => {
+    const seed = async (): Promise<void> => {
+      await run(COMMANDS.ADD_DOMAIN, { pattern: 'api.example.com' });
+      await run(COMMANDS.SET_RULE_STATE, { method: 'GET', path: '/a', state: 'allow' });
+      await run(COMMANDS.SET_DEFAULT_POLICY, { policy: 'pass' });
+      await run(COMMANDS.UPDATE_SETTINGS, { settings: { locale: 'tr', maxLogEntries: 42 } });
+      await run(COMMANDS.IMPORT_PROFILE, { json: JSON.stringify({ name: 'p', rules: [] }) });
+    };
+
+    it('her şeyi varsayılana döndürür', async () => {
+      await seed();
+      expect(await run(COMMANDS.HARD_RESET)).toEqual({ ok: true });
+
+      const { settings } = buildState(null);
+      expect(settings.domains).toEqual([]);
+      expect(settings.pageHosts).toEqual([]);
+      expect(settings.rules).toEqual([]);
+      expect(settings.profiles).toEqual([]);
+      expect(settings.activeProfileId).toBeNull();
+      expect(settings.defaultPolicy).toBe('block');
+      expect(settings.locale).toBe('auto');
+      expect(settings.maxLogEntries).toBe(200);
+      expect(settings.enabled).toBe(false);
+      expect(settings.fault).toMatchObject({ kind: 'http', status: 503 });
+    });
+
+    it('verilen site izinlerini bırakır', async () => {
+      chromeMock.permissions.getAll.mockResolvedValueOnce({
+        permissions: [],
+        origins: ['*://api.example.com/*', '*://panel.example.com/*'],
+      });
+
+      await run(COMMANDS.HARD_RESET);
+
+      expect(chromeMock.permissions.remove).toHaveBeenCalledWith({
+        origins: ['*://api.example.com/*', '*://panel.example.com/*'],
+      });
+    });
+
+    it('bırakılacak izin yoksa remove çağrılmaz', async () => {
+      await run(COMMANDS.HARD_RESET);
+      expect(chromeMock.permissions.remove).not.toHaveBeenCalled();
+    });
+
+    it('kalıcı ve oturum depolarını temizler', async () => {
+      await seed();
+      await run(COMMANDS.HARD_RESET);
+
+      expect(chromeMock.storage.local.remove).toHaveBeenCalledWith('drsim.settings');
+      expect(chromeMock.storage.session.remove).toHaveBeenCalledWith('drsim.sessions');
+    });
+
+    // Not: bekleyen debounce'lu yazmanın sıfırlamayı geri almadığı,
+    // settings.store.spec.ts'te izole bir store örneğiyle test ediliyor —
+    // burada modül seviyesindeki zamanlayıcılar testler arasında sızıyor.
+
+    it('auto-off alarmı iptal edilir', async () => {
+      await run(COMMANDS.SET_ENABLED, { enabled: true, confirmProduction: true });
+      await run(COMMANDS.UPDATE_SETTINGS, { settings: { autoOffMinutes: 30 } });
+
+      await run(COMMANDS.HARD_RESET);
+
+      expect(chromeMock.alarms.clear).toHaveBeenCalledWith('drsim-auto-off');
+      expect(buildState(null).autoOffAt).toBeNull();
+    });
+
+    it('izinler bırakılamazsa da sıfırlama tamamlanır', async () => {
+      await seed();
+      chromeMock.permissions.getAll.mockRejectedValueOnce(new Error('nope'));
+
+      expect(await run(COMMANDS.HARD_RESET)).toEqual({ ok: true });
+      expect(buildState(null).settings.rules).toEqual([]);
     });
   });
 

@@ -150,6 +150,20 @@ describe('background/session.store', () => {
     expect(entry?.headers).toEqual({ authorization: '***', 'x-trace-id': 't1' });
   });
 
+  // Hard reset: tek sekme değil, tüm oturumlar
+  it('clear tüm sekmeleri siler ve oturum deposunu boşaltır', async () => {
+    const sessions = store();
+    sessions.applyTelemetry(1, [record()], 0, settings());
+    sessions.applyTelemetry(2, [record()], 0, settings());
+    expect(sessions.all()).toHaveLength(2);
+
+    await sessions.clear();
+
+    expect(sessions.all()).toEqual([]);
+    expect(sessions.get(1)).toBeNull();
+    expect(chromeMock.storage.session.remove).toHaveBeenCalledWith(STORAGE_KEYS.SESSIONS);
+  });
+
   it('temizleme aksiyonları çalışır', () => {
     const sessions = store();
     sessions.applyTelemetry(1, [record(), blocked()], 0, settings());

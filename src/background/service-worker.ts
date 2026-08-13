@@ -39,6 +39,7 @@ import {
 } from './messaging/ports';
 import {
   hasDomainPermission,
+  releaseAllPermissions,
   releaseDomainPermission,
   syncContentScripts,
 } from './permissions/scope.manager';
@@ -85,6 +86,32 @@ const applyRuntimeSideEffects = async (): Promise<void> => {
   pushState();
 };
 
+// İzin durumunu Chrome'a sorup `granted` alanlarını tazeler; bir şey değiştiyse true döner.
+//
+// Bu olmadan `granted` yalnızca domain eklenirken hesaplanıyordu ve bir daha
+// asla doğrulanmıyordu: kullanıcı chrome://extensions'dan site erişimini geri
+// alsa bile kayıt `true` kalıyor, panel hiçbir uyarı vermiyor, eklenti ise
+// sessizce enjekte etmeyi bırakıyordu.
+const syncPermissions = async (): Promise<boolean> => {
+  const settings = settingsStore.get();
+
+  const check = async (list: DomainScope[]): Promise<DomainScope[]> => Promise.all(
+    list.map(async (entry) => {
+      const granted = await hasDomainPermission(entry.pattern);
+      // Aynı referansı döndürmek "değişmedi" demektir; `undefined` da normalize edilir
+      return entry.granted === granted ? entry : { ...entry, granted };
+    }),
+  );
+
+  const [domains, pageHosts] = await Promise.all([check(settings.domains), check(settings.pageHosts)]);
+
+  const changed = domains.some((entry, index) => entry !== settings.domains[index])
+    || pageHosts.some((entry, index) => entry !== settings.pageHosts[index]);
+
+  if (changed) await settingsStore.update({ domains, pageHosts });
+  return changed;
+};
+
 const bootstrap = async (): Promise<void> => {
   if (!bootstrapped) {
     bootstrapped = (async () => {
@@ -93,6 +120,9 @@ const bootstrap = async (): Promise<void> => {
       sessionStore.prune(Date.now());
       // SW yeniden doğduysa alarm hâlâ yaşıyor olabilir; geri sayımı ondan geri oku
       await restoreAutoOff();
+      // İzinler script kaydından ÖNCE tazelenir: geri alınmış bir domain
+      // enjeksiyon kapsamına hiç girmemeli
+      await syncPermissions();
       await syncContentScripts(settingsStore.get().domains, settingsStore.get().pageHosts);
       await updateBadge(settingsStore.get().enabled, badgeTitle(settingsStore.get().enabled));
     })();
@@ -382,6 +412,19 @@ const handlers: Record<string, (ctx: CommandContext) => CommandResult | Promise<
     settingsStore.clearNotice();
     return { ok: true };
   },
+  // Kurulum anına dönüş: ayarlar, profiller, kurallar, oturum verisi ve verilen
+  // host izinleri. Sıra önemli — izinler önce bırakılır, sonra kayıtlar silinir;
+  // tersi olursa hangi origin'lerin bırakılacağını bilemezdik.
+  //
+  // Content script kaydını ayrıca kaldırmaya gerek yok: sıfırlamadan sonra
+  // domain listesi boş olduğu için `applyRuntimeSideEffects` onu zaten çözer.
+  [COMMANDS.HARD_RESET]: async () => {
+    await releaseAllPermissions();
+    await cancelAutoOff();
+    await settingsStore.reset();
+    await sessionStore.clear();
+    return { ok: true };
+  },
 };
 
 const runCommand = async (command: string, ctx: CommandContext): Promise<CommandResult> => {
@@ -491,6 +534,17 @@ chrome.action.onClicked.addListener((tab) => {
   if (tab.windowId === undefined) return;
   void chrome.sidePanel.open({ windowId: tab.windowId }).catch(() => {});
 });
+
+// İzin chrome://extensions'dan geri alınabilir veya elle geri verilebilir.
+// Bu olaylar SW uykudayken de onu uyandırır, dolayısıyla panel açılmadan önce
+// bile durum doğru olur.
+const refreshPermissions = async (): Promise<void> => {
+  await bootstrap();
+  if (await syncPermissions()) await applyRuntimeSideEffects();
+};
+
+chrome.permissions.onAdded.addListener(() => void refreshPermissions());
+chrome.permissions.onRemoved.addListener(() => void refreshPermissions());
 
 chrome.tabs.onRemoved.addListener((tabId) => sessionStore.remove(tabId));
 chrome.tabs.onReplaced.addListener((_added, removed) => sessionStore.remove(removed));

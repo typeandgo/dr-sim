@@ -91,6 +91,9 @@ export const installChromeMock = () => {
       request: vi.fn(async () => true),
       remove: vi.fn(async () => true),
       contains: vi.fn(async () => true),
+      getAll: vi.fn(async () => ({ permissions: [], origins: [] as string[] })),
+      onAdded: createEvent(),
+      onRemoved: createEvent(),
     },
     scripting: {
       getRegisteredContentScripts: vi.fn(async () => []),
