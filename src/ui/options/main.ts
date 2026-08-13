@@ -254,8 +254,10 @@ const buildOptions = (mount: HTMLElement, t: Translate, locale: Locale) => {
         }, { class: 'drsim-button drsim-button--compact' }),
         sampleStatus,
       ]),
-    ]),
-    section(t('options.schema'), [
+      // Alan sözlüğü örnekle AYNI kutuda durur: ikisi tek konu — yukarıdaki
+      // dosyanın okunması. Ayrı kutu, sözlüğü bağımsız bir referans gibi
+      // gösteriyordu; oysa örneğin devamı.
+      h('p', { class: 'drsim-label drsim-section__subtitle', text: t('options.schema') }),
       h('p', { class: 'drsim-hint', text: t('options.schemaHint') }),
       renderFields(locale, t),
     ]),

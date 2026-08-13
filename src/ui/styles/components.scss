@@ -473,6 +473,14 @@
   font-weight: 700;
 }
 
+// Bölüm içi alt başlık: aynı kutuda ikinci bir konu başladığında (Örnek profil →
+// alan sözlüğü). Kutu sınırı olmadığı için ayrımı ince bir çizgi kuruyor.
+.drsim-section__subtitle {
+  margin: $drsim-gap 0 0;
+  padding-top: $drsim-gap-lg;
+  border-top: 1px solid $drsim-border;
+}
+
 // Profil alan sözlüğü — kılavuzun katlanır yapısını paylaşır, satır ritmi kendine ait
 .drsim-schema {
   display: flex;
