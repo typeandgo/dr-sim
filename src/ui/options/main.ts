@@ -6,13 +6,10 @@ import {
   type Translate,
 } from '@/core/i18n';
 import { normalizePath } from '@/core/path.util';
-import { buildProfileFile } from '@/core/profile';
-import { GUIDE, type GuideBlock } from './guide';
-import { PROFILE_FIELDS, type FieldRow } from './profile-fields';
-import { sampleProfile } from './sample-profile';
 import type { FaultConfig, NormalizationRules, Settings, UiState } from '@/core/types';
 import { button, h, setText } from '../dom/h';
 import { localeOf, translatorFor } from '../locale';
+import { openGuide } from '../open-guide';
 import { hasOriginPermission, requestOriginPermission } from '../permissions';
 import { faultPresetId } from '../policy-text';
 import { createConnection } from '../state/connection';
@@ -35,78 +32,9 @@ const save = (patch: Partial<Settings>): void => {
 // Dil adları çevrilmez: kullanıcı kendi dilini kendi dilinde arar
 const LANGUAGE_NAMES: Record<Locale, string> = { en: 'English', tr: 'Türkçe' };
 
-// Kılavuz bölüm bölüm açılır: kapsamlı bir metni tek blokta göstermek yerine
-// başlıklar içindekiler gibi çalışsın, kullanıcı ihtiyacı olanı açsın (Revizyon 47).
-const renderGuideBlock = (block: GuideBlock): HTMLElement => {
-  if (block.kind === 'note') return h('p', { class: 'drsim-guide__note', text: block.text });
-  if (block.kind === 'steps') {
-    return h('ol', { class: 'drsim-guide__steps' }, block.items.map((item) => h('li', { text: item })));
-  }
-  if (block.kind === 'list') {
-    return h('ul', { class: 'drsim-guide__list' }, block.items.map((item) => h('li', { text: item })));
-  }
-  if (block.kind === 'terms') {
-    return h('ul', { class: 'drsim-guide__list' }, block.items.map((item) => h('li', {}, [
-      h('span', { class: 'drsim-guide__term', text: item.term }),
-      h('span', { text: ` — ${item.desc}` }),
-    ])));
-  }
-  return h('p', { class: 'drsim-guide__text', text: block.text });
-};
-
-// Profil JSON'ının alan sözlüğü (§ Örnek profil'in hemen altında).
-// Kılavuzla aynı katlanır yapı: gruplar içindekiler gibi çalışır, kullanıcı
-// yalnızca aradığı bloğu açar.
-const renderFieldRow = (row: FieldRow, t: Translate): HTMLElement => h('div', { class: 'drsim-schema__row' }, [
-  h('div', { class: 'drsim-schema__head' }, [
-    h('code', { class: 'drsim-schema__key', text: row.name }),
-    h('span', {
-      class: row.required ? 'drsim-tag drsim-tag--manual' : 'drsim-tag',
-      text: t(row.required ? 'options.schemaRequired' : 'options.schemaOptional'),
-    }),
-    h('span', { class: 'drsim-schema__type', text: row.type }),
-  ]),
-  h('p', { class: 'drsim-schema__desc', text: row.desc }),
-]);
-
-const renderFields = (locale: Locale, t: Translate): HTMLElement => h('div', { class: 'drsim-guide' }, PROFILE_FIELDS[locale]
-  .map((group) => h('details', { class: 'drsim-guide__chapter' }, [
-    h('summary', { class: 'drsim-guide__summary' }, [
-      h('code', { class: 'drsim-schema__path', text: group.path }),
-      h('span', { text: ` ${group.title}` }),
-    ]),
-    h('div', { class: 'drsim-guide__body' }, [
-      h('p', { class: 'drsim-guide__note', text: group.intro }),
-      h('div', { class: 'drsim-schema' }, group.rows.map((row) => renderFieldRow(row, t))),
-    ]),
-  ])));
-
-const renderGuide = (locale: Locale): HTMLElement => h('div', { class: 'drsim-guide' }, GUIDE[locale]
-  .map((chapter) => {
-    const details = h('details', { class: 'drsim-guide__chapter' }, [
-      h('summary', { class: 'drsim-guide__summary', text: chapter.title }),
-      h('div', { class: 'drsim-guide__body' }, chapter.blocks.map(renderGuideBlock)),
-    ]);
-    return details;
-  }));
-
-const buildOptions = (mount: HTMLElement, t: Translate, locale: Locale) => {
-  // --- örnek profil (Revizyon 49)
-  // Dosya, gerçek dışa aktarmayla AYNI üreticiden geçer: örnek ile ürünün ürettiği
-  // biçim ayrışamaz. Kullanıcı indirip düzenler, panelden "⤓ İçe" ile yükler.
-  const sampleFile = buildProfileFile(sampleProfile(t), t);
-
-  const sampleStatus = h('span', { class: 'drsim-hint', aria: { live: 'polite' } });
-
-  const downloadSample = (): void => {
-    const blob = new Blob([sampleFile.content], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = h('a', { href: url });
-    link.download = `${sampleFile.name}.${sampleFile.extension}`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
+// `locale` parametresi kalktı: dile bağlı tek içerik (kılavuz + örnek profil)
+// kendi sayfasına taşındı, burada kalan her metin `t` üzerinden geliyor.
+const buildOptions = (mount: HTMLElement, t: Translate) => {
   const section = (title: string, children: HTMLElement[]): HTMLElement => h('section', { class: 'drsim-section' }, [
     h('div', { class: 'drsim-section__head' }, [h('span', { class: 'drsim-section__title', text: title })]),
     ...children,
@@ -234,32 +162,16 @@ const buildOptions = (mount: HTMLElement, t: Translate, locale: Locale) => {
 
   mount.replaceChildren(
     h('h1', { class: 'drsim-header__title', text: t('options.title') }),
+    // Kılavuz ve örnek profil ayrı sayfada (Revizyon 52): burası ayarlanacak
+    // yüzey, orası okunacak içerik. Burada yalnızca kapı duruyor.
     section(t('options.guide'), [
       h('p', { class: 'drsim-hint', text: t('options.guideHint') }),
-      renderGuide(locale),
-    ]),
-    section(t('options.sample'), [
-      h('p', { class: 'drsim-hint', text: t('options.sampleHint') }),
-      h('pre', { class: 'drsim-code', text: sampleFile.content }),
-      h('p', { class: 'drsim-hint', text: t('options.sampleScenarios') }),
       h('div', { class: 'drsim-section__actions' }, [
-        button(t('options.sampleDownload'), downloadSample, {
+        button(t('guide.open'), () => void openGuide(), {
           class: 'drsim-button drsim-button--compact',
-          dataset: { test: 'dr-sim-sample-download' },
+          dataset: { test: 'dr-sim-open-guide' },
         }),
-        button(t('options.sampleCopy'), () => {
-          void navigator.clipboard?.writeText(sampleFile.content).then(() => {
-            setText(sampleStatus, t('options.sampleCopied'));
-          });
-        }, { class: 'drsim-button drsim-button--compact' }),
-        sampleStatus,
       ]),
-      // Alan sözlüğü örnekle AYNI kutuda durur: ikisi tek konu — yukarıdaki
-      // dosyanın okunması. Ayrı kutu, sözlüğü bağımsız bir referans gibi
-      // gösteriyordu; oysa örneğin devamı.
-      h('p', { class: 'drsim-label drsim-section__subtitle', text: t('options.schema') }),
-      h('p', { class: 'drsim-hint', text: t('options.schemaHint') }),
-      renderFields(locale, t),
     ]),
     section(t('options.fault'), [
       faultSelect,
@@ -436,7 +348,7 @@ connection.store.subscribe((state) => {
     const t = translatorFor(state.settings.locale);
     document.documentElement.lang = next;
     document.title = t('options.title');
-    sync = buildOptions(root, t, next);
+    sync = buildOptions(root, t);
   }
 
   sync(state);

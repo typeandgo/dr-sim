@@ -1,6 +1,7 @@
 import { COMMANDS } from '@/core/constants';
 import type { UiState } from '@/core/types';
-import { h, setText, toggleClass } from '../dom/h';
+import { button, h, setText, toggleClass } from '../dom/h';
+import { openGuide } from '../open-guide';
 import type { Component, ComponentContext } from './types';
 
 // 02-ui-spec.md §3.1 — header, ON/OFF rozeti, master toggle, gözlem modu bilgisi.
@@ -38,9 +39,18 @@ export const mountHeader = (root: HTMLElement, ctx: ComponentContext): Component
   const mode = h('p', { class: 'drsim-hint drsim-header__mode' });
   const autoOff = h('p', { class: 'drsim-hint drsim-header__auto-off' });
 
+  // Kılavuz başlığın yanında (Revizyon 52): ilk kez açan kullanıcının ihtiyacı
+  // olan tek şey bu ve panelin en üstünde. Yeni sekmede açılır — panelde
+  // gezinmek çalışma yüzeyini kaybettirirdi.
+  const guide = button(ctx.t('guide.open'), () => void openGuide(), {
+    class: 'drsim-header__link',
+    title: ctx.t('guide.openTitle'),
+    dataset: { test: 'dr-sim-open-guide' },
+  });
+
   root.appendChild(
     h('header', { class: 'drsim-header', dataset: { test: 'dr-sim-panel-header' } }, [
-      h('div', { class: 'drsim-header__row' }, [title, toggle]),
+      h('div', { class: 'drsim-header__row' }, [title, guide, toggle]),
       mode,
       autoOff,
     ]),

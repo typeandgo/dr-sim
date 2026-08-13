@@ -56,6 +56,8 @@ export const installChromeMock = () => {
       onInstalled: createEvent(),
       onStartup: createEvent(),
       getManifest: vi.fn(() => ({ version: '1.0.0' })),
+      getURL: vi.fn((path: string) => `chrome-extension://drsim/${path}`),
+      openOptionsPage: vi.fn(async () => {}),
     },
     // Service worker dili buradan okur (izin gerektirmeyen varsayılan API)
     i18n: {
@@ -63,10 +65,15 @@ export const installChromeMock = () => {
     },
     tabs: {
       get: vi.fn(),
-      query: vi.fn(async () => []),
+      query: vi.fn(async () => [] as chrome.tabs.Tab[]),
+      create: vi.fn(async () => ({}) as chrome.tabs.Tab),
+      update: vi.fn(async () => ({}) as chrome.tabs.Tab),
       onRemoved: createEvent(),
       onReplaced: createEvent(),
       onUpdated: createEvent(),
+    },
+    windows: {
+      update: vi.fn(async () => ({}) as chrome.windows.Window),
     },
     action: {
       onClicked: createEvent(),

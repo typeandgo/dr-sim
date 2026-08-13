@@ -27,6 +27,25 @@
   text-transform: uppercase;
 }
 
+// Header'daki kılavuz bağlantısı: buton değil bağlantı gibi görünür — markanın
+// yanında çerçeveli bir kutu, ON/OFF anahtarıyla görsel olarak yarışırdı.
+// Tıklama alanı yine de 24px (WCAG 2.2 SC 2.5.8).
+.drsim-header__link {
+  min-height: $drsim-target-min;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: $drsim-text-muted;
+  font-size: $drsim-font-size-note;
+  cursor: pointer;
+
+  &:hover {
+    border: 0;
+    color: $drsim-text;
+    text-decoration: underline;
+  }
+}
+
 // Durum rozeti + master toggle tek kontrolde birleşiktir (Revizyon 2).
 // Kapalı: topuz solda, nötr. Açık: topuz sağda, yeşil.
 .drsim-switch {
