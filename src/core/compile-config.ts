@@ -23,7 +23,6 @@ export const compileConfig = (settings: Settings, revision: number, t: Translate
   fault: settings.fault,
   normalization: settings.normalization,
   captureHeaders: settings.captureHeaders,
-  captureBody: settings.captureBody,
   showPageBanner: settings.showPageBanner,
   bannerText: t('banner.active'),
   revision,

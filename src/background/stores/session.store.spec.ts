@@ -129,27 +129,25 @@ describe('background/session.store', () => {
     expect(Object.keys(sessions.get(1)!.inventory)).toHaveLength(1);
   });
 
-  it('yakalama kapalıyken header/body loglanmaz', () => {
+  it('yakalama kapalıyken header loglanmaz', () => {
     const sessions = store();
-    sessions.applyTelemetry(1, [record({ headers: { authorization: 'Bearer x' }, body: '{"a":1}' })], 0, settings());
+    sessions.applyTelemetry(1, [record({ headers: { authorization: 'Bearer x' } })], 0, settings());
 
     const entry = sessions.get(1)?.successLog[0];
     expect(entry?.headers).toBeUndefined();
-    expect(entry?.body).toBeUndefined();
   });
 
-  it('yakalama açıkken hassas alanlar maskelenir', () => {
+  it('yakalama açıkken hassas header’lar maskelenir', () => {
     const sessions = store();
     sessions.applyTelemetry(
       1,
-      [record({ headers: { authorization: 'Bearer x' }, body: '{"password":"p"}' })],
+      [record({ headers: { authorization: 'Bearer x', 'x-trace-id': 't1' } })],
       0,
-      settings({ captureHeaders: true, captureBody: true }),
+      settings({ captureHeaders: true }),
     );
 
     const entry = sessions.get(1)?.successLog[0];
-    expect(entry?.headers).toEqual({ authorization: '***' });
-    expect(entry?.body).toBe('{"password":"***"}');
+    expect(entry?.headers).toEqual({ authorization: '***', 'x-trace-id': 't1' });
   });
 
   it('temizleme aksiyonları çalışır', () => {

@@ -116,7 +116,7 @@ body {
 .drsim-hint {
   margin: 0;
   color: $drsim-text-muted;
-  font-size: $drsim-font-size-sm;
+  font-size: $drsim-font-size-note;
 }
 
 .drsim-hint--error {
@@ -223,7 +223,7 @@ body {
 
 .drsim-empty {
   color: $drsim-text-muted;
-  font-size: $drsim-font-size-sm;
+  font-size: $drsim-font-size-note;
   padding: 6px 0;
 }
 

@@ -65,11 +65,3 @@ export const toggleRule = (
     now: input.now,
   });
 };
-
-export const bulkSetRuleState = (
-  rules: Rule[],
-  entries: Array<{ method: string; path: string }>,
-  state: RuleState,
-  source: RuleSource = 'inventory',
-  now = 0,
-): Rule[] => entries.reduce((acc, entry) => upsertRule(acc, { ...entry, state, source, now }), rules);

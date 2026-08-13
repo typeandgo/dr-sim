@@ -1,6 +1,6 @@
 import { COMMANDS } from '@/core/constants';
 import { reasonLabel } from '@/core/report.builder';
-import type { MessageKey } from '@/core/i18n';
+import type { Locale, MessageKey } from '@/core/i18n';
 import type { LogEntry, UiState } from '@/core/types';
 import { button, h, setText, toggleClass } from '../dom/h';
 import { createList } from '../dom/list';
@@ -18,7 +18,8 @@ const FILTERS: Array<{ id: SourceFilter; key: MessageKey }> = [
   { id: 'simulated', key: 'log.filterSimulated' },
 ];
 
-const timeOf = (at: number): string => new Date(at).toLocaleTimeString('tr-TR', { hour12: false });
+// Saat biçimi de arayüz dilini izler; `tr-TR`'ye sabitlenmişti (Y1)
+const timeOf = (at: number, locale: Locale): string => new Date(at).toLocaleTimeString(locale, { hour12: false });
 
 export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kind): Component => {
   const isFail = kind === 'fail';
@@ -103,7 +104,7 @@ export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kin
         [
           entry.status ?? '—',
           entry.durationMs === null ? null : `${Math.round(entry.durationMs)} ms`,
-          timeOf(entry.at),
+          timeOf(entry.at, ctx.locale),
           `— ${reasonLabel(entry.reason, ctx.t)}`,
         ].filter(Boolean).join(' · '),
       );

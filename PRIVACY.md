@@ -16,9 +16,11 @@ All of this stays on your device and is removed when you uninstall the extension
 - It contains no analytics, no telemetry and no third-party code.
 - It downloads no code at runtime. The content security policy is fixed to `script-src 'self'`.
 
-## Request headers and bodies
+## Request headers
 
-Recording of request headers and bodies is **disabled by default**. If you enable it in the settings, the data is written to local storage only, and sensitive fields — including authorization headers, cookies and token-like values — are masked before being written.
+Recording of request headers is **disabled by default**. If you enable it in the settings, the data is written to local storage only, and sensitive fields — including authorization headers, cookies and token-like values — are masked before being written.
+
+**Request bodies are never recorded.** The extension has no body-capture capability at all.
 
 ## Permissions
 
@@ -57,9 +59,11 @@ Bunların tamamı cihazında kalır ve eklentiyi kaldırdığında silinir.
 - Analitik, telemetri veya üçüncü taraf kod içermez.
 - Çalışma anında hiçbir kod indirmez. İçerik güvenlik politikası `script-src 'self'` olarak sabittir.
 
-## İstek başlıkları ve gövdeleri
+## İstek başlıkları
 
-İstek başlığı ve gövdesi kaydı **varsayılan olarak kapalıdır**. Ayarlardan açarsan veri yalnızca yerel depoya yazılır ve authorization başlığı, cookie ve token benzeri değerler dahil hassas alanlar yazılmadan önce maskelenir.
+İstek başlığı kaydı **varsayılan olarak kapalıdır**. Ayarlardan açarsan veri yalnızca yerel depoya yazılır ve authorization başlığı, cookie ve token benzeri değerler dahil hassas alanlar yazılmadan önce maskelenir.
+
+**İstek gövdeleri hiçbir zaman kaydedilmez.** Eklentide gövde yakalama yeteneği hiç yoktur.
 
 ## İzinler
 

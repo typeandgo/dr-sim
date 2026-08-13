@@ -1,3 +1,4 @@
+import type { Translate } from './i18n';
 import type { Profile, Settings } from './types';
 
 // Profil = paylaşılabilir DR kurulumu: kural listesi + domainler + varsayılan politika + arıza.
@@ -21,13 +22,14 @@ export const slugify = (value: string): string => TR
   .replace(/^-+|-+$/g, '')
   .slice(0, 40);
 
-// Dosya adı profil adını taşır: paylaşılan dosyada hangi kurulum olduğu belli olsun
-export const profileFileName = (profile: Profile): string => `dr-sim-profil-${slugify(profile.name) || 'adsiz'}`;
+// Dosya adı profil adını taşır: paylaşılan dosyada hangi kurulum olduğu belli olsun.
+// Ön ek ve yedek ad sözlükten gelir — İngilizce arayüzde Türkçe dosya adı inmesin.
+export const profileFileName = (profile: Profile, t: Translate): string => `${t('file.profile')}-${slugify(profile.name) || t('file.untitled')}`;
 
-export const buildProfileFile = (profile: Profile): ProfileFile => ({
+export const buildProfileFile = (profile: Profile, t: Translate): ProfileFile => ({
   content: JSON.stringify(profile, null, 2),
   extension: 'json',
-  name: profileFileName(profile),
+  name: profileFileName(profile, t),
 });
 
 // Mevcut ayarların anlık görüntüsü — "Kaydet" ve seçili profil yokken "Dışa aktar"

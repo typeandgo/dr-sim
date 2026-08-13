@@ -17,7 +17,6 @@ const config = (over: Partial<RuntimeConfig> = {}): RuntimeConfig => ({
   fault: DEFAULT_SETTINGS.fault,
   normalization: DEFAULT_SETTINGS.normalization,
   captureHeaders: false,
-  captureBody: false,
   showPageBanner: true,
   bannerText: 'DR-SIM aktif',
   revision: 1,

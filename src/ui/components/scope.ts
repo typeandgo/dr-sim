@@ -1,5 +1,5 @@
 import { COMMANDS } from '@/core/constants';
-import { isInScope, validateDomainPattern } from '@/core/matcher';
+import { isInInjectionScope, validateDomainPattern } from '@/core/matcher';
 import { describeMessage } from '@/core/i18n';
 import type { DomainScope, UiState } from '@/core/types';
 import { button, h, setText } from '../dom/h';
@@ -19,7 +19,10 @@ const hostOf = (url: string): string => {
   }
 };
 
-const isCoveredBy = (host: string, patterns: string[]): boolean => (host ? isInScope(`https://${host}/`, patterns) : false);
+// Enjeksiyonun gerçek kapsamıyla aynı soruyu sorar (bkz. core/matcher.ts):
+// domain `localhost:5175`, sayfa `localhost:5174` iken script GERÇEKTEN enjekte
+// edilmiştir, çünkü izin/enjeksiyon pattern'i portsuzdur.
+const isCoveredBy = (host: string, patterns: string[]): boolean => isInInjectionScope(host, patterns);
 
 // Sayfa, domain listesi veya sayfa host listesi tarafından kapsanıyor mu?
 const isPageCovered = (host: string, state: UiState): boolean => isCoveredBy(

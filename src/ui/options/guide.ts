@@ -208,7 +208,7 @@ const TR: GuideChapter[] = [
       },
       {
         kind: 'p',
-        text: 'İstek başlıkları ve gövdeleri varsayılan olarak hiç kaydedilmez. Ayarlardan açarsan da parola, oturum anahtarı gibi hassas alanlar kayda geçerken maskelenir.',
+        text: 'İstek başlıkları varsayılan olarak hiç kaydedilmez. Ayarlardan açarsan da parola, oturum anahtarı gibi hassas alanlar kayda geçerken maskelenir. İstek gövdeleri hiçbir koşulda kaydedilmez.',
       },
     ],
   },
@@ -400,7 +400,7 @@ const EN: GuideChapter[] = [
       },
       {
         kind: 'p',
-        text: 'Request headers and bodies are not recorded at all by default. Even if you turn that on in the settings, sensitive fields such as passwords and session keys are masked as they are written.',
+        text: 'Request headers are not recorded at all by default. Even if you turn that on in the settings, sensitive fields such as passwords and session keys are masked as they are written. Request bodies are never recorded under any circumstances.',
       },
     ],
   },

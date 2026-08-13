@@ -39,8 +39,15 @@ $drsim-tag-neutral-fg: #e5e7eb;
 
 // Tipografi & ölçü
 $drsim-font-size: 12px;
+
+// 10px yalnızca rozet/pill içindir. Okunması GEREKEN metinler (ipucu satırı,
+// hata mesajı, boş durum, log meta) `note` boyutunu kullanır.
 $drsim-font-size-sm: 10px;
+$drsim-font-size-note: 11px;
 $drsim-font-size-lg: 14px;
+
+// WCAG 2.2 SC 2.5.8 (AA) asgari işaretçi hedefi
+$drsim-target-min: 24px;
 $drsim-line-height: 1.4;
 $drsim-font-mono: ui-monospace, sfmono-regular, menlo, monaco, consolas, monospace;
 $drsim-font-ui: -apple-system, blinkmacsystemfont, "Segoe UI", roboto, helvetica, arial, sans-serif;

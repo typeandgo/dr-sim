@@ -5,7 +5,6 @@ import { createTranslator, resolveLocale } from '@/core/i18n';
 import { buildProfileFile, snapshotProfile } from '@/core/profile';
 import { buildReportFile } from '@/core/report.builder';
 import {
-  bulkSetRuleState,
   removeRule,
   toggleRule,
   upsertRule,
@@ -20,7 +19,13 @@ import type {
   UiState,
 } from '@/core/types';
 import { updateBadge } from './badge';
-import { autoOffDeadline, cancelAutoOff, productionDomains, scheduleAutoOff } from './guards/auto-off';
+import {
+  autoOffDeadline,
+  cancelAutoOff,
+  productionDomains,
+  restoreAutoOff,
+  scheduleAutoOff,
+} from './guards/auto-off';
 import {
   broadcastConfig,
   broadcastState,
@@ -86,6 +91,8 @@ const bootstrap = async (): Promise<void> => {
       await settingsStore.load();
       await sessionStore.hydrate();
       sessionStore.prune(Date.now());
+      // SW yeniden doğduysa alarm hâlâ yaşıyor olabilir; geri sayımı ondan geri oku
+      await restoreAutoOff();
       await syncContentScripts(settingsStore.get().domains, settingsStore.get().pageHosts);
       await updateBadge(settingsStore.get().enabled, badgeTitle(settingsStore.get().enabled));
     })();
@@ -167,8 +174,9 @@ const addDomain = async ({ payload }: CommandContext): Promise<CommandResult> =>
   if (!validation.ok) return { ok: false, error: validation.error };
 
   const existing = settingsStore.get().domains;
+  // Hata KODU döner, hazır metin değil: UI `describeMessage` ile kendi dilinde çevirir
   if (existing.some((domain) => domain.pattern === validation.pattern)) {
-    return { ok: false, error: 'Bu domain zaten ekli.' };
+    return { ok: false, error: 'domain-duplicate' };
   }
 
   // İzin UI tarafında (kullanıcı hareketi bağlamında) istenmiştir; burada yalnızca doğrulanır
@@ -245,18 +253,6 @@ const applyProfile = async ({ payload }: CommandContext): Promise<CommandResult>
   return { ok: true };
 };
 
-const saveProfile = async ({ payload }: CommandContext): Promise<CommandResult> => {
-  const name = asString(payload.name).trim();
-  if (!name) return { ok: false, error: 'Profil adı boş olamaz.' };
-
-  const current = settingsStore.get();
-  const profile = snapshotProfile(current, asString(payload.id) || crypto.randomUUID(), name, Date.now());
-
-  const others = current.profiles.filter((entry) => entry.id !== profile.id);
-  await settingsStore.update({ profiles: [...others, profile], activeProfileId: profile.id });
-  return { ok: true, data: { id: profile.id } };
-};
-
 const importProfile = async ({ payload }: CommandContext): Promise<CommandResult> => {
   let parsed: unknown;
   try {
@@ -272,7 +268,7 @@ const importProfile = async ({ payload }: CommandContext): Promise<CommandResult
 
   const profile: Profile = {
     id: asString(candidate.id) || crypto.randomUUID(),
-    name: asString(candidate.name, 'İçe aktarılan profil'),
+    name: asString(candidate.name, translator()('profile.importedName')),
     defaultPolicy: candidate.defaultPolicy === 'pass' ? 'pass' : 'block',
     domains: Array.isArray(candidate.domains) ? candidate.domains : [],
     rules: candidate.rules,
@@ -303,21 +299,8 @@ const handlers: Record<string, (ctx: CommandContext) => CommandResult | Promise<
   },
   [COMMANDS.TOGGLE_RULE_STATE]: toggleRuleState,
   [COMMANDS.SET_RULE_STATE]: setRuleState,
-  // Revizyon 15'te izin listesi paneli kaldırıldı; bu iki komutun şu an UI yüzeyi yok.
-  // Protokolde bırakıldılar (01 §4.3) — elle EP ekleme geri istenirse tek bileşen yeter.
-  [COMMANDS.ADD_MANUAL_ENDPOINT]: setRuleState,
   [COMMANDS.REMOVE_RULE]: async ({ payload }) => {
     await settingsStore.mutate((current) => ({ ...current, rules: removeRule(current.rules, asString(payload.key)) }));
-    return { ok: true };
-  },
-  // Revizyon 24'te fırtına bandı kaldırıldı; toplu izin komutunun da UI yüzeyi yok.
-  [COMMANDS.BULK_SET_RULE_STATE]: async ({ payload }) => {
-    const entries = Array.isArray(payload.entries) ? (payload.entries as Array<{ method: string; path: string }>) : [];
-    const state = payload.state === 'block' ? 'block' : 'allow';
-    await settingsStore.mutate((current) => ({
-      ...current,
-      rules: bulkSetRuleState(current.rules, entries, state, 'inventory', Date.now()),
-    }));
     return { ok: true };
   },
   [COMMANDS.CLEAR_RULES]: async () => {
@@ -359,10 +342,6 @@ const handlers: Record<string, (ctx: CommandContext) => CommandResult | Promise<
     return { ok: true };
   },
   [COMMANDS.APPLY_PROFILE]: applyProfile,
-  // Revizyon 32'de "Kaydet" butonu kaldırıldı; bu komutun şu an UI yüzeyi yok.
-  // Profiller yalnızca içe aktarma ile listeye giriyor; mevcut durumu dosyaya
-  // dökmek isteyen "Dışa aktar"ı seçimsiz kullanıyor (anlık görüntü).
-  [COMMANDS.SAVE_PROFILE]: saveProfile,
   [COMMANDS.DELETE_PROFILE]: async ({ payload }) => {
     const id = asString(payload.id);
     await settingsStore.mutate((current) => ({
@@ -383,7 +362,10 @@ const handlers: Record<string, (ctx: CommandContext) => CommandResult | Promise<
 
     return {
       ok: true,
-      data: buildProfileFile(stored ?? snapshotProfile(current, 'current', translator()('profile.snapshotName'), Date.now())),
+      data: buildProfileFile(
+        stored ?? snapshotProfile(current, 'current', translator()('profile.snapshotName'), Date.now()),
+        translator(),
+      ),
     };
   },
   [COMMANDS.EXPORT_REPORT]: exportReport,

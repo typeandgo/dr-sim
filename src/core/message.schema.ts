@@ -93,7 +93,6 @@ const parseTelemetryRecord = (raw: unknown): TelemetryRecord | null => {
     record.faultKind = raw.faultKind;
   }
   if (isRecord(raw.headers)) record.headers = sanitizeKeys(raw.headers) as Record<string, string>;
-  if (typeof raw.body === 'string') record.body = raw.body.slice(0, 32 * 1024);
 
   return record;
 };

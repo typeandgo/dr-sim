@@ -85,15 +85,23 @@ describe('core/message.schema', () => {
     it('opsiyonel alanları taşır', () => {
       const result = validateInboundMessage(
         telemetry({
-          records: [{ ...baseRecord, faultKind: 'http', headers: { a: 'b' }, body: 'x' }],
+          records: [{ ...baseRecord, faultKind: 'http', headers: { a: 'b' } }],
         }),
         TOKEN,
       );
       expect(result && 'records' in result && result.records[0]).toMatchObject({
         faultKind: 'http',
         headers: { a: 'b' },
-        body: 'x',
       });
+    });
+
+    // Gövde yakalama üründen kaldırıldı; sayfadan `body` gelse bile taşınmaz
+    it('sayfadan gelen body alanı taşınmaz', () => {
+      const result = validateInboundMessage(
+        telemetry({ records: [{ ...baseRecord, body: 'gizli' }] }),
+        TOKEN,
+      );
+      expect(result && 'records' in result && result.records[0]).not.toHaveProperty('body');
     });
 
     it('geçersiz faultKind taşınmaz', () => {

@@ -62,12 +62,25 @@ export const releaseDomainPermission = async (pattern: string, remaining: Domain
   }
 };
 
+// Son BAŞARIYLA uygulanan enjeksiyon kapsamı. `applyRuntimeSideEffects` her
+// başarılı komuttan sonra koştuğu için (log temizleme, dil değişimi, satır
+// toggle'ı…) bu koruma olmadan her tıklama bir `chrome.scripting` turu üretiyordu.
+// Yalnızca başarıda yazılır: kayıt başarısızsa bir sonraki çağrı tekrar denemeli.
+let appliedSignature: string | null = null;
+
+export const resetScopeSyncCache = (): void => {
+  appliedSignature = null;
+};
+
 // MAIN + ISOLATED çiftini tek kopya olacak şekilde senkronlar (Chrome restart sonrası duplicate önlenir)
 export const syncContentScripts = async (
   domains: DomainScope[],
   pageHosts: DomainScope[] = [],
 ): Promise<void> => {
   const matches = matchPatternsFor(domains, pageHosts);
+
+  const signature = [...matches].sort().join('|');
+  if (signature === appliedSignature) return;
 
   let registered: chrome.scripting.RegisteredContentScript[] = [];
   try {
@@ -79,6 +92,7 @@ export const syncContentScripts = async (
   }
 
   if (!matches.length) {
+    appliedSignature = signature;
     if (!registered.length) return;
     try {
       await chrome.scripting.unregisterContentScripts({ ids: registered.map((script) => script.id) });
@@ -97,13 +111,16 @@ export const syncContentScripts = async (
   try {
     if (toUpdate.length) await chrome.scripting.updateContentScripts(toUpdate);
     if (toRegister.length) await chrome.scripting.registerContentScripts(toRegister);
+    appliedSignature = signature;
   } catch {
     // Chrome bazı durumlarda "duplicate id" döner → tümünü kaldırıp yeniden kaydet
     try {
       await chrome.scripting.unregisterContentScripts({ ids: scripts.map((script) => script.id) });
       await chrome.scripting.registerContentScripts(scripts);
+      appliedSignature = signature;
     } catch {
       // yine başarısızsa enjeksiyon yapılmaz; UI domain'i "izin bekliyor" gösterir
+      appliedSignature = null;
     }
   }
 };

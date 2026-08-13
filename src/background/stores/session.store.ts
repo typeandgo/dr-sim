@@ -3,7 +3,7 @@ import {
   SESSION_TTL_MS,
   STORAGE_KEYS,
 } from '@/core/constants';
-import { redactBody, redactHeaders } from '@/core/redact';
+import { redactHeaders } from '@/core/redact';
 import type {
   DecisionReason,
   InventoryItem,
@@ -77,7 +77,6 @@ const toLogEntry = (record: TelemetryRecord, settings: Settings, id: string): Lo
   if (record.faultKind) entry.faultKind = record.faultKind;
   // Yakalama varsayılan kapalı; açıksa redaction zorunlu geçiştir (T-502)
   if (settings.captureHeaders && record.headers) entry.headers = redactHeaders(record.headers);
-  if (settings.captureBody && record.body) entry.body = redactBody(record.body);
 
   return entry;
 };

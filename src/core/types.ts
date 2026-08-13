@@ -76,7 +76,6 @@ export interface Settings {
   activeProfileId: string | null;
   profiles: Profile[];
   captureHeaders: boolean;
-  captureBody: boolean;
   maxLogEntries: number;
   maxInventoryItems: number;
   autoOffMinutes: number | null;
@@ -85,7 +84,6 @@ export interface Settings {
   keepInventoryOnNavigate: boolean;
   showPageBanner: boolean;
   locale: LocalePreference;
-  engine: 'main-world' | 'dnr' | 'debugger';
 }
 
 export type DecisionReason =
@@ -122,7 +120,6 @@ export interface RuntimeConfig {
   fault: FaultConfig;
   normalization: NormalizationRules;
   captureHeaders: boolean;
-  captureBody: boolean;
   showPageBanner: boolean;
   // Banner metni SW'de çevrilir; content script sözlüğü paketlemez (Revizyon 41)
   bannerText: string;
@@ -164,7 +161,6 @@ export interface LogEntry {
   routePath: string;
   frameId: number;
   headers?: Record<string, string>;
-  body?: string;
 }
 
 export interface TabSession {
@@ -198,7 +194,6 @@ export interface TelemetryRecord {
   at: number;
   routePath: string;
   headers?: Record<string, string>;
-  body?: string;
 }
 
 export interface RouteInfo {

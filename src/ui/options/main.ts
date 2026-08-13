@@ -8,6 +8,7 @@ import {
 import { normalizePath } from '@/core/path.util';
 import { buildProfileFile } from '@/core/profile';
 import { GUIDE, type GuideBlock } from './guide';
+import { PROFILE_FIELDS, type FieldRow } from './profile-fields';
 import { sampleProfile } from './sample-profile';
 import type { FaultConfig, NormalizationRules, Settings, UiState } from '@/core/types';
 import { button, h, setText } from '../dom/h';
@@ -53,6 +54,33 @@ const renderGuideBlock = (block: GuideBlock): HTMLElement => {
   return h('p', { class: 'drsim-guide__text', text: block.text });
 };
 
+// Profil JSON'ının alan sözlüğü (§ Örnek profil'in hemen altında).
+// Kılavuzla aynı katlanır yapı: gruplar içindekiler gibi çalışır, kullanıcı
+// yalnızca aradığı bloğu açar.
+const renderFieldRow = (row: FieldRow, t: Translate): HTMLElement => h('div', { class: 'drsim-schema__row' }, [
+  h('div', { class: 'drsim-schema__head' }, [
+    h('code', { class: 'drsim-schema__key', text: row.name }),
+    h('span', {
+      class: row.required ? 'drsim-tag drsim-tag--manual' : 'drsim-tag',
+      text: t(row.required ? 'options.schemaRequired' : 'options.schemaOptional'),
+    }),
+    h('span', { class: 'drsim-schema__type', text: row.type }),
+  ]),
+  h('p', { class: 'drsim-schema__desc', text: row.desc }),
+]);
+
+const renderFields = (locale: Locale, t: Translate): HTMLElement => h('div', { class: 'drsim-guide' }, PROFILE_FIELDS[locale]
+  .map((group) => h('details', { class: 'drsim-guide__chapter' }, [
+    h('summary', { class: 'drsim-guide__summary' }, [
+      h('code', { class: 'drsim-schema__path', text: group.path }),
+      h('span', { text: ` ${group.title}` }),
+    ]),
+    h('div', { class: 'drsim-guide__body' }, [
+      h('p', { class: 'drsim-guide__note', text: group.intro }),
+      h('div', { class: 'drsim-schema' }, group.rows.map((row) => renderFieldRow(row, t))),
+    ]),
+  ])));
+
 const renderGuide = (locale: Locale): HTMLElement => h('div', { class: 'drsim-guide' }, GUIDE[locale]
   .map((chapter) => {
     const details = h('details', { class: 'drsim-guide__chapter' }, [
@@ -66,7 +94,7 @@ const buildOptions = (mount: HTMLElement, t: Translate, locale: Locale) => {
   // --- örnek profil (Revizyon 49)
   // Dosya, gerçek dışa aktarmayla AYNI üreticiden geçer: örnek ile ürünün ürettiği
   // biçim ayrışamaz. Kullanıcı indirip düzenler, panelden "⤓ İçe" ile yükler.
-  const sampleFile = buildProfileFile(sampleProfile(t));
+  const sampleFile = buildProfileFile(sampleProfile(t), t);
 
   const sampleStatus = h('span', { class: 'drsim-hint', aria: { live: 'polite' } });
 
@@ -169,7 +197,6 @@ const buildOptions = (mount: HTMLElement, t: Translate, locale: Locale) => {
 
   // --- gizlilik
   const captureHeaders = checkbox(t('options.captureHeaders'), (checked) => save({ captureHeaders: checked }));
-  const captureBody = checkbox(t('options.captureBody'), (checked) => save({ captureBody: checked }));
 
   // --- limitler
   const maxLogEntries = numberField(t('options.maxLogEntries'), (value) => save({ maxLogEntries: value }));
@@ -214,7 +241,6 @@ const buildOptions = (mount: HTMLElement, t: Translate, locale: Locale) => {
     section(t('options.sample'), [
       h('p', { class: 'drsim-hint', text: t('options.sampleHint') }),
       h('pre', { class: 'drsim-code', text: sampleFile.content }),
-      h('p', { class: 'drsim-hint', text: t('options.sampleFields') }),
       h('p', { class: 'drsim-hint', text: t('options.sampleScenarios') }),
       h('div', { class: 'drsim-section__actions' }, [
         button(t('options.sampleDownload'), downloadSample, {
@@ -228,6 +254,10 @@ const buildOptions = (mount: HTMLElement, t: Translate, locale: Locale) => {
         }, { class: 'drsim-button drsim-button--compact' }),
         sampleStatus,
       ]),
+    ]),
+    section(t('options.schema'), [
+      h('p', { class: 'drsim-hint', text: t('options.schemaHint') }),
+      renderFields(locale, t),
     ]),
     section(t('options.fault'), [
       faultSelect,
@@ -244,7 +274,6 @@ const buildOptions = (mount: HTMLElement, t: Translate, locale: Locale) => {
     section(t('options.normalization'), [numericId.row, uuid.row, longHex.row, customPatterns, preview]),
     section(t('options.capture'), [
       captureHeaders.row,
-      captureBody.row,
       h('p', { class: 'drsim-hint', text: t('options.privacyHint') }),
     ]),
     section(t('options.limits'), [maxLogEntries.row, maxInventoryItems.row, keepInventory.row]),
@@ -370,7 +399,6 @@ const buildOptions = (mount: HTMLElement, t: Translate, locale: Locale) => {
     updatePreview();
 
     captureHeaders.input.checked = settings.captureHeaders;
-    captureBody.input.checked = settings.captureBody;
 
     maxLogEntries.input.value = String(settings.maxLogEntries);
     maxInventoryItems.input.value = String(settings.maxInventoryItems);
@@ -402,7 +430,11 @@ connection.store.subscribe((state) => {
   // tek tek güncellemek yerine DOM'u baştan üretmek hem daha kısa hem daha güvenli.
   if (!sync || locale !== next) {
     locale = next;
-    sync = buildOptions(root, translatorFor(state.settings.locale), next);
+    // Belge dili ve sekme başlığı da çözülen dili izler (Y1)
+    const t = translatorFor(state.settings.locale);
+    document.documentElement.lang = next;
+    document.title = t('options.title');
+    sync = buildOptions(root, t, next);
   }
 
   sync(state);

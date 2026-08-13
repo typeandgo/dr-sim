@@ -104,8 +104,10 @@ export interface ReportFile {
 }
 
 export const buildReportFile = (format: string, input: ReportInput): ReportFile => {
-  if (format === 'json') return { content: buildJsonReport(input), extension: 'json', name: 'dr-sim-rapor' };
-  return { content: buildResultReport(input), extension: 'md', name: 'dr-sim-rapor' };
+  // Dosya adı da arayüz diliyle aynı sözlükten gelir (Y1)
+  const name = input.t('file.report');
+  if (format === 'json') return { content: buildJsonReport(input), extension: 'json', name };
+  return { content: buildResultReport(input), extension: 'md', name };
 };
 
 // Fail satırındaki sebep etiketi (02-ui-spec.md §3.9). Sözlükte karşılığı olmayan

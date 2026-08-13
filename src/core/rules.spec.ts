@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  bulkSetRuleState,
   findRule,
   removeRule,
   toggleRule,
@@ -108,10 +107,13 @@ describe('core/rules', () => {
       expect(removeRule(rules, 'GET /a').map((entry) => entry.key)).toEqual(['GET /b', 'GET /c']);
     });
 
-    it('toplu durum yazar', () => {
-      const next = bulkSetRuleState(rules, [{ method: 'GET', path: '/b' }, { method: 'GET', path: '/d' }], 'allow');
+    it('var olan kaydı güncellerken kardeş kayıtlara dokunmaz', () => {
+      const next = upsertRule(rules, { method: 'GET', path: '/b', state: 'allow' });
+
+      expect(next.map((entry) => entry.key)).toEqual(['GET /a', 'GET /b', 'GET /c']);
       expect(findRule(next, 'GET /b')?.state).toBe('allow');
-      expect(findRule(next, 'GET /d')?.state).toBe('allow');
+      expect(findRule(next, 'GET /a')).toBe(rules[0]);
+      expect(findRule(next, 'GET /c')).toBe(rules[2]);
     });
   });
 });

@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS } from './constants';
+import { createTranslator } from './i18n';
 import { buildProfileFile, profileFileName, slugify, snapshotProfile } from './profile';
 import type { Profile, Rule, Settings } from './types';
+
+const tr = createTranslator('tr');
+const en = createTranslator('en');
 
 const rule = (key: string): Rule => ({
   key,
@@ -44,18 +48,24 @@ describe('core/profile', () => {
 
   describe('profileFileName', () => {
     it('profil adını dosya adına taşır', () => {
-      expect(profileFileName(profile())).toBe('dr-sim-profil-odeme-kapali');
+      expect(profileFileName(profile(), tr)).toBe('dr-sim-profil-odeme-kapali');
     });
 
-    it('slug boş kalırsa adsiz’e düşer', () => {
-      expect(profileFileName(profile({ name: '???' }))).toBe('dr-sim-profil-adsiz');
+    it('slug boş kalırsa yedek ada düşer', () => {
+      expect(profileFileName(profile({ name: '???' }), tr)).toBe('dr-sim-profil-adsiz');
+    });
+
+    // Dosya adı arayüz dilini izler: İngilizce arayüzde Türkçe dosya inmemeli (Y1)
+    it('dosya adı arayüz dilini izler', () => {
+      expect(profileFileName(profile(), en)).toBe('dr-sim-profile-odeme-kapali');
+      expect(profileFileName(profile({ name: '???' }), en)).toBe('dr-sim-profile-untitled');
     });
   });
 
   describe('buildProfileFile', () => {
     it('profili birebir serileştirir — içe aktarılan dosya aynen geri çıkar', () => {
       const source = profile();
-      const file = buildProfileFile(source);
+      const file = buildProfileFile(source, tr);
 
       expect(file).toMatchObject({ extension: 'json', name: 'dr-sim-profil-odeme-kapali' });
       expect(JSON.parse(file.content)).toEqual(source);
@@ -83,7 +93,7 @@ describe('core/profile', () => {
 
     it('anlık görüntü de aynı şemaya uyar — dışa aktarılıp geri okunabilir', () => {
       const snapshot = snapshotProfile(settings(), 'current', 'DR-SIM profili', 1);
-      expect(JSON.parse(buildProfileFile(snapshot).content)).toEqual(snapshot);
+      expect(JSON.parse(buildProfileFile(snapshot, tr).content)).toEqual(snapshot);
     });
   });
 });

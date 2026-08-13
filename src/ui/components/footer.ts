@@ -39,10 +39,8 @@ const LANGUAGE_SHORT: Record<Locale, string> = { en: 'EN', tr: 'TR' };
 export const mountFooter = (root: HTMLElement, ctx: ComponentContext): Component => {
   const info = h('span', { class: 'drsim-hint' });
   const pruned = h('span', { class: 'drsim-hint' });
-  const copyright = h('span', {
-    class: 'drsim-hint drsim-footer__copyright',
-    text: `© ${new Date().getFullYear()} typeandgo`,
-  });
+  // Telif satırı yalnızca Ayarlar sayfasında (İletişim bölümü) durur: panel çalışma
+  // yüzeyidir, her açılışta okunan bir şey değil.
 
   const exportReport = async (format: string): Promise<void> => {
     const result = await ctx.send(COMMANDS.EXPORT_REPORT, { format });
@@ -89,13 +87,12 @@ export const mountFooter = (root: HTMLElement, ctx: ComponentContext): Component
       ]),
       info,
       pruned,
-      copyright,
     ]),
   );
 
   return {
     update: (state: UiState) => {
-      setText(info, ctx.t('footer.engine', { engine: state.settings.engine, version: chrome.runtime.getManifest().version }));
+      setText(info, ctx.t('footer.version', { version: chrome.runtime.getManifest().version }));
 
       const dropped = state.session?.droppedCount ?? 0;
       setText(

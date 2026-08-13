@@ -117,6 +117,12 @@ export const EN = {
   'profile.imported': 'Profile added to the list.',
   'profile.importApplyConfirm': 'Profile added to the list. Apply it now? The current rule list will change.',
   'profile.snapshotName': 'DR-SIM profile',
+  'profile.importedName': 'Imported profile',
+
+  // --- dosya adları (arayüz diliyle aynı; ASCII slug'a çevrilir)
+  'file.profile': 'dr-sim-profile',
+  'file.report': 'dr-sim-report',
+  'file.untitled': 'untitled',
 
   // --- footer
   'badge.on': 'DR-SIM on — {count} requests blocked',
@@ -129,7 +135,9 @@ export const EN = {
   'footer.reportMd': 'Report MD',
   'footer.reportJson': 'Report JSON',
   'footer.reportFailed': 'Could not generate the report.',
-  'footer.engine': 'engine: {engine} · v{version}',
+  // Motor adı ekrandan kaldırıldı: tek motor var, seçilebilir değil ve kullanıcıya
+  // var olmayan seçeneklerin ipucunu veriyordu. Geriye sürüm kaldı.
+  'footer.version': 'v{version}',
   'footer.pruned': 'Showing the last {max} entries · {dropped} pruned',
   'footer.showing': 'Showing the last {max} entries',
 
@@ -151,6 +159,7 @@ export const EN = {
   // --- doğrulama hataları (core kod döndürür, UI çevirir)
   'error.domain-empty': 'Domain cannot be empty.',
   'error.domain-invalid': 'Invalid domain. Example: api.example.com or *.example.com/gw',
+  'error.domain-duplicate': 'This domain is already on the list.',
   'error.path-empty': 'Path cannot be empty.',
   'error.path-wildcard': 'Wildcard rules are not supported, enter the full path.',
   'error.path-invalid': 'Enter a valid path (e.g. /offers/active).',
@@ -172,7 +181,12 @@ export const EN = {
   'options.sampleCopy': 'Copy',
   'options.sampleCopied': 'Copied to the clipboard.',
   'options.sampleScenarios': 'Ready-made scenario files are not part of the extension package. A profile file you received from your team is loaded with “⤓ Import” in the panel.',
-  'options.sampleFields': 'Only the “rules” list is required. Every path must be written in normalized form: not /orders/8842/detail but /orders/:id/detail.',
+
+  // --- profil alan sözlüğü
+  'options.schema': 'Profile fields — what each key means',
+  'options.schemaHint': 'A reference for the file above. Open the group you need. Only the “rules” list is required; everything else falls back to your current settings.',
+  'options.schemaRequired': 'required',
+  'options.schemaOptional': 'optional',
   'sample.name': 'Sample — payment closed',
   'sample.noteAllow': 'needed for login, must stay open',
   'sample.noteNormalized': 'record id normalized with :id',
@@ -194,8 +208,7 @@ export const EN = {
   'options.customPatterns': 'One regex per line — e.g. ^u_[a-z0-9]+$',
   'options.capture': 'Capture and privacy',
   'options.captureHeaders': 'Capture headers',
-  'options.captureBody': 'Capture body',
-  'options.privacyHint': 'When capture is on, fields such as authorization, cookie and token are masked. Data never leaves the device.',
+  'options.privacyHint': 'When header capture is on, fields such as authorization, cookie and token are masked before being written. Request bodies are never recorded. Data never leaves the device.',
   'options.limits': 'Limits',
   'options.maxLogEntries': 'Max log entries',
   'options.maxInventoryItems': 'Max inventory rows',
@@ -334,6 +347,11 @@ export const TR: Record<MessageKey, string> = {
   'profile.imported': 'Profil listeye eklendi.',
   'profile.importApplyConfirm': 'Profil listeye eklendi. Şimdi uygulansın mı? Mevcut kural listesi değişecek.',
   'profile.snapshotName': 'DR-SIM profili',
+  'profile.importedName': 'İçe aktarılan profil',
+
+  'file.profile': 'dr-sim-profil',
+  'file.report': 'dr-sim-rapor',
+  'file.untitled': 'adsiz',
 
   'badge.on': 'DR-SIM açık — {count} istek bloklandı',
   'badge.off': 'DR-SIM kapalı',
@@ -345,7 +363,7 @@ export const TR: Record<MessageKey, string> = {
   'footer.reportMd': 'Rapor MD',
   'footer.reportJson': 'Rapor JSON',
   'footer.reportFailed': 'Rapor üretilemedi.',
-  'footer.engine': 'motor: {engine} · v{version}',
+  'footer.version': 'v{version}',
   'footer.pruned': 'Son {max} kayıt gösteriliyor · {dropped} kayıt budandı',
   'footer.showing': 'Son {max} kayıt gösteriliyor',
 
@@ -364,6 +382,7 @@ export const TR: Record<MessageKey, string> = {
 
   'error.domain-empty': 'Domain boş olamaz.',
   'error.domain-invalid': 'Geçersiz domain. Örnek: api.example.com veya *.example.com/gw',
+  'error.domain-duplicate': 'Bu domain zaten ekli.',
   'error.path-empty': 'Path boş olamaz.',
   'error.path-wildcard': 'Joker kural desteklenmiyor, tam path gir.',
   'error.path-invalid': 'Geçerli bir path gir (örn. /offers/active).',
@@ -384,7 +403,11 @@ export const TR: Record<MessageKey, string> = {
   'options.sampleCopy': 'Kopyala',
   'options.sampleCopied': 'Panoya kopyalandı.',
   'options.sampleScenarios': 'Hazır senaryo dosyaları eklenti paketine dahil değildir. Ekibinden aldığın bir profil dosyasını panelden “⤓ İçe” ile yüklersin.',
-  'options.sampleFields': 'Zorunlu olan tek alan “rules” listesidir. Her path normalize edilmiş biçimde yazılmalıdır: /orders/8842/detail değil, /orders/:id/detail.',
+
+  'options.schema': 'Profil alanları — hangi anahtar ne demek',
+  'options.schemaHint': 'Yukarıdaki dosyanın sözlüğü. İhtiyacın olan grubu aç. Zorunlu olan tek alan “rules” listesidir; kalanı verilmezse mevcut ayarların geçerli kalır.',
+  'options.schemaRequired': 'zorunlu',
+  'options.schemaOptional': 'isteğe bağlı',
   'sample.name': 'Örnek — ödeme kapalı',
   'sample.noteAllow': 'giriş için gerekli, açık kalmalı',
   'sample.noteNormalized': 'kayıt id’si :id ile normalize edildi',
@@ -406,8 +429,7 @@ export const TR: Record<MessageKey, string> = {
   'options.customPatterns': 'Her satıra bir regex — örn. ^u_[a-z0-9]+$',
   'options.capture': 'Yakalama ve gizlilik',
   'options.captureHeaders': 'Header yakala',
-  'options.captureBody': 'Body yakala',
-  'options.privacyHint': 'Yakalama açıkken authorization, cookie, token gibi alanlar maskelenir. Veri cihazdan çıkmaz.',
+  'options.privacyHint': 'Header yakalama açıkken authorization, cookie, token gibi alanlar yazılmadan önce maskelenir. İstek gövdeleri hiçbir zaman kaydedilmez. Veri cihazdan çıkmaz.',
   'options.limits': 'Limitler',
   'options.maxLogEntries': 'Max log kaydı',
   'options.maxInventoryItems': 'Max envanter satırı',

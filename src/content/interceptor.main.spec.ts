@@ -15,7 +15,6 @@ const runtimeConfig = (over: Partial<RuntimeConfig> = {}): RuntimeConfig => ({
   fault: DEFAULT_FAULT,
   normalization: DEFAULT_NORMALIZATION,
   captureHeaders: false,
-  captureBody: false,
   showPageBanner: false,
   bannerText: '',
   revision: 1,

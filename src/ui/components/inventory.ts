@@ -1,6 +1,6 @@
 import { COMMANDS } from '@/core/constants';
 import { effectiveState } from '@/core/decision-engine';
-import type { MessageKey } from '@/core/i18n';
+import type { Locale, MessageKey } from '@/core/i18n';
 import type { InventoryItem, RuleState, UiState } from '@/core/types';
 import { button, h, setText, toggleClass } from '../dom/h';
 import { createList } from '../dom/list';
@@ -17,7 +17,8 @@ const FILTERS: Array<{ id: Filter; key: MessageKey }> = [
   { id: 'allowed', key: 'common.allowed' },
 ];
 
-const timeOf = (at: number): string => new Date(at).toLocaleTimeString('tr-TR', { hour12: false });
+// Saat biçimi de arayüz dilini izler; `tr-TR`'ye sabitlenmişti (Y1)
+const timeOf = (at: number, locale: Locale): string => new Date(at).toLocaleTimeString(locale, { hour12: false });
 
 export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Component => {
   const title = h('span', { class: 'drsim-section__title' });
@@ -126,7 +127,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
         [
           item.lastStatus ?? '—',
           item.lastDurationMs === null ? null : `${Math.round(item.lastDurationMs)} ms`,
-          timeOf(item.lastAt),
+          timeOf(item.lastAt, ctx.locale),
           item.simulatedCount > 0 ? ctx.t('tag.simulated') : null,
         ].filter(Boolean).join(' · '),
       );

@@ -57,6 +57,10 @@ export const installChromeMock = () => {
       onStartup: createEvent(),
       getManifest: vi.fn(() => ({ version: '1.0.0' })),
     },
+    // Service worker dili buradan okur (izin gerektirmeyen varsayılan API)
+    i18n: {
+      getUILanguage: vi.fn(() => 'en'),
+    },
     tabs: {
       get: vi.fn(),
       query: vi.fn(async () => []),

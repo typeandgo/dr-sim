@@ -86,6 +86,9 @@ connection.store.subscribe((state: UiState) => {
 
   if (locale !== next) {
     locale = next;
+    // Belge dili çözülen dille aynı olmalı: sabit `lang="tr"` iken ekran okuyucu
+    // İngilizce metni Türkçe telaffuz kurallarıyla okuyordu (Y1).
+    document.documentElement.lang = next;
     components.forEach((component) => component.destroy());
     components = mountAll(translatorFor(state.settings.locale), next);
   }

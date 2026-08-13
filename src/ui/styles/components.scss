@@ -37,11 +37,13 @@
   cursor: pointer;
 }
 
+// Ürünün en önemli kontrolü; hedef boyutu asgarinin altına düşmemeli
 .drsim-switch__track {
   display: inline-flex;
   gap: 6px;
   align-items: center;
   width: 62px;
+  min-height: $drsim-target-min;
   padding: 2px;
   border: 1px solid $drsim-border-strong;
   border-radius: $drsim-radius-pill;
@@ -136,8 +138,10 @@
   border-color: $drsim-warning-line;
 }
 
-// Chip içindeki ✕: çerçevesiz, yalnızca ikon
+// Chip içindeki ✕: çerçevesiz, yalnızca ikon.
+// Görsel olarak küçük kalır ama tıklama alanı 24×24'tür (WCAG 2.2 SC 2.5.8).
 .drsim-button--bare {
+  min-width: $drsim-target-min;
   padding: 0 2px;
   border: 0;
   background: transparent;
@@ -153,12 +157,13 @@
 .drsim-chip__label {
   @include mono-ep;
 
-  font-size: $drsim-font-size-sm;
+  font-size: $drsim-font-size-note;
 }
 
 .drsim-route {
   @include mono-ep;
 
+  min-height: $drsim-target-min;
   padding: 0;
   border: 0;
   background: transparent;
@@ -177,6 +182,7 @@
   display: inline-flex;
   gap: 6px;
   align-items: center;
+  min-height: $drsim-target-min;
   cursor: pointer;
 }
 
@@ -334,7 +340,7 @@
 .drsim-log__label {
   flex: 0 0 auto;
   color: $drsim-text-muted;
-  font-size: $drsim-font-size-sm;
+  font-size: $drsim-font-size-note;
 
   // İmleç bu alanda hiçbir şey yapmaz; tıklama satıra geçer (Revizyon 48)
   pointer-events: none;
@@ -370,11 +376,6 @@
   margin-bottom: $drsim-gap-md;
 }
 
-.drsim-footer__copyright {
-  margin-top: $drsim-gap;
-  color: $drsim-text-muted;
-}
-
 .drsim-link {
   color: $drsim-success-line;
   text-decoration: none;
@@ -391,7 +392,7 @@
   border-radius: $drsim-radius;
   background: $drsim-bg-surface;
   color: $drsim-text-subtle;
-  font-size: $drsim-font-size-sm;
+  font-size: $drsim-font-size-note;
 }
 
 .drsim-notice--error {
@@ -472,6 +473,53 @@
   font-weight: 700;
 }
 
+// Profil alan sözlüğü — kılavuzun katlanır yapısını paylaşır, satır ritmi kendine ait
+.drsim-schema {
+  display: flex;
+  flex-direction: column;
+  gap: $drsim-gap-md;
+}
+
+.drsim-schema__row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 2px solid $drsim-border;
+  padding-left: $drsim-gap-md;
+}
+
+.drsim-schema__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $drsim-gap;
+  align-items: center;
+}
+
+.drsim-schema__key {
+  color: $drsim-text-strong;
+  font-family: $drsim-font-mono;
+  font-weight: 700;
+}
+
+// Tip, anahtarın yanında sessiz kalır: okunacak asıl şey açıklama
+.drsim-schema__type {
+  color: $drsim-text-muted;
+  font-family: $drsim-font-mono;
+  font-size: $drsim-font-size-note;
+}
+
+.drsim-schema__desc {
+  margin: 0;
+  color: $drsim-text-subtle;
+  line-height: 1.6;
+}
+
+.drsim-schema__path {
+  color: $drsim-text-muted;
+  font-family: $drsim-font-mono;
+  font-weight: 400;
+}
+
 // Örnek profil bloğu (Revizyon 49) — okunabilir, kopyalanabilir, taşmaz
 .drsim-code {
   margin: 0;
@@ -483,7 +531,7 @@
   overflow: auto;
   color: $drsim-text-subtle;
   font-family: $drsim-font-mono;
-  font-size: $drsim-font-size-sm;
+  font-size: $drsim-font-size-note;
   line-height: 1.5;
   user-select: text;
 }

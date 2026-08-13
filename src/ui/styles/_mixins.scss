@@ -36,9 +36,15 @@
   }
 }
 
-// Satır içi küçük aksiyon butonu
+// Satır içi küçük aksiyon butonu.
+// `min-height` WCAG 2.2 SC 2.5.8 (AA) için: hedef en az 24×24 CSS piksel olmalı.
+// Görsel ağırlık aynı kalsın diye yazı boyutu değil yalnızca tıklama alanı büyür.
 @mixin compact-button {
-  padding: 2px 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: $drsim-target-min;
+  padding: 2px 8px;
   font-size: $drsim-font-size-sm;
   line-height: 1.5;
 }

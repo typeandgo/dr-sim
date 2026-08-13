@@ -97,6 +97,27 @@ export const toOriginPattern = (pattern: string): string | null => {
 // `chrome.scripting` match pattern'i üretir
 export const toMatchPattern = (pattern: string): string | null => toOriginPattern(pattern);
 
+// "Bu sayfaya enjekte ediliyor mu?" sorusu, `isInScope` ile DEĞİL bununla sorulur.
+//
+// `isInScope` portu ve path'i korur — istek kapsamı için doğrusu budur. Ama
+// enjeksiyon `toMatchPattern` ile kaydedilir ve o pattern portsuz/path'sizdir
+// (`localhost:5175` → `*://localhost/*`). İki eksen aynı fonksiyonla sorulursa
+// panel, gerçekte enjekte edilmiş bir sayfaya "enjekte edilmiyor" der.
+export const isInInjectionScope = (host: string, patterns: string[]): boolean => {
+  const bareHost = withoutPort(String(host ?? '').trim().toLowerCase());
+  if (!bareHost) return false;
+
+  return patterns.some((pattern) => {
+    const parsed = parseDomainPattern(pattern);
+    if (!parsed) return false;
+
+    const patternHost = withoutPort(parsed.isWildcard ? parsed.host.slice(2) : parsed.host);
+    // Chrome'da `*.example.com` kök domaini de kapsar
+    if (parsed.isWildcard) return bareHost === patternHost || bareHost.endsWith(`.${patternHost}`);
+    return bareHost === patternHost;
+  });
+};
+
 const matchesScope = (host: string, pathname: string, scope: CompiledScope): boolean => {
   if (!scope.hostRegExp.test(host)) return false;
   if (!scope.basePath) return true;

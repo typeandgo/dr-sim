@@ -29,6 +29,21 @@ export const scheduleAutoOff = async (minutes: number | null, now = Date.now()):
   return autoOffAt;
 };
 
+// SW ~30 sn boştalıkta sonlanır ve modül state'i sıfırlanır; alarm ise yaşamaya
+// devam eder. Uyanışta deadline alarmdan geri okunmazsa panel "otomatik kapanır"
+// satırını kaybeder, kullanıcı auto-off'un iptal olduğunu sanır, sonra simülasyon
+// beklenmedik anda kapanır. Bu yüzden bootstrap her uyanışta bunu çağırır.
+export const restoreAutoOff = async (): Promise<number | null> => {
+  try {
+    const alarm = await chrome.alarms.get(ALARM_AUTO_OFF);
+    autoOffAt = alarm?.scheduledTime ?? null;
+  } catch {
+    autoOffAt = null;
+  }
+
+  return autoOffAt;
+};
+
 export const cancelAutoOff = async (): Promise<void> => {
   autoOffAt = null;
   try {

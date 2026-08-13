@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getCompiledScope,
+  isInInjectionScope,
   isInScope,
   normalizeDomainInput,
   parseDomainPattern,
@@ -152,6 +153,40 @@ describe('core/matcher', () => {
     it('geçersiz pattern null döner', () => {
       expect(toOriginPattern('a b')).toBeNull();
       expect(toMatchPattern('a b')).toBeNull();
+    });
+  });
+
+  // O6: enjeksiyon kapsamı, istek kapsamından AYRI sorulur. `toMatchPattern`
+  // portsuz/path'siz olduğu için "bu sayfaya enjekte ediliyor mu" sorusu da öyle.
+  describe('isInInjectionScope', () => {
+    it('port farkı enjeksiyonu bozmaz — asıl kusur buydu', () => {
+      // Domain localhost:5175, sayfa localhost:5174 → `*://localhost/*` ikisini de kapsar
+      expect(isInInjectionScope('localhost:5174', ['localhost:5175'])).toBe(true);
+      // İstek kapsamı ise portu korumaya devam eder
+      expect(isInScope('http://localhost:5174/a', ['localhost:5175'])).toBe(false);
+    });
+
+    it('tam host eşleşmesi', () => {
+      expect(isInInjectionScope('api.example.com', ['api.example.com'])).toBe(true);
+      expect(isInInjectionScope('other.example.com', ['api.example.com'])).toBe(false);
+    });
+
+    it('wildcard alt domaini ve kök domaini kapsar (Chrome davranışı)', () => {
+      expect(isInInjectionScope('api.example.com', ['*.example.com'])).toBe(true);
+      expect(isInInjectionScope('example.com', ['*.example.com'])).toBe(true);
+      expect(isInInjectionScope('example.com.evil.net', ['*.example.com'])).toBe(false);
+    });
+
+    it('pattern’deki path enjeksiyonu daraltmaz', () => {
+      expect(isInInjectionScope('api.example.com', ['api.example.com/gw'])).toBe(true);
+    });
+
+    it('boş host ve geçersiz pattern false döner', () => {
+      expect(isInInjectionScope('', ['api.example.com'])).toBe(false);
+      expect(isInInjectionScope('   ', ['api.example.com'])).toBe(false);
+      expect(isInInjectionScope(undefined as unknown as string, ['api.example.com'])).toBe(false);
+      expect(isInInjectionScope('api.example.com', ['a b'])).toBe(false);
+      expect(isInInjectionScope('api.example.com', [])).toBe(false);
     });
   });
 });

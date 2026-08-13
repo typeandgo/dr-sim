@@ -36,8 +36,9 @@ describe('ui/options/sample-profile', () => {
   });
 
   it('dışa aktarmayla aynı üreticiden geçer ve geri okunabilir', () => {
-    const profile = sampleProfile(createTranslator('tr'));
-    const file = buildProfileFile(profile);
+    const t = createTranslator('tr');
+    const profile = sampleProfile(t);
+    const file = buildProfileFile(profile, t);
 
     expect(file.extension).toBe('json');
     expect(JSON.parse(file.content)).toEqual(profile);

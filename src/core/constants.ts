@@ -41,8 +41,6 @@ export const COMMANDS = {
   TOGGLE_RULE_STATE: 'TOGGLE_RULE_STATE',
   SET_RULE_STATE: 'SET_RULE_STATE',
   REMOVE_RULE: 'REMOVE_RULE',
-  ADD_MANUAL_ENDPOINT: 'ADD_MANUAL_ENDPOINT',
-  BULK_SET_RULE_STATE: 'BULK_SET_RULE_STATE',
   CLEAR_RULES: 'CLEAR_RULES',
   ADD_DOMAIN: 'ADD_DOMAIN',
   REMOVE_DOMAIN: 'REMOVE_DOMAIN',
@@ -53,7 +51,6 @@ export const COMMANDS = {
   CLEAR_INVENTORY: 'CLEAR_INVENTORY',
   CLEAR_LOGS: 'CLEAR_LOGS',
   APPLY_PROFILE: 'APPLY_PROFILE',
-  SAVE_PROFILE: 'SAVE_PROFILE',
   DELETE_PROFILE: 'DELETE_PROFILE',
   IMPORT_PROFILE: 'IMPORT_PROFILE',
   EXPORT_PROFILE: 'EXPORT_PROFILE',
@@ -121,7 +118,6 @@ export const DEFAULT_SETTINGS: Settings = {
   activeProfileId: null,
   profiles: [],
   captureHeaders: false,
-  captureBody: false,
   maxLogEntries: 200,
   maxInventoryItems: 500,
   autoOffMinutes: null, // varsayılan kapalı — simülasyon kullanıcı kapatana kadar açık kalır (Revizyon 7)
@@ -130,7 +126,6 @@ export const DEFAULT_SETTINGS: Settings = {
   keepInventoryOnNavigate: false,
   showPageBanner: true,
   locale: 'auto',
-  engine: 'main-world',
 };
 
 // Fault tipi seçenekleri (02-ui-spec.md §3.3)
