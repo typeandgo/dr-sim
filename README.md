@@ -26,6 +26,8 @@ npm run build
 `chrome://extensions` → **Geliştirici modu** → **Paketlenmemiş öğe yükle** → `dist/` klasörünü seç.
 
 > Ayrıntılı kurulum, fixture ile deneme akışı, hızlı QA listesi ve sorun giderme tablosu: **[09-kurulum-ve-test.md](./dr-sim-extension/09-kurulum-ve-test.md)**
+>
+> Chrome Web Store'a yayınlama adımları, hazır store metinleri ve gizlilik politikası: **[10-yayinlama.md](./dr-sim-extension/10-yayinlama.md)**
 
 ## İki ayrı kapsam — en sık yapılan hata
 

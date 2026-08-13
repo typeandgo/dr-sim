@@ -6,5 +6,9 @@
   "extDescription": {
     "message": "Test resilience by simulating backend failures in web applications.",
     "description": "Extension description shown in the Chrome Web Store and chrome://extensions"
+  },
+  "commandToggle": {
+    "message": "Turn the simulation on/off",
+    "description": "Keyboard shortcut label in chrome://extensions/shortcuts"
   }
 }

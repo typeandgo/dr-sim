@@ -215,6 +215,7 @@ const buildOptions = (mount: HTMLElement, t: Translate, locale: Locale) => {
       h('p', { class: 'drsim-hint', text: t('options.sampleHint') }),
       h('pre', { class: 'drsim-code', text: sampleFile.content }),
       h('p', { class: 'drsim-hint', text: t('options.sampleFields') }),
+      h('p', { class: 'drsim-hint', text: t('options.sampleScenarios') }),
       h('div', { class: 'drsim-section__actions' }, [
         button(t('options.sampleDownload'), downloadSample, {
           class: 'drsim-button drsim-button--compact',

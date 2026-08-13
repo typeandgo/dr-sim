@@ -47,7 +47,7 @@
       "suggested_key": {
         "default": "Alt+Shift+D"
       },
-      "description": "Simülasyonu aç/kapat"
+      "description": "__MSG_commandToggle__"
     }
   }
 }

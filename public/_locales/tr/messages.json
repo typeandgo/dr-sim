@@ -6,5 +6,9 @@
   "extDescription": {
     "message": "Web uygulamalarında backend arızalarını simüle ederek dayanıklılık testi yapar.",
     "description": "Chrome Web Store ve chrome://extensions sayfasında görünen açıklama"
+  },
+  "commandToggle": {
+    "message": "Simülasyonu aç/kapat",
+    "description": "chrome://extensions/shortcuts sayfasındaki kısayol etiketi"
   }
 }
