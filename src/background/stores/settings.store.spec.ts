@@ -37,8 +37,8 @@ describe('background/settings.store', () => {
     });
 
     it('v0 verisini güncel sürüme migrate eder', () => {
-      expect(migrate({ enabled: true }).schemaVersion).toBe(3);
-      expect(normalizeSettings({ enabled: true }).schemaVersion).toBe(3);
+      expect(migrate({ enabled: true }).schemaVersion).toBe(4);
+      expect(normalizeSettings({ enabled: true }).schemaVersion).toBe(4);
     });
 
     it('v1 verisindeki DomainScope.enabled alanı düşürülür (Revizyon 3)', () => {
@@ -90,7 +90,7 @@ describe('background/settings.store', () => {
       const store = createSettingsStore();
       await store.load();
       expect(store.get()).toEqual(DEFAULT_SETTINGS);
-      expect(store.notice()).toContain('varsayılanlara dönüldü');
+      expect(store.notice()).toBe('settings-read');
       store.clearNotice();
       expect(store.notice()).toBeNull();
     });
@@ -150,7 +150,7 @@ describe('background/settings.store', () => {
       await store.load();
       await store.update({ enabled: true });
       await store.flush();
-      expect(store.notice()).toContain('kaydedilemedi');
+      expect(store.notice()).toBe('settings-write');
     });
   });
 });

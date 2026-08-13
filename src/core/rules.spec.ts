@@ -27,7 +27,7 @@ describe('core/rules', () => {
     it('joker içeren girdiyi reddeder', () => {
       expect(validateRulePath('/auth/*')).toEqual({
         ok: false,
-        error: 'Joker kural desteklenmiyor, tam path gir.',
+        error: 'path-wildcard',
       });
     });
 

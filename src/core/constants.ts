@@ -1,6 +1,6 @@
 import type { FaultConfig, HttpMethod, NormalizationRules, Settings } from './types';
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
@@ -129,7 +129,7 @@ export const DEFAULT_SETTINGS: Settings = {
   productionHostPatterns: ['*.prod.*', 'www.*', 'api.*.com'],
   keepInventoryOnNavigate: false,
   showPageBanner: true,
-  locale: 'tr',
+  locale: 'auto',
   engine: 'main-world',
 };
 
@@ -142,13 +142,3 @@ export const FAULT_PRESETS = [
   { id: 'timeout', label: 'Timeout', kind: 'timeout', status: 0, statusText: '' },
 ] as const;
 
-export const REASON_LABELS: Record<string, string> = {
-  disabled: 'simülasyon kapalı',
-  'out-of-scope': 'kapsam dışı',
-  allowed: 'izinli',
-  blocked: 'engel kuralı',
-  'default-block': 'izin listesinde yok',
-  'default-pass': 'varsayılan',
-  'real-error': 'gerçek hata',
-  'sync-xhr': 'sync XHR — kapsam dışı',
-};

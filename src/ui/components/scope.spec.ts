@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { COMMANDS, DEFAULT_SETTINGS } from '@/core/constants';
+import { createTranslator } from '@/core/i18n';
 import type { Settings, UiState } from '@/core/types';
 import { installChromeMock, type ChromeMock } from '@/test/chrome-mock';
 import { emptyState } from '../state/connection';
@@ -18,10 +19,12 @@ const state = (settings: Partial<Settings> = {}, tabUrl = 'http://localhost:5174
   tabUrl,
 });
 
+const t = createTranslator('tr');
+
 const setup = () => {
   const root = document.createElement('div');
   document.body.appendChild(root);
-  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn() };
+  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn(), t };
   return { root, ctx, component: mountScope(root, ctx) };
 };
 

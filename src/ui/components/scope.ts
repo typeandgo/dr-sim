@@ -1,5 +1,6 @@
 import { COMMANDS } from '@/core/constants';
 import { isInScope, validateDomainPattern } from '@/core/matcher';
+import { describeMessage } from '@/core/i18n';
 import type { DomainScope, UiState } from '@/core/types';
 import { button, h, setText } from '../dom/h';
 import { createList } from '../dom/list';
@@ -31,7 +32,7 @@ const isPageCovered = (host: string, state: UiState): boolean => isCoveredBy(
 export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component => {
   const input = h('input', {
     class: 'drsim-input',
-    placeholder: 'api.example.com',
+    placeholder: ctx.t('scope.domainPlaceholder'),
     dataset: { test: 'dr-sim-domain-input' },
     on: {
       keydown: (event: KeyboardEvent) => {
@@ -43,7 +44,7 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
     },
   });
 
-  const addButton = button('Ekle', () => void add(), {
+  const addButton = button(ctx.t('common.add'), () => void add(), {
     class: 'drsim-button',
     dataset: { test: 'dr-sim-domain-add' },
   });
@@ -67,10 +68,10 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
     class: 'drsim-route',
     type: 'button',
     dataset: { test: 'dr-sim-route' },
-    title: 'Panoya kopyala',
+    title: ctx.t('scope.copyAddress'),
     on: {
       click: () => {
-        void navigator.clipboard?.writeText(route.textContent ?? '').then(() => ctx.notify('Adres kopyalandı'));
+        void navigator.clipboard?.writeText(route.textContent ?? '').then(() => ctx.notify(ctx.t('scope.addressCopied')));
       },
     },
   });
@@ -78,7 +79,7 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
   // Enjeksiyon kapsamı domain kapsamından ayrıdır: uygulama panel.example.com'da
   // çalışırken API api.example.com olabilir. Sayfaya enjekte edilmezse hiçbir şey yakalanmaz.
   const coverage = h('p', { class: 'drsim-hint drsim-hint--error' });
-  const enablePage = button('Bu sayfada çalıştır', () => void addPageHost(), {
+  const enablePage = button(ctx.t('scope.runHere'), () => void addPageHost(), {
     class: 'drsim-button drsim-button--compact',
     dataset: { test: 'dr-sim-enable-page' },
   });
@@ -87,9 +88,9 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
   root.append(
     h('section', { class: 'drsim-section' }, [
       h('div', { class: 'drsim-section__head' }, [
-        h('span', { class: 'drsim-section__title', text: 'Domain' }),
+        h('span', { class: 'drsim-section__title', text: ctx.t('scope.domain') }),
       ]),
-      h('p', { class: 'drsim-hint', text: 'Hangi isteklerin yönetileceği (API host’u).' }),
+      h('p', { class: 'drsim-hint', text: ctx.t('scope.domainHint') }),
       h('div', { class: 'drsim-row' }, [input, addButton]),
       error,
       empty,
@@ -97,7 +98,7 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
     ]),
     h('section', { class: 'drsim-section' }, [
       h('div', { class: 'drsim-section__head' }, [
-        h('span', { class: 'drsim-section__title', text: 'Aktif sayfa' }),
+        h('span', { class: 'drsim-section__title', text: ctx.t('scope.activePage') }),
         enablePage,
       ]),
       route,
@@ -111,12 +112,12 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
     (domain) => domain.id,
     (domain) => {
       const label = h('span', { class: 'drsim-chip__label' });
-      const grant = button('İzin ver', () => void requestPermission(domain.pattern, domain.id), {
+      const grant = button(ctx.t('common.allow'), () => void requestPermission(domain.pattern, domain.id), {
         class: 'drsim-button drsim-button--compact',
       });
       const remove = button('✕', () => void ctx.send(COMMANDS.REMOVE_DOMAIN, { id: domain.id }), {
         class: 'drsim-button drsim-button--compact drsim-button--bare',
-        title: 'Domaini kaldır',
+        title: ctx.t('scope.removeDomain'),
       });
 
       return h('li', { class: 'drsim-chip', dataset: { test: 'dr-sim-domain-chip' } }, [label, grant, remove]);
@@ -137,18 +138,18 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
 
     // İzin, komuttan ÖNCE ve tıklama bağlamında istenir (bkz. ui/permissions.ts)
     if (!await requestOriginPermission(activeHost)) {
-      ctx.notify('Bu site için izin verilmedi. Eklenti bu sayfada çalışamaz.', 'error');
+      ctx.notify(ctx.t('scope.permissionDenied'), 'error');
       return;
     }
 
     const result = await ctx.send(COMMANDS.ADD_PAGE_HOST, { pattern: activeHost });
-    if (result.ok) ctx.notify('Sayfayı yenile — interceptor bu sekmeye enjekte edilecek.');
-    else ctx.notify(result.error ?? 'Sayfa eklenemedi.', 'error');
+    if (result.ok) ctx.notify(ctx.t('scope.reloadHint'));
+    else ctx.notify(result.error ?? ctx.t('scope.pageAddFailed'), 'error');
   }
 
   async function requestPermission(pattern: string, id: string): Promise<void> {
     if (!await requestOriginPermission(pattern)) {
-      ctx.notify('Bu site için izin verilmedi. Eklenti bu sayfada çalışamaz.', 'error');
+      ctx.notify(ctx.t('scope.permissionDenied'), 'error');
       return;
     }
     await ctx.send(COMMANDS.REQUEST_DOMAIN_PERMISSION, { id });
@@ -161,7 +162,7 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
       const label = h('span', { class: 'drsim-chip__label' });
       const remove = button('✕', () => void ctx.send(COMMANDS.REMOVE_PAGE_HOST, { id: host.id }), {
         class: 'drsim-button drsim-button--compact drsim-button--bare',
-        title: 'Bu sayfada çalıştırmayı bırak',
+        title: ctx.t('scope.stopRunningHere'),
       });
       return h('li', { class: 'drsim-chip' }, [label, remove]);
     },
@@ -175,7 +176,7 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
     const validation = validateDomainPattern(input.value);
 
     if (!validation.ok) {
-      showError(validation.error);
+      showError(describeMessage(validation.error, ctx.t));
       return;
     }
 
@@ -188,13 +189,13 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
     // İzin, komuttan ÖNCE ve tıklama bağlamında istenir (bkz. ui/permissions.ts)
     const patterns = alsoPage ? [validation.pattern, alsoPage] : [validation.pattern];
     if (!await requestOriginPermissions(patterns)) {
-      showError('Bu site için izin verilmedi. Domain eklenmedi — Ayarlar → Site izinleri’nden de verebilirsin.');
+      showError(ctx.t('scope.permissionDeniedDomain'));
       return;
     }
 
     const result = await ctx.send(COMMANDS.ADD_DOMAIN, { pattern: validation.pattern });
     if (!result.ok) {
-      showError(result.error ?? 'Domain eklenemedi.');
+      showError(result.error ? describeMessage(result.error, ctx.t) : ctx.t('scope.addFailed'));
       return;
     }
 
@@ -206,7 +207,7 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
     update: (state: UiState) => {
       list.render(state.settings.domains);
       const hasDomain = state.settings.domains.length > 0;
-      setText(empty, hasDomain ? '' : 'Domain girilmeden hiçbir istek yönetilmez. Yukarıdan bir domain ekle.');
+      setText(empty, hasDomain ? '' : ctx.t('scope.noDomains'));
       empty.hidden = hasDomain;
       chips.hidden = !hasDomain;
 
@@ -222,11 +223,7 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
       enablePage.hidden = !activeHost || covered;
       coverage.hidden = !activeHost || covered;
       if (!covered && activeHost) {
-        setText(
-          coverage,
-          `Bu sayfaya (${activeHost}) enjekte edilmiyor — istekler yakalanamaz. `
-          + '"Bu sayfada çalıştır" ile izin ver, sonra sayfayı yenile.',
-        );
+        setText(coverage, ctx.t('scope.notInjected', { host: activeHost }));
       }
 
       pageHostList.render(state.settings.pageHosts);

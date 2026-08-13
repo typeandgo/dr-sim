@@ -18,12 +18,12 @@ export const mountPolicy = (root: HTMLElement, ctx: ComponentContext): Component
 
   // DR döngüsü sayfa başına tekrarlanır: her yeni sayfaya temiz kural listesiyle
   // başlamak gerekir, bu yüzden sıfırlama panelde durur (Revizyon 21).
-  const reset = button('Sıfırla', () => {
-    if (!window.confirm('Tüm kurallar silinecek ve her EP varsayılan davranışa dönecek. Devam edilsin mi?')) return;
+  const reset = button(ctx.t('policy.reset'), () => {
+    if (!window.confirm(ctx.t('policy.resetConfirm'))) return;
     void ctx.send(COMMANDS.CLEAR_RULES);
   }, {
     class: 'drsim-button drsim-button--compact',
-    title: 'Kural listesini temizle — yeni bir DR turuna temiz başla',
+    title: ctx.t('policy.resetTitle'),
     dataset: { test: 'dr-sim-clear-rules' },
   });
 
@@ -32,9 +32,9 @@ export const mountPolicy = (root: HTMLElement, ctx: ComponentContext): Component
       status,
       h('div', { class: 'drsim-section__actions' }, [
         reset,
-        button('Ayarlar', () => chrome.runtime.openOptionsPage(), {
+        button(ctx.t('common.settings'), () => chrome.runtime.openOptionsPage(), {
           class: 'drsim-button drsim-button--compact',
-          title: 'Varsayılan davranışı ve arıza tipini Ayarlar’dan değiştir',
+          title: ctx.t('policy.settingsTitle'),
         }),
       ]),
     ]),
@@ -42,7 +42,7 @@ export const mountPolicy = (root: HTMLElement, ctx: ComponentContext): Component
 
   return {
     update: (state: UiState) => {
-      setText(status, policyStatusLine(state.settings));
+      setText(status, policyStatusLine(state.settings, ctx.t));
       reset.disabled = !state.settings.rules.length;
     },
     destroy: () => {

@@ -17,6 +17,7 @@ const runtimeConfig = (over: Partial<RuntimeConfig> = {}): RuntimeConfig => ({
   captureHeaders: false,
   captureBody: false,
   showPageBanner: false,
+  bannerText: '',
   revision: 1,
   ...over,
 });

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SETTINGS, FAULT_PRESETS } from '@/core/constants';
+import { createTranslator } from '@/core/i18n';
 import type { Rule, Settings } from '@/core/types';
 import { faultLabel, faultPresetId, policyStatusLine, policySummary } from './policy-text';
 
@@ -11,6 +12,8 @@ const rule = (key: string, state: 'allow' | 'block'): Rule => ({
   source: 'inventory',
   createdAt: 0,
 });
+
+const t = createTranslator('tr');
 
 const settings = (over: Partial<Settings> = {}): Settings => ({ ...DEFAULT_SETTINGS, ...over });
 
@@ -26,7 +29,7 @@ describe('ui/policy-text', () => {
       [{ kind: 'network' }, 'network error'],
       [{ kind: 'timeout', timeoutMs: 3000 }, '3 sn sonra timeout'],
     ])('%j -> %s', (over, expected) => {
-      expect(faultLabel({ ...DEFAULT_SETTINGS.fault, ...over })).toBe(expected);
+      expect(faultLabel({ ...DEFAULT_SETTINGS.fault, ...over }, t)).toBe(expected);
     });
   });
 
@@ -54,12 +57,12 @@ describe('ui/policy-text', () => {
 
   describe('policyStatusLine — paneldeki tek satır', () => {
     it('blok politikasında arıza tipini ve kural sayısını yazar', () => {
-      const line = policyStatusLine(settings({ rules: [rule('GET /a', 'allow'), rule('GET /b', 'block')] }));
+      const line = policyStatusLine(settings({ rules: [rule('GET /a', 'allow'), rule('GET /b', 'block')] }), t);
       expect(line).toBe("Kural yazılmayan EP'ler bloklanıyor (503) · 2 kural");
     });
 
     it('geçiş politikasında arıza tipi yazılmaz', () => {
-      expect(policyStatusLine(settings({ defaultPolicy: 'pass' }))).toBe("Kural yazılmayan EP'ler geçiyor · 0 kural");
+      expect(policyStatusLine(settings({ defaultPolicy: 'pass' }), t)).toBe("Kural yazılmayan EP'ler geçiyor · 0 kural");
     });
   });
 
@@ -67,17 +70,17 @@ describe('ui/policy-text', () => {
     it('kural kırılımını ve sonucu yazar', () => {
       const summary = policySummary(settings({
         rules: [rule('GET /a', 'allow'), rule('GET /b', 'allow'), rule('GET /c', 'block')],
-      }));
+      }), t);
       expect(summary).toContain("3 EP'ye kural yazılmış (2 izinli · 1 engelli)");
       expect(summary).toContain('503 dönecek');
     });
 
     it('kural yokken bunu açıkça söyler', () => {
-      expect(policySummary(settings())).toContain('Henüz hiçbir EP’ye kural yazılmamış');
+      expect(policySummary(settings(), t)).toContain('Henüz hiçbir EP’ye kural yazılmamış');
     });
 
     it('geçiş politikasında sonuç cümlesi değişir', () => {
-      expect(policySummary(settings({ defaultPolicy: 'pass' }))).toContain('normal çalışacak');
+      expect(policySummary(settings({ defaultPolicy: 'pass' }), t)).toContain('normal çalışacak');
     });
   });
 });

@@ -1,6 +1,7 @@
 import { ALARM_AUTO_OFF, COMMANDS, SW_MESSAGES } from '@/core/constants';
 import { compileConfig } from '@/core/compile-config';
 import { validateDomainPattern } from '@/core/matcher';
+import { createTranslator, resolveLocale } from '@/core/i18n';
 import { buildProfileFile, snapshotProfile } from '@/core/profile';
 import { buildReportFile } from '@/core/report.builder';
 import {
@@ -46,7 +47,12 @@ const UNSUPPORTED_URL = /^(chrome|edge|about|devtools|chrome-extension|moz-exten
 
 let bootstrapped: Promise<void> | null = null;
 
-const config = (): ReturnType<typeof compileConfig> => compileConfig(settingsStore.get(), settingsStore.revision());
+const config = (): ReturnType<typeof compileConfig> => compileConfig(settingsStore.get(), settingsStore.revision(), translator());
+
+// Toolbar başlığı da arayüz diliyle aynı (Revizyon 41)
+const badgeTitle = (enabled: boolean, blockedCount = 0): string => (enabled
+  ? translator()('badge.on', { count: blockedCount })
+  : translator()('badge.off'));
 
 const buildState = (tabId: number | null): UiState => {
   const settings = settingsStore.get();
@@ -70,7 +76,7 @@ const applyRuntimeSideEffects = async (): Promise<void> => {
   const settings = settingsStore.get();
   await syncContentScripts(settings.domains, settings.pageHosts);
   broadcastConfig(config());
-  await updateBadge(settings.enabled);
+  await updateBadge(settings.enabled, badgeTitle(settings.enabled));
   pushState();
 };
 
@@ -81,7 +87,7 @@ const bootstrap = async (): Promise<void> => {
       await sessionStore.hydrate();
       sessionStore.prune(Date.now());
       await syncContentScripts(settingsStore.get().domains, settingsStore.get().pageHosts);
-      await updateBadge(settingsStore.get().enabled);
+      await updateBadge(settingsStore.get().enabled, badgeTitle(settingsStore.get().enabled));
     })();
   }
   return bootstrapped;
@@ -256,12 +262,12 @@ const importProfile = async ({ payload }: CommandContext): Promise<CommandResult
   try {
     parsed = JSON.parse(asString(payload.json));
   } catch {
-    return { ok: false, error: 'Geçersiz JSON dosyası.' };
+    return { ok: false, error: 'invalid-json' };
   }
 
   const candidate = parsed as Partial<Profile>;
   if (!candidate || typeof candidate !== 'object' || !Array.isArray(candidate.rules)) {
-    return { ok: false, error: 'Profil şemasına uymuyor (rules listesi yok).' };
+    return { ok: false, error: 'profile-schema' };
   }
 
   const profile: Profile = {
@@ -279,9 +285,12 @@ const importProfile = async ({ payload }: CommandContext): Promise<CommandResult
   return { ok: true, data: { id: profile.id } };
 };
 
+// Rapor ve profil metinleri arayüzle aynı dilde üretilir (Revizyon 41)
+const translator = () => createTranslator(resolveLocale(settingsStore.get().locale, chrome.i18n.getUILanguage()));
+
 const exportReport = ({ tabId, payload }: CommandContext): CommandResult => {
   const session = tabId === null ? null : sessionStore.get(tabId);
-  const input = { session, settings: settingsStore.get(), now: Date.now() };
+  const input = { session, settings: settingsStore.get(), t: translator(), now: Date.now() };
 
   return { ok: true, data: buildReportFile(asString(payload.format, 'markdown'), input) };
 };
@@ -374,7 +383,7 @@ const handlers: Record<string, (ctx: CommandContext) => CommandResult | Promise<
 
     return {
       ok: true,
-      data: buildProfileFile(stored ?? snapshotProfile(current, 'current', 'DR-SIM profili', Date.now())),
+      data: buildProfileFile(stored ?? snapshotProfile(current, 'current', translator()('profile.snapshotName'), Date.now())),
     };
   },
   [COMMANDS.EXPORT_REPORT]: exportReport,
@@ -415,7 +424,7 @@ const handleContentMessage = async (message: unknown, tabId: number): Promise<vo
 
   if (data.type === SW_MESSAGES.TELEMETRY_BATCH) {
     sessionStore.applyTelemetry(tabId, data.records ?? [], data.dropped ?? 0, settings);
-    if (settings.enabled) await updateBadge(true, sessionStore.get(tabId)?.blockedSinceLoad ?? 0);
+    if (settings.enabled) await updateBadge(true, badgeTitle(true, sessionStore.get(tabId)?.blockedSinceLoad ?? 0));
     pushState();
     return;
   }

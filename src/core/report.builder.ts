@@ -1,4 +1,4 @@
-import { REASON_LABELS } from './constants';
+import { isMessageKey, type MessageKey, type Translate } from './i18n';
 import type { DecisionReason, InventoryItem, Settings, TabSession } from './types';
 
 // Rapor üretimi — 07-preset-and-templates.md §C.3 / §C.4.
@@ -9,6 +9,8 @@ const PASSED_REASONS: DecisionReason[] = ['allowed', 'default-pass'];
 export interface ReportInput {
   session: TabSession | null;
   settings: Settings;
+  // Rapor, arayüzle aynı dilde üretilir (Revizyon 41)
+  t: Translate;
   now?: number;
   includeMeta?: boolean;
 }
@@ -23,47 +25,49 @@ const byReason = (session: TabSession | null, reasons: DecisionReason[]): Invent
 export const blockedItems = (session: TabSession | null): InventoryItem[] => byReason(session, BLOCKED_REASONS);
 export const passedItems = (session: TabSession | null): InventoryItem[] => byReason(session, PASSED_REASONS);
 
-const bulletList = (items: InventoryItem[]): string => (items.length ? items.map((item) => `- ${item.method} ${item.path}`).join('\n') : '- (yok)');
+const bulletList = (items: InventoryItem[], t: Translate): string => (items.length
+  ? items.map((item) => `- ${item.method} ${item.path}`).join('\n')
+  : `- ${t('common.none')}`);
 
 const formatDate = (at: number): string => new Date(at).toISOString().slice(0, 16).replace('T', ' ');
 
-const metaBlock = ({ session, settings, now = 0 }: ReportInput): string => {
+const metaBlock = ({ session, settings, t, now = 0 }: ReportInput): string => {
   const simulatedFails = session?.failLog.filter((entry) => entry.simulated).length ?? 0;
   const realFails = (session?.failLog.length ?? 0) - simulatedFails;
   const total = session ? Object.values(session.inventory).reduce((sum, item) => sum + item.count, 0) : 0;
-  const policy = settings.defaultPolicy === 'block' ? 'Listede olmayanlar bloklanır' : 'Listede olmayanlar geçer';
+  const policy = settings.defaultPolicy === 'block' ? t('report.policyBlock') : t('report.policyPass');
   const fault = settings.fault.kind === 'http' ? `${settings.fault.status} ${settings.fault.statusText}` : settings.fault.kind;
 
   return [
-    `- **Tarih:** ${formatDate(now)}`,
-    `- **Domain kapsamı:** ${settings.domains.map((domain) => domain.pattern).join(', ') || '(yok)'}`,
-    `- **Varsayılan politika:** ${policy}`,
-    `- **Arıza tipi:** ${fault}`,
-    `- **Toplam istek:** ${total}`,
-    `- **Fail dağılımı:** ${simulatedFails} simüle · ${realFails} gerçek`,
+    `- **${t('report.date')}:** ${formatDate(now)}`,
+    `- **${t('report.domainScope')}:** ${settings.domains.map((domain) => domain.pattern).join(', ') || t('common.none')}`,
+    `- **${t('report.defaultPolicy')}:** ${policy}`,
+    `- **${t('report.faultType')}:** ${fault}`,
+    `- **${t('report.totalRequests')}:** ${total}`,
+    `- **${t('report.failBreakdown')}:** ${t('report.failBreakdownValue', { simulated: simulatedFails, real: realFails })}`,
   ].join('\n');
 };
 
 // §C.4 — sayfa bazlı sonuç raporu (tamamen otomatik üretilir)
 export const buildResultReport = (input: ReportInput): string => {
-  const { session, includeMeta = true } = input;
-  const title = session?.title || 'Sayfa';
+  const { session, t, includeMeta = true } = input;
+  const title = session?.title || t('report.page');
   const route = session?.routePath || '/';
 
   const parts = [
     `**${title}** — \`${route}\``,
     '',
-    "***Bloklanan EP'ler***",
+    t('report.blockedEps'),
     '',
-    bulletList(blockedItems(session)),
+    bulletList(blockedItems(session), t),
     '',
-    "***Bloklanmayan EP'ler***",
+    t('report.passedEps'),
     '',
-    bulletList(passedItems(session)),
+    bulletList(passedItems(session), t),
     '',
-    '***Çıktı***',
+    t('report.output'),
     '',
-    '<gözlem>',
+    t('report.observation'),
   ];
 
   if (includeMeta) parts.push('', '---', '', metaBlock(input));
@@ -104,5 +108,9 @@ export const buildReportFile = (format: string, input: ReportInput): ReportFile 
   return { content: buildResultReport(input), extension: 'md', name: 'dr-sim-rapor' };
 };
 
-// Fail satırındaki sebep etiketi (02-ui-spec.md §3.9)
-export const reasonLabel = (reason: DecisionReason): string => REASON_LABELS[reason] ?? reason;
+// Fail satırındaki sebep etiketi (02-ui-spec.md §3.9). Sözlükte karşılığı olmayan
+// bir sebep gelirse ham kod gösterilir — boş etiketten iyidir.
+export const reasonLabel = (reason: DecisionReason, t: Translate): string => {
+  const key: string = `reason.${reason}`;
+  return isMessageKey(key) ? t(key as MessageKey) : reason;
+};

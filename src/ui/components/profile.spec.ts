@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { COMMANDS, DEFAULT_SETTINGS } from '@/core/constants';
+import { createTranslator } from '@/core/i18n';
 import type { Profile, Settings, UiState } from '@/core/types';
 import { emptyState } from '../state/connection';
 import { mountProfile } from './profile';
@@ -21,10 +22,12 @@ const state = (over: Partial<Settings> = {}): UiState => ({
   settings: { ...DEFAULT_SETTINGS, profiles: [profile()], ...over },
 });
 
+const t = createTranslator('tr');
+
 const setup = () => {
   const root = document.createElement('div');
   document.body.appendChild(root);
-  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn() };
+  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn(), t };
   return { root, ctx, component: mountProfile(root, ctx) };
 };
 

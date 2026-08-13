@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { COMMANDS, DEFAULT_SETTINGS } from '@/core/constants';
+import { createTranslator } from '@/core/i18n';
 import type { Rule, Settings, UiState } from '@/core/types';
 import { emptyState } from '../state/connection';
 import { mountPolicy } from './policy';
@@ -19,10 +20,12 @@ const state = (settings: Partial<Settings> = {}): UiState => ({
   settings: { ...DEFAULT_SETTINGS, ...settings },
 });
 
+const t = createTranslator('tr');
+
 const setup = () => {
   const root = document.createElement('div');
   document.body.appendChild(root);
-  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn() };
+  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn(), t };
   return { root, ctx, component: mountPolicy(root, ctx) };
 };
 
@@ -75,6 +78,22 @@ describe('ui/policy', () => {
     resetOf(root).click();
 
     expect(ctx.send).not.toHaveBeenCalled();
+  });
+
+  it('İngilizce çevirmenle mount edilince metinler İngilizce olur (Revizyon 41)', () => {
+    const root = document.createElement('div');
+    document.body.appendChild(root);
+    const ctx: ComponentContext = {
+      send: vi.fn(async () => ({ ok: true })),
+      notify: vi.fn(),
+      t: createTranslator('en'),
+    };
+    const component = mountPolicy(root, ctx);
+    component.update(state({ rules: [rule('GET /a', 'allow')] }));
+
+    expect(root.querySelector('[data-test="dr-sim-policy-status"]')!.textContent)
+      .toBe('EPs without a rule are blocked (503) · 1 rules');
+    expect(resetOf(root).textContent).toBe('Reset');
   });
 
   it('arıza alanları panelde değildir (Revizyon 23)', () => {

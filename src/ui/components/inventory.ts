@@ -1,5 +1,6 @@
 import { COMMANDS } from '@/core/constants';
 import { effectiveState } from '@/core/decision-engine';
+import type { MessageKey } from '@/core/i18n';
 import type { InventoryItem, RuleState, UiState } from '@/core/types';
 import { button, h, setText, toggleClass } from '../dom/h';
 import { createList } from '../dom/list';
@@ -10,27 +11,27 @@ import type { Component, ComponentContext } from './types';
 
 type Filter = 'all' | 'blocked' | 'allowed';
 
-const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: 'all', label: 'Tümü' },
-  { id: 'blocked', label: 'Engelli' },
-  { id: 'allowed', label: 'İzinli' },
+const FILTERS: Array<{ id: Filter; key: MessageKey }> = [
+  { id: 'all', key: 'common.all' },
+  { id: 'blocked', key: 'common.blocked' },
+  { id: 'allowed', key: 'common.allowed' },
 ];
 
 const timeOf = (at: number): string => new Date(at).toLocaleTimeString('tr-TR', { hour12: false });
 
 export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Component => {
-  const title = h('span', { class: 'drsim-section__title', text: 'Sayfa EP Envanteri (0 / 0)' });
+  const title = h('span', { class: 'drsim-section__title' });
   const list = h('ul', { class: 'drsim-list drsim-list--tall', dataset: { test: 'dr-sim-inventory' } });
-  const empty = h('p', { class: 'drsim-empty', text: 'Henüz istek yok. Sayfayı yenile veya etkileşim yap.' });
+  const empty = h('p', { class: 'drsim-empty', text: ctx.t('inventory.empty') });
 
   const search = h('input', {
     class: 'drsim-input',
-    placeholder: 'ara…',
+    placeholder: ctx.t('inventory.searchPlaceholder'),
     on: { input: () => render() },
   });
 
   let filter: Filter = 'all';
-  const filterButtons = FILTERS.map((entry) => button(entry.label, () => {
+  const filterButtons = FILTERS.map((entry) => button(ctx.t(entry.key), () => {
     filter = entry.id;
     syncFilters();
     render();
@@ -49,7 +50,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
     h('section', { class: 'drsim-section' }, [
       h('div', { class: 'drsim-section__head' }, [
         title,
-        button('Temizle', () => void ctx.send(COMMANDS.CLEAR_INVENTORY), {
+        button(ctx.t('common.clear'), () => void ctx.send(COMMANDS.CLEAR_INVENTORY), {
           class: 'drsim-button drsim-button--compact',
           dataset: { test: 'dr-sim-clear-inventory' },
         }),
@@ -96,7 +97,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
       // satır zaten varsayılandaysa hiçbir şey değişmez.
       const remove = button('✕', () => void ctx.send(COMMANDS.REMOVE_RULE, { key: item.key }), {
         class: 'drsim-button drsim-button--compact',
-        title: 'Kuralı sil — EP varsayılan davranışa döner',
+        title: ctx.t('inventory.removeRule'),
         dataset: { test: 'dr-sim-rule-remove' },
       });
 
@@ -126,16 +127,16 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
           item.lastStatus ?? '—',
           item.lastDurationMs === null ? null : `${Math.round(item.lastDurationMs)} ms`,
           timeOf(item.lastAt),
-          item.simulatedCount > 0 ? 'simüle' : null,
+          item.simulatedCount > 0 ? ctx.t('tag.simulated') : null,
         ].filter(Boolean).join(' · '),
       );
       // Ham örnek URL artık satırda yazılmıyor; `:id` normalizasyonunun neyi
       // grupladığı hover ile görülebilsin diye title'da tutulur (Revizyon 17).
       element.title = item.sampleUrl;
 
-      setText(toggle, blocked ? 'Engelli' : 'İzinli');
+      setText(toggle, ctx.t(blocked ? 'common.blocked' : 'common.allowed'));
       toggle.setAttribute('aria-checked', String(!blocked));
-      toggle.setAttribute('aria-label', `${item.method} ${item.path} — ${blocked ? 'engelli' : 'izinli'}`);
+      toggle.setAttribute('aria-label', `${item.method} ${item.path} — ${ctx.t(blocked ? 'common.blocked' : 'common.allowed')}`);
       toggleClass(toggle, 'drsim-toggle--blocked', blocked);
 
       // Açık kayıt: düz çubuk. Kayıt yok (varsayılana tabi): kesikli çubuk.
@@ -144,17 +145,18 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
       toggleClass(element, 'drsim-item--default-blocked', blocked && explicit === undefined);
       toggleClass(element, 'drsim-item--default-allowed', !blocked && explicit === undefined);
 
+      const simulatedFail = ctx.t('tag.simulatedFail');
       const wanted = [
-        item.manual ? 'manuel' : 'envanter',
-        item.origin === 'xhr' ? 'xhr' : null,
-        item.lastReason === 'sync-xhr' ? 'sync XHR' : null,
-        item.simulatedCount > 0 ? 'simüle fail' : null,
+        ctx.t(item.manual ? 'tag.manual' : 'tag.inventory'),
+        item.origin === 'xhr' ? ctx.t('tag.xhr') : null,
+        item.lastReason === 'sync-xhr' ? ctx.t('tag.syncXhr') : null,
+        item.simulatedCount > 0 ? simulatedFail : null,
       ].filter((label): label is string => label !== null);
 
       if (tags && tags.dataset.tags !== wanted.join(',')) {
         tags.dataset.tags = wanted.join(',');
         tags.replaceChildren(...wanted.map((label) => h('span', {
-          class: label === 'simüle fail' ? 'drsim-tag drsim-tag--simulated' : 'drsim-tag',
+          class: label === simulatedFail ? 'drsim-tag drsim-tag--simulated' : 'drsim-tag',
           text: label,
         })));
       }
@@ -184,14 +186,11 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
     const policy = state?.settings.defaultPolicy ?? 'block';
     const blockedCount = all.filter((item) => effectiveState(rules[item.key], policy) === 'block').length;
 
-    setText(title, `Sayfa EP Envanteri (${blockedCount} engelli / ${all.length})`);
+    setText(title, ctx.t('inventory.title', { blocked: blockedCount, total: all.length }));
     renderer.render(items);
 
     empty.hidden = items.length > 0;
-    setText(
-      empty,
-      all.length ? 'Filtreyle eşleşen EP yok.' : 'Henüz istek yok. Sayfayı yenile veya etkileşim yap.',
-    );
+    setText(empty, ctx.t(all.length ? 'inventory.noMatch' : 'inventory.empty'));
   }
 
   return {

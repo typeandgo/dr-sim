@@ -6,17 +6,17 @@ import type { Component, ComponentContext } from './types';
 // 02-ui-spec.md §3.1 — header, ON/OFF rozeti, master toggle, gözlem modu bilgisi.
 // UI görünürlüğü ile simülasyon durumu tamamen bağımsızdır (as-is kusuru A-1 giderildi).
 
-const remainingText = (autoOffAt: number | null): string => {
+const remainingText = (autoOffAt: number | null, ctx: ComponentContext): string => {
   if (!autoOffAt) return '';
   const minutes = Math.max(0, Math.round((autoOffAt - Date.now()) / 60_000));
-  return `${minutes} dk sonra otomatik kapanır`;
+  return ctx.t('header.autoOff', { minutes });
 };
 
 export const mountHeader = (root: HTMLElement, ctx: ComponentContext): Component => {
   const title = h('span', { class: 'drsim-header__title', text: 'DR-SIM' });
 
   // Tek kontrol: durum rozeti ve master toggle birleşiktir (Revizyon 2).
-  const switchText = h('span', { class: 'drsim-switch__text', text: 'OFF' });
+  const switchText = h('span', { class: 'drsim-switch__text', text: ctx.t('header.off') });
   const switchTrack = h('span', { class: 'drsim-switch__track' }, [
     h('span', { class: 'drsim-switch__knob' }),
     switchText,
@@ -27,7 +27,7 @@ export const mountHeader = (root: HTMLElement, ctx: ComponentContext): Component
     type: 'button',
     role: 'switch',
     dataset: { test: 'dr-sim-toggle' },
-    aria: { checked: 'false', label: 'Simülasyonu aç' },
+    aria: { checked: 'false', label: ctx.t('header.enable') },
     on: {
       click: () => {
         void toggleSimulation();
@@ -56,39 +56,32 @@ export const mountHeader = (root: HTMLElement, ctx: ComponentContext): Component
 
     if (result.error === 'production-guard') {
       const domains = (result.data as { domains?: string[] })?.domains ?? [];
-      const confirmed = window.confirm(
-        `Bu domainler production görünüyor:\n${domains.join('\n')}\n\n`
-        + 'Politika "Bloklansın" iken domaine giden HER istek kesilir. Devam edilsin mi?',
-      );
+      const confirmed = window.confirm(ctx.t('header.productionGuard', { domains: domains.join('\n') }));
       if (!confirmed) return;
 
       const retry = await ctx.send(COMMANDS.SET_ENABLED, { enabled: next, confirmProduction: true });
-      if (!retry.ok) ctx.notify(retry.error ?? 'Simülasyon açılamadı.', 'error');
+      if (!retry.ok) ctx.notify(retry.error ?? ctx.t('header.enableFailed'), 'error');
       return;
     }
 
-    ctx.notify(result.error ?? 'Simülasyon durumu değiştirilemedi.', 'error');
+    ctx.notify(result.error ?? ctx.t('header.toggleFailed'), 'error');
   }
 
   return {
     update: (state: UiState) => {
       enabled = state.settings.enabled;
 
-      setText(switchText, enabled ? 'ON' : 'OFF');
+      setText(switchText, ctx.t(enabled ? 'header.on' : 'header.off'));
       toggleClass(toggle, 'drsim-switch--on', enabled);
       toggle.setAttribute('aria-checked', String(enabled));
-      toggle.setAttribute('aria-label', enabled ? 'Simülasyonu kapat' : 'Simülasyonu aç');
-      toggle.title = enabled ? 'Simülasyonu kapat' : 'Simülasyonu aç';
+      const toggleLabel = ctx.t(enabled ? 'header.disable' : 'header.enable');
+      toggle.setAttribute('aria-label', toggleLabel);
+      toggle.title = toggleLabel;
 
-      setText(
-        mode,
-        enabled
-          ? 'Simülasyon açık — bu sekmedeki istekler değiştiriliyor'
-          : 'Gözlem modu — istekler kaydediliyor, bloklanmıyor',
-      );
+      setText(mode, ctx.t(enabled ? 'header.modeOn' : 'header.modeOff'));
       toggleClass(mode, 'drsim-header__mode--on', enabled);
 
-      const remaining = enabled ? remainingText(state.autoOffAt) : '';
+      const remaining = enabled ? remainingText(state.autoOffAt, ctx) : '';
       setText(autoOff, remaining);
       autoOff.hidden = !remaining;
     },

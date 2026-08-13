@@ -33,7 +33,7 @@ const removeBanner = (): void => {
 };
 
 // Shadow DOM: sayfanın stilini ve JS'ini kirletmez (04 §4.2)
-const renderBanner = (): void => {
+const renderBanner = (text: string): void => {
   if (document.getElementById(BANNER_ID)) return;
   if (!document.documentElement) return;
 
@@ -43,7 +43,7 @@ const renderBanner = (): void => {
 
   const shadow = host.attachShadow({ mode: 'closed' });
   const bar = document.createElement('div');
-  bar.textContent = 'DR-SIM aktif — bu sekmedeki istekler değiştiriliyor';
+  bar.textContent = text;
   bar.style.cssText = [
     'font:600 11px/18px -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif',
     'background:#b91c1c',
@@ -57,7 +57,7 @@ const renderBanner = (): void => {
 
 const syncBanner = (config: RuntimeConfig | null): void => {
   try {
-    if (config?.enabled && config.showPageBanner && config.domains.length) renderBanner();
+    if (config?.enabled && config.showPageBanner && config.domains.length) renderBanner(config.bannerText);
     else removeBanner();
   } catch {
     // sayfa DOM'u beklenmedik durumdaysa banner atlanır

@@ -44,7 +44,7 @@ export const mountFooter = (root: HTMLElement, ctx: ComponentContext): Component
     const payload = result.data as { content?: string; extension?: string; name?: string } | undefined;
 
     if (!result.ok || !payload?.content) {
-      ctx.notify('Rapor üretilemedi.', 'error');
+      ctx.notify(ctx.t('footer.reportFailed'), 'error');
       return;
     }
 
@@ -57,9 +57,9 @@ export const mountFooter = (root: HTMLElement, ctx: ComponentContext): Component
         // Footer aksiyonları tam boy (Revizyon 36): satır içi aksiyon değil, bölüm
         // sonu eylemleri. İkonlar `⤓` / `⚙` — profil bölümündeki sözlüğün aynısı,
         // dışarıdan varlık yüklenmez (CSP).
-        iconButton('⤓', 'Rapor MD', () => void exportReport('markdown'), { test: 'dr-sim-report-export' }),
-        iconButton('⤓', 'Rapor JSON', () => void exportReport('json')),
-        iconButton('⚙', 'Ayarlar', () => chrome.runtime.openOptionsPage()),
+        iconButton('⤓', ctx.t('footer.reportMd'), () => void exportReport('markdown'), { test: 'dr-sim-report-export' }),
+        iconButton('⤓', ctx.t('footer.reportJson'), () => void exportReport('json')),
+        iconButton('⚙', ctx.t('common.settings'), () => chrome.runtime.openOptionsPage()),
       ]),
       info,
       pruned,
@@ -69,14 +69,14 @@ export const mountFooter = (root: HTMLElement, ctx: ComponentContext): Component
 
   return {
     update: (state: UiState) => {
-      setText(info, `motor: ${state.settings.engine} · v${chrome.runtime.getManifest().version}`);
+      setText(info, ctx.t('footer.engine', { engine: state.settings.engine, version: chrome.runtime.getManifest().version }));
 
       const dropped = state.session?.droppedCount ?? 0;
       setText(
         pruned,
         dropped
-          ? `Son ${state.settings.maxLogEntries} kayıt gösteriliyor · ${dropped} kayıt budandı`
-          : `Son ${state.settings.maxLogEntries} kayıt gösteriliyor`,
+          ? ctx.t('footer.pruned', { max: state.settings.maxLogEntries, dropped })
+          : ctx.t('footer.showing', { max: state.settings.maxLogEntries }),
       );
     },
     destroy: () => {

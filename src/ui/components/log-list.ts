@@ -1,5 +1,6 @@
 import { COMMANDS } from '@/core/constants';
 import { reasonLabel } from '@/core/report.builder';
+import type { MessageKey } from '@/core/i18n';
 import type { LogEntry, UiState } from '@/core/types';
 import { button, h, setText, toggleClass } from '../dom/h';
 import { createList } from '../dom/list';
@@ -11,10 +12,10 @@ import type { Component, ComponentContext } from './types';
 type Kind = 'success' | 'fail';
 type SourceFilter = 'all' | 'real' | 'simulated';
 
-const FILTERS: Array<{ id: SourceFilter; label: string }> = [
-  { id: 'all', label: 'Tümü' },
-  { id: 'real', label: 'Gerçek' },
-  { id: 'simulated', label: 'Simüle' },
+const FILTERS: Array<{ id: SourceFilter; key: MessageKey }> = [
+  { id: 'all', key: 'common.all' },
+  { id: 'real', key: 'log.filterReal' },
+  { id: 'simulated', key: 'log.filterSimulated' },
 ];
 
 const timeOf = (at: number): string => new Date(at).toLocaleTimeString('tr-TR', { hour12: false });
@@ -29,10 +30,10 @@ export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kin
     dataset: { test: isFail ? 'dr-sim-failed-log' : 'dr-sim-success-log' },
   });
 
-  const empty = h('p', { class: 'drsim-empty', text: isFail ? 'Fail yok.' : 'Henüz success yok.' });
+  const empty = h('p', { class: 'drsim-empty', text: ctx.t(isFail ? 'log.failEmpty' : 'log.successEmpty') });
 
   let filter: SourceFilter = 'all';
-  const filterButtons = FILTERS.map((entry) => button(entry.label, () => {
+  const filterButtons = FILTERS.map((entry) => button(ctx.t(entry.key), () => {
     filter = entry.id;
     syncFilters();
     render();
@@ -53,7 +54,7 @@ export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kin
       // envanter bölümüyle aynı ritim, dar panelde üçünün birbirine girmesi engellenir.
       h('div', { class: 'drsim-section__head' }, [
         title,
-        button('Temizle', () => void ctx.send(COMMANDS.CLEAR_LOGS, { which: kind }), {
+        button(ctx.t('common.clear'), () => void ctx.send(COMMANDS.CLEAR_LOGS, { which: kind }), {
           class: 'drsim-button drsim-button--compact',
           dataset: { test: isFail ? 'dr-sim-clear-log' : 'dr-sim-clear-success-log' },
         }),
@@ -74,7 +75,7 @@ export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kin
       const meta = h('span', { class: 'drsim-log__label' });
       const tag = h('span', { class: 'drsim-tag' });
 
-      const quickAllow = button('İzin ver', () => {
+      const quickAllow = button(ctx.t('common.allow'), () => {
         void ctx.send(COMMANDS.SET_RULE_STATE, {
           method: entry.method,
           path: entry.path,
@@ -88,7 +89,7 @@ export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kin
         title: entry.url,
         on: {
           click: () => {
-            void navigator.clipboard?.writeText(entry.url).then(() => ctx.notify('URL kopyalandı'));
+            void navigator.clipboard?.writeText(entry.url).then(() => ctx.notify(ctx.t('log.urlCopied')));
           },
         },
       }, [ep, meta, tag, quickAllow]);
@@ -105,11 +106,11 @@ export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kin
           entry.status ?? '—',
           entry.durationMs === null ? null : `${Math.round(entry.durationMs)} ms`,
           timeOf(entry.at),
-          `— ${reasonLabel(entry.reason)}`,
+          `— ${reasonLabel(entry.reason, ctx.t)}`,
         ].filter(Boolean).join(' · '),
       );
 
-      setText(tag!, entry.simulated ? 'simüle' : 'gerçek');
+      setText(tag!, ctx.t(entry.simulated ? 'log.tagSimulated' : 'log.tagReal'));
       toggleClass(tag!, 'drsim-tag--simulated', entry.simulated);
 
       // Gerçek hata satırlarında hızlı izin görünmez (izin vermek bir şeyi düzeltmez)
@@ -129,7 +130,7 @@ export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kin
     const items = entries();
     const total = (isFail ? state?.session?.failLog : state?.session?.successLog)?.length ?? 0;
 
-    setText(title, isFail ? `Son Fail'ler (${total})` : `Son Success'ler (${total})`);
+    setText(title, ctx.t(isFail ? 'log.failTitle' : 'log.successTitle', { count: total }));
     renderer.render(items);
     empty.hidden = items.length > 0;
   }

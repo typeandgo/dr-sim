@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "DR-SIM",
+    "description": "Extension name shown in Chrome"
+  },
+  "extDescription": {
+    "message": "Test resilience by simulating backend failures in web applications.",
+    "description": "Extension description shown in the Chrome Web Store and chrome://extensions"
+  }
+}

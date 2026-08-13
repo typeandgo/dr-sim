@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { COMMANDS, DEFAULT_SETTINGS } from '@/core/constants';
+import { createTranslator } from '@/core/i18n';
 import type { LogEntry, UiState } from '@/core/types';
 import { emptyState } from '../state/connection';
 import { mountLogList } from './log-list';
@@ -40,10 +41,12 @@ const state = (failLog: LogEntry[] = [entry()], successLog: LogEntry[] = []): Ui
   },
 });
 
+const t = createTranslator('tr');
+
 const setup = (kind: 'success' | 'fail') => {
   const root = document.createElement('div');
   document.body.appendChild(root);
-  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn() };
+  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn(), t };
   return { root, ctx, component: mountLogList(root, ctx, kind) };
 };
 

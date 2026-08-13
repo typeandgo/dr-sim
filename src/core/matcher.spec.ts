@@ -67,11 +67,11 @@ describe('core/matcher', () => {
     });
 
     it('boş girdiyi reddeder', () => {
-      expect(validateDomainPattern('  ')).toEqual({ ok: false, error: expect.stringContaining('boş') });
+      expect(validateDomainPattern('  ')).toEqual({ ok: false, error: 'domain-empty' });
     });
 
     it('geçersiz girdiyi açıklamayla reddeder', () => {
-      expect(validateDomainPattern('a b c')).toEqual({ ok: false, error: expect.stringContaining('Geçersiz') });
+      expect(validateDomainPattern('a b c')).toEqual({ ok: false, error: 'domain-invalid' });
     });
   });
 

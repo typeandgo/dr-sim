@@ -54,10 +54,10 @@ export const validateDomainPattern = (
   pattern: string,
 ): { ok: true; pattern: string } | { ok: false; error: string } => {
   const normalized = normalizeDomainInput(pattern);
-  if (!normalized) return { ok: false, error: 'Domain boş olamaz.' };
+  if (!normalized) return { ok: false, error: 'domain-empty' };
 
   const parsed = parseDomainPattern(normalized);
-  if (!parsed) return { ok: false, error: 'Geçersiz domain. Örnek: api.example.com veya *.example.com/gw' };
+  if (!parsed) return { ok: false, error: 'domain-invalid' };
 
   return { ok: true, pattern: normalized };
 };

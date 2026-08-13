@@ -19,11 +19,11 @@ export const findRule = (rules: Rule[], key: string): Rule | undefined => rules.
 // Joker kural desteklenmez (T-804 backlog); `*` içeren girdi reddedilir.
 export const validateRulePath = (path: string): { ok: true; path: string } | { ok: false; error: string } => {
   const trimmed = String(path ?? '').trim();
-  if (!trimmed) return { ok: false, error: 'Path boş olamaz.' };
-  if (trimmed.includes('*')) return { ok: false, error: 'Joker kural desteklenmiyor, tam path gir.' };
+  if (!trimmed) return { ok: false, error: 'path-empty' };
+  if (trimmed.includes('*')) return { ok: false, error: 'path-wildcard' };
 
   const normalized = normalizePath(trimmed);
-  if (normalized === '/') return { ok: false, error: 'Geçerli bir path gir (örn. /offers/active).' };
+  if (normalized === '/') return { ok: false, error: 'path-invalid' };
 
   return { ok: true, path: normalized };
 };

@@ -104,7 +104,7 @@ export const createConnection = (): Connection => {
 
   const send = (command: string, payload: Record<string, unknown> = {}): Promise<CommandResponse> => new Promise((resolve) => {
     if (!port) {
-      resolve({ ok: false, error: 'Arka plan servisiyle bağlantı yenileniyor…' });
+      resolve({ ok: false, error: 'connection.reconnecting' });
       return;
     }
 
@@ -115,13 +115,13 @@ export const createConnection = (): Connection => {
       port.postMessage({ type: 'COMMAND', id, command, payload, tabId });
     } catch {
       pending.delete(id);
-      resolve({ ok: false, error: 'Komut gönderilemedi.' });
+      resolve({ ok: false, error: 'connection.sendFailed' });
     }
 
     setTimeout(() => {
       if (!pending.has(id)) return;
       pending.delete(id);
-      resolve({ ok: false, error: 'Zaman aşımı.' });
+      resolve({ ok: false, error: 'connection.timeout' });
     }, 5000);
   });
 

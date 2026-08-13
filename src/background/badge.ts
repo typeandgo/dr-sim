@@ -12,14 +12,13 @@ const iconSet = (active: boolean): Record<number, string> => {
   };
 };
 
-export const updateBadge = async (enabled: boolean, blockedCount = 0): Promise<void> => {
+// Başlık metni SW'den hazır gelir: sözlük core'da, badge yalnızca chrome API sarmalayıcısı
+export const updateBadge = async (enabled: boolean, title: string): Promise<void> => {
   try {
     await chrome.action.setBadgeText({ text: enabled ? 'ON' : '' });
     await chrome.action.setBadgeBackgroundColor({ color: ON_COLOR });
     await chrome.action.setIcon({ path: iconSet(enabled) });
-    await chrome.action.setTitle({
-      title: enabled ? `DR-SIM açık — ${blockedCount} istek bloklandı` : 'DR-SIM kapalı',
-    });
+    await chrome.action.setTitle({ title });
   } catch {
     // badge güncellenemezse simülasyon yine de çalışır
   }

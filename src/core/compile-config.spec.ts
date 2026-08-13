@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { activeDomainPatterns, compileConfig, compileRules } from './compile-config';
+import { createTranslator } from './i18n';
 import { DEFAULT_SETTINGS } from './constants';
 import type { Rule, Settings } from './types';
 
@@ -44,7 +45,7 @@ describe('core/compile-config', () => {
   });
 
   it('runtime config ayarları ve revizyonu taşır', () => {
-    const config = compileConfig(settings({ enabled: true, rules: [rule('GET /x', 'allow')] }), 7);
+    const config = compileConfig(settings({ enabled: true, rules: [rule('GET /x', 'allow')] }), 7, createTranslator('tr'));
     expect(config).toMatchObject({ enabled: true, defaultPolicy: 'block', revision: 7 });
     expect(config.rulesByKey['GET /x']).toBe('allow');
   });

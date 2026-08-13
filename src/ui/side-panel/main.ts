@@ -1,3 +1,4 @@
+import { describeMessage, type Locale, type Translate } from '@/core/i18n';
 import type { UiState } from '@/core/types';
 import { mountFooter } from '../components/footer';
 import { mountHeader } from '../components/header';
@@ -8,12 +9,13 @@ import { mountProfile } from '../components/profile';
 import { mountScope } from '../components/scope';
 import type { Component, ComponentContext } from '../components/types';
 import { h, setText } from '../dom/h';
+import { localeOf, translatorFor } from '../locale';
 import { createConnection } from '../state/connection';
 import '../styles/main.scss';
 import '../styles/components.scss';
 
 const root = document.getElementById('drsim-root');
-if (!root) throw new Error('drsim-root bulunamadı');
+if (!root) throw new Error('drsim-root not found');
 
 const connection = createConnection();
 
@@ -22,51 +24,71 @@ notice.hidden = true;
 
 let noticeTimer: ReturnType<typeof setTimeout> | null = null;
 
-const ctx: ComponentContext = {
-  send: connection.send,
-  notify: (message, kind = 'info') => {
-    setText(notice, message);
-    notice.classList.toggle('drsim-notice--error', kind === 'error');
-    notice.hidden = false;
-
-    if (noticeTimer) clearTimeout(noticeTimer);
-    noticeTimer = setTimeout(() => {
-      notice.hidden = true;
-    }, 4000);
-  },
-};
-
 const headerSlot = h('div');
 const body = h('div', { class: 'drsim-body' });
 const unsupported = h('p', {
   class: 'drsim-empty drsim-empty--error',
   role: 'alert',
-  text: 'Bu sayfa türünde eklenti çalışamaz.',
 });
 unsupported.hidden = true;
 
 root.append(headerSlot, notice, unsupported, body);
 
-const slot = (): HTMLElement => {
-  const element = h('div', { class: 'drsim-slot' });
-  body.appendChild(element);
-  return element;
+// Bileşenler etiketlerini mount anında yazar; dil değişince tek tek güncellemek
+// yerine hepsi yeniden kurulur (Revizyon 41). Panel küçük ve mount ucuz olduğu
+// için bu, her bileşene "dili de tazele" kodu eklemekten hem kısa hem güvenli.
+const mountAll = (t: Translate): Component[] => {
+  headerSlot.replaceChildren();
+  body.replaceChildren();
+  setText(unsupported, t('header.unsupported'));
+
+  const ctx: ComponentContext = {
+    send: connection.send,
+    // Bileşenler hazır metin de, arka plandan gelen hata kodu da gönderebilir
+    notify: (message, kind = 'info') => {
+      setText(notice, describeMessage(message, t));
+      notice.classList.toggle('drsim-notice--error', kind === 'error');
+      notice.hidden = false;
+
+      if (noticeTimer) clearTimeout(noticeTimer);
+      noticeTimer = setTimeout(() => {
+        notice.hidden = true;
+      }, 4000);
+    },
+    t,
+  };
+
+  const slot = (): HTMLElement => {
+    const element = h('div', { class: 'drsim-slot' });
+    body.appendChild(element);
+    return element;
+  };
+
+  return [
+    mountHeader(headerSlot, ctx),
+    mountScope(slot(), ctx),
+    mountPolicy(slot(), ctx),
+    mountProfile(slot(), ctx),
+    mountInventory(slot(), ctx),
+    mountLogList(slot(), ctx, 'success'),
+    mountLogList(slot(), ctx, 'fail'),
+    mountFooter(slot(), ctx),
+  ];
 };
 
-const components: Component[] = [
-  mountHeader(headerSlot, ctx),
-  mountScope(slot(), ctx),
-  mountPolicy(slot(), ctx),
-  mountProfile(slot(), ctx),
-  mountInventory(slot(), ctx),
-  mountLogList(slot(), ctx, 'success'),
-  mountLogList(slot(), ctx, 'fail'),
-  mountFooter(slot(), ctx),
-];
-
+let components: Component[] = [];
+let locale: Locale | null = null;
 let lastNotice: string | null = null;
 
 connection.store.subscribe((state: UiState) => {
+  const next = localeOf(state.settings.locale);
+
+  if (locale !== next) {
+    locale = next;
+    components.forEach((component) => component.destroy());
+    components = mountAll(translatorFor(state.settings.locale));
+  }
+
   unsupported.hidden = state.supported;
   body.hidden = !state.supported;
 
@@ -80,7 +102,14 @@ connection.store.subscribe((state: UiState) => {
 
   if (state.notice && state.notice !== lastNotice) {
     lastNotice = state.notice;
-    ctx.notify(state.notice, 'error');
+    setText(notice, describeMessage(state.notice, translatorFor(state.settings.locale)));
+    notice.classList.add('drsim-notice--error');
+    notice.hidden = false;
+
+    if (noticeTimer) clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(() => {
+      notice.hidden = true;
+    }, 4000);
   }
 });
 

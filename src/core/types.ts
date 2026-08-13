@@ -1,3 +1,4 @@
+import type { LocalePreference } from './i18n';
 // Veri modeli — 01-architecture.md §3.
 // Not: "Strategy" / "profil bazlı dallanma" kavramı yoktur; tek kural listesi + varsayılan politika.
 
@@ -83,7 +84,7 @@ export interface Settings {
   productionHostPatterns: string[];
   keepInventoryOnNavigate: boolean;
   showPageBanner: boolean;
-  locale: 'tr' | 'en';
+  locale: LocalePreference;
   engine: 'main-world' | 'dnr' | 'debugger';
 }
 
@@ -123,6 +124,8 @@ export interface RuntimeConfig {
   captureHeaders: boolean;
   captureBody: boolean;
   showPageBanner: boolean;
+  // Banner metni SW'de çevrilir; content script sözlüğü paketlemez (Revizyon 41)
+  bannerText: string;
   revision: number;
 }
 

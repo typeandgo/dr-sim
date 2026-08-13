@@ -37,6 +37,13 @@ export const migrations: Record<number, Migration> = {
     autoOffMinutes: data.autoOffMinutes === 30 ? null : data.autoOffMinutes,
     schemaVersion: 3,
   }),
+  // v4: dil tercihi eklendi (Revizyon 41). Eski kayıtlardaki 'tr' kullanıcı seçimi
+  // değil, tek dilli sürümün sabitiydi — tarayıcı diline bırakılır.
+  3: (data) => ({
+    ...data,
+    locale: data.locale === 'en' ? 'en' : 'auto',
+    schemaVersion: 4,
+  }),
 };
 
 export const migrate = (raw: Record<string, unknown>): Record<string, unknown> => {
@@ -110,7 +117,7 @@ export const createSettingsStore = (): SettingsStore => {
     try {
       await chrome.storage.local.set({ [STORAGE_KEYS.SETTINGS]: cache });
     } catch {
-      notice = 'Ayarlar kaydedilemedi (depolama dolu olabilir).';
+      notice = 'settings-write';
     }
   };
 
@@ -139,10 +146,10 @@ export const createSettingsStore = (): SettingsStore => {
       const stored = await chrome.storage.local.get(STORAGE_KEYS.SETTINGS);
       const raw = stored[STORAGE_KEYS.SETTINGS] as unknown;
       cache = normalizeSettings(raw);
-      if (raw && typeof raw !== 'object') notice = 'Ayarlar okunamadı, varsayılanlara dönüldü.';
+      if (raw && typeof raw !== 'object') notice = 'settings-read';
     } catch {
       cache = { ...DEFAULT_SETTINGS };
-      notice = 'Ayarlar okunamadı, varsayılanlara dönüldü.';
+      notice = 'settings-read';
     }
 
     loaded = true;

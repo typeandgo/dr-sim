@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SETTINGS } from './constants';
+import { createTranslator } from './i18n';
 import {
   blockedItems,
   buildJsonReport,
@@ -70,6 +71,8 @@ const settings = (over: Partial<Settings> = {}): Settings => ({
   ...over,
 });
 
+const t = createTranslator('tr');
+
 describe('core/report.builder', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -86,7 +89,7 @@ describe('core/report.builder', () => {
   });
 
   it('§C.4 başlık yapısını üretir', () => {
-    const markdown = buildResultReport({ session: session(), settings: settings(), now: 0 });
+    const markdown = buildResultReport({ session: session(), t, settings: settings(), now: 0 });
     expect(markdown).toContain('**Portföy** — `/portfoy`');
     expect(markdown).toContain("***Bloklanan EP'ler***");
     expect(markdown).toContain("***Bloklanmayan EP'ler***");
@@ -95,49 +98,50 @@ describe('core/report.builder', () => {
   });
 
   it('meta bloğu fail dağılımını yazar', () => {
-    const markdown = buildResultReport({ session: session(), settings: settings(), now: 0 });
+    const markdown = buildResultReport({ session: session(), t, settings: settings(), now: 0 });
     expect(markdown).toContain('1 simüle · 1 gerçek');
     expect(markdown).toContain('Listede olmayanlar bloklanır');
   });
 
   it('meta kapatılabilir', () => {
-    const markdown = buildResultReport({ session: session(), settings: settings(), includeMeta: false });
+    const markdown = buildResultReport({ session: session(), t, settings: settings(), includeMeta: false });
     expect(markdown).not.toContain('**Tarih:**');
   });
 
   it('boş oturumda da geçerli rapor üretir', () => {
-    const markdown = buildResultReport({ session: null, settings: settings({ domains: [] }) });
+    const markdown = buildResultReport({ session: null, t, settings: settings({ domains: [] }) });
     expect(markdown).toContain('**Sayfa** — `/`');
     expect(markdown).toContain('- (yok)');
     expect(markdown).toContain('(yok)');
   });
 
   it('pass politikasında özet cümlesi değişir', () => {
-    const markdown = buildResultReport({ session: session(), settings: settings({ defaultPolicy: 'pass' }) });
+    const markdown = buildResultReport({ session: session(), t, settings: settings({ defaultPolicy: 'pass' }) });
     expect(markdown).toContain('Listede olmayanlar geçer');
   });
 
   it('http dışı arıza tipini yazar', () => {
     const markdown = buildResultReport({
       session: session(),
+      t,
       settings: settings({ fault: { ...DEFAULT_SETTINGS.fault, kind: 'timeout' } }),
     });
     expect(markdown).toContain('**Arıza tipi:** timeout');
   });
 
   it('JSON raporu anahtarları taşır', () => {
-    const parsed = JSON.parse(buildJsonReport({ session: session(), settings: settings(), now: 5 })) as Record<string, unknown>;
+    const parsed = JSON.parse(buildJsonReport({ session: session(), t, settings: settings(), now: 5 })) as Record<string, unknown>;
     expect(parsed).toMatchObject({ generatedAt: 5, routePath: '/portfoy', blocked: expect.any(Array) });
   });
 
   it('oturum yokken JSON raporu null alanlarla üretilir', () => {
-    const parsed = JSON.parse(buildJsonReport({ session: null, settings: settings() })) as Record<string, unknown>;
+    const parsed = JSON.parse(buildJsonReport({ session: null, t, settings: settings() })) as Record<string, unknown>;
     expect(parsed.routePath).toBeNull();
     expect(parsed.inventory).toEqual([]);
   });
 
   describe('buildReportFile — format başına dosya kimliği (Revizyon 30)', () => {
-    const input = { session: session(), settings: settings(), now: 5 };
+    const input = { session: session(), t, settings: settings(), now: 5 };
 
     it('sonuç raporu markdown olarak iner', () => {
       expect(buildReportFile('markdown', input)).toMatchObject({ name: 'dr-sim-rapor', extension: 'md' });
@@ -157,7 +161,7 @@ describe('core/report.builder', () => {
   });
 
   it('sebep etiketlerini çevirir', () => {
-    expect(reasonLabel('default-block')).toBe('izin listesinde yok');
-    expect(reasonLabel('bilinmeyen' as DecisionReason)).toBe('bilinmeyen');
+    expect(reasonLabel('default-block', t)).toBe('izin listesinde yok');
+    expect(reasonLabel('bilinmeyen' as DecisionReason, t)).toBe('bilinmeyen');
   });
 });

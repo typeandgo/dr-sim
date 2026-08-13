@@ -1,3 +1,4 @@
+import type { Translate } from './i18n';
 import type { Rule, RuleState, RuntimeConfig, Settings } from './types';
 
 // Kurallar SW'de bir kez derlenir; MAIN world karar anında yalnızca tek lookup yapar (01 §8).
@@ -14,7 +15,7 @@ export const activeDomainPatterns = (settings: Settings): string[] => settings.d
   .filter((domain) => domain.granted !== false)
   .map((domain) => domain.pattern);
 
-export const compileConfig = (settings: Settings, revision: number): RuntimeConfig => ({
+export const compileConfig = (settings: Settings, revision: number, t: Translate): RuntimeConfig => ({
   enabled: settings.enabled,
   defaultPolicy: settings.defaultPolicy,
   domains: activeDomainPatterns(settings),
@@ -24,5 +25,6 @@ export const compileConfig = (settings: Settings, revision: number): RuntimeConf
   captureHeaders: settings.captureHeaders,
   captureBody: settings.captureBody,
   showPageBanner: settings.showPageBanner,
+  bannerText: t('banner.active'),
   revision,
 });

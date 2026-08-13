@@ -28,9 +28,9 @@ export const mountProfile = (root: HTMLElement, ctx: ComponentContext): Componen
 
   // Seçili profili listeden kaldırır (Revizyon 33). Ayarlar'daki liste denetim
   // görünümü; yanlış bir dosyayı içe aktardığında paneli bırakmak zorunda kalma.
-  const remove = button('Kaldır', () => void removeProfile(), {
+  const remove = button(ctx.t('common.remove'), () => void removeProfile(), {
     class: 'drsim-button drsim-button--compact drsim-button--danger',
-    title: 'Seçili profili listeden kaldır',
+    title: ctx.t('profile.removeTitle'),
     dataset: { test: 'dr-sim-profile-remove' },
   });
 
@@ -50,10 +50,10 @@ export const mountProfile = (root: HTMLElement, ctx: ComponentContext): Componen
   root.appendChild(
     h('section', { class: 'drsim-section' }, [
       h('div', { class: 'drsim-section__head' }, [
-        h('span', { class: 'drsim-section__title', text: 'Profil' }),
+        h('span', { class: 'drsim-section__title', text: ctx.t('profile.title') }),
         h('div', { class: 'drsim-section__actions' }, [
-          button('⤓ İçe', () => fileInput.click(), { class: 'drsim-button drsim-button--compact' }),
-          button('⤒ Dışa', () => void exportProfile(), { class: 'drsim-button drsim-button--compact' }),
+          button(ctx.t('profile.import'), () => fileInput.click(), { class: 'drsim-button drsim-button--compact' }),
+          button(ctx.t('profile.export'), () => void exportProfile(), { class: 'drsim-button drsim-button--compact' }),
           remove,
         ]),
       ]),
@@ -64,10 +64,10 @@ export const mountProfile = (root: HTMLElement, ctx: ComponentContext): Componen
 
   async function applyProfile(id: string): Promise<void> {
     if (!id) return;
-    if (!window.confirm('Mevcut kural listesi bu profille değişecek. Devam edilsin mi?')) return;
+    if (!window.confirm(ctx.t('profile.applyConfirm'))) return;
 
     const result = await ctx.send(COMMANDS.APPLY_PROFILE, { id });
-    if (!result.ok) ctx.notify(result.error ?? 'Profil uygulanamadı.', 'error');
+    if (!result.ok) ctx.notify(result.error ?? ctx.t('profile.applyFailed'), 'error');
   }
 
   // Listede seçili olan profil aynen dışa aktarılır (Revizyon 31); seçim yoksa
@@ -76,18 +76,18 @@ export const mountProfile = (root: HTMLElement, ctx: ComponentContext): Componen
     const id = select.value;
     if (!id) return;
 
-    const name = select.selectedOptions[0]?.text ?? 'Profil';
-    if (!window.confirm(`"${name}" profili listeden kaldırılacak. Kuralların değişmez. Devam edilsin mi?`)) return;
+    const name = select.selectedOptions[0]?.text ?? ctx.t('profile.title');
+    if (!window.confirm(ctx.t('profile.removeConfirm', { name }))) return;
 
     const result = await ctx.send(COMMANDS.DELETE_PROFILE, { id });
-    if (!result.ok) ctx.notify(result.error ?? 'Profil kaldırılamadı.', 'error');
+    if (!result.ok) ctx.notify(result.error ?? ctx.t('profile.removeFailed'), 'error');
   }
 
   async function exportProfile(): Promise<void> {
     const result = await ctx.send(COMMANDS.EXPORT_PROFILE, { id: select.value });
     const payload = result.data as { content?: string; extension?: string; name?: string } | undefined;
     if (!result.ok || !payload?.content) {
-      ctx.notify('Profil dışa aktarılamadı.', 'error');
+      ctx.notify(ctx.t('profile.exportFailed'), 'error');
       return;
     }
     download(payload.content, payload.extension ?? 'json', payload.name ?? 'dr-sim-profil');
@@ -102,7 +102,7 @@ export const mountProfile = (root: HTMLElement, ctx: ComponentContext): Componen
 
     const result = await ctx.send(COMMANDS.IMPORT_PROFILE, { json });
     if (!result.ok) {
-      ctx.notify(result.error ?? 'Profil içe aktarılamadı.', 'error');
+      ctx.notify(result.error ?? ctx.t('profile.importFailed'), 'error');
       return;
     }
 
@@ -111,13 +111,13 @@ export const mountProfile = (root: HTMLElement, ctx: ComponentContext): Componen
     // seçmek zorunda kalmasın diye burada soruyoruz (Revizyon 31). Uygulamak mevcut
     // kural listesini değiştirdiği için sessizce yapılmaz.
     const id = (result.data as { id?: string } | undefined)?.id;
-    ctx.notify('Profil listeye eklendi.');
+    ctx.notify(ctx.t('profile.imported'));
 
     if (!id) return;
-    if (!window.confirm('Profil listeye eklendi. Şimdi uygulansın mı? Mevcut kural listesi değişecek.')) return;
+    if (!window.confirm(ctx.t('profile.importApplyConfirm'))) return;
 
     const applied = await ctx.send(COMMANDS.APPLY_PROFILE, { id });
-    if (!applied.ok) ctx.notify(applied.error ?? 'Profil uygulanamadı.', 'error');
+    if (!applied.ok) ctx.notify(applied.error ?? ctx.t('profile.applyFailed'), 'error');
   }
 
   let renderedIds = '';
@@ -127,7 +127,7 @@ export const mountProfile = (root: HTMLElement, ctx: ComponentContext): Componen
       // Hazır preset listeye gömülmez (Revizyon 34); `src/presets/` altındaki
       // senaryo dosyaları `⤓ İçe` ile elle alınır.
       const options = [
-        { id: '', name: state.settings.profiles.length ? 'Seçiniz' : 'Profil yok — ⤓ İçe ile ekle' },
+        { id: '', name: ctx.t(state.settings.profiles.length ? 'profile.select' : 'profile.emptyOption') },
         ...state.settings.profiles.map((profile) => ({ id: profile.id, name: profile.name })),
       ];
       const signature = options.map((option) => `${option.id}:${option.name}`).join('|');
