@@ -28,12 +28,25 @@ const sendInit = (): void => {
 
 // --------------------------------------------------------------- sayfa bandı
 
+// Bandın metni dil değişiminde güncellenmelidir. Shadow root `closed` olduğu
+// için içeriğe dışarıdan erişilemez; referansı burada tutuyoruz (Revizyon 51).
+let bannerBar: HTMLElement | null = null;
+
 const removeBanner = (): void => {
   document.getElementById(BANNER_ID)?.remove();
+  bannerBar = null;
 };
 
 // Shadow DOM: sayfanın stilini ve JS'ini kirletmez (04 §4.2)
 const renderBanner = (text: string): void => {
+  // Band zaten duruyorsa yeniden kurma, yalnızca metni tazele — yoksa dil
+  // değişimi ancak sayfa yenilendiğinde görünürdü.
+  if (bannerBar?.isConnected) {
+    if (bannerBar.textContent !== text) bannerBar.textContent = text;
+    return;
+  }
+
+  bannerBar = null;
   if (document.getElementById(BANNER_ID)) return;
   if (!document.documentElement) return;
 
@@ -53,6 +66,7 @@ const renderBanner = (text: string): void => {
   ].join(';');
   shadow.appendChild(bar);
   document.documentElement.appendChild(host);
+  bannerBar = bar;
 };
 
 const syncBanner = (config: RuntimeConfig | null): void => {
