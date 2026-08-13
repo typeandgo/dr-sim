@@ -37,7 +37,7 @@ root.append(headerSlot, notice, unsupported, body);
 // Bileşenler etiketlerini mount anında yazar; dil değişince tek tek güncellemek
 // yerine hepsi yeniden kurulur (Revizyon 41). Panel küçük ve mount ucuz olduğu
 // için bu, her bileşene "dili de tazele" kodu eklemekten hem kısa hem güvenli.
-const mountAll = (t: Translate): Component[] => {
+const mountAll = (t: Translate, locale: Locale): Component[] => {
   headerSlot.replaceChildren();
   body.replaceChildren();
   setText(unsupported, t('header.unsupported'));
@@ -56,6 +56,7 @@ const mountAll = (t: Translate): Component[] => {
       }, 4000);
     },
     t,
+    locale,
   };
 
   const slot = (): HTMLElement => {
@@ -86,7 +87,7 @@ connection.store.subscribe((state: UiState) => {
   if (locale !== next) {
     locale = next;
     components.forEach((component) => component.destroy());
-    components = mountAll(translatorFor(state.settings.locale));
+    components = mountAll(translatorFor(state.settings.locale), next);
   }
 
   unsupported.hidden = state.supported;

@@ -25,7 +25,7 @@ const t = createTranslator('tr');
 const setup = () => {
   const root = document.createElement('div');
   document.body.appendChild(root);
-  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn(), t };
+  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn(), t, locale: 'tr' };
   return { root, ctx, component: mountPolicy(root, ctx) };
 };
 
@@ -87,6 +87,7 @@ describe('ui/policy', () => {
       send: vi.fn(async () => ({ ok: true })),
       notify: vi.fn(),
       t: createTranslator('en'),
+      locale: 'en',
     };
     const component = mountPolicy(root, ctx);
     component.update(state({ rules: [rule('GET /a', 'allow')] }));

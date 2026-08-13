@@ -1,4 +1,4 @@
-import type { Translate } from '@/core/i18n';
+import type { Locale, Translate } from '@/core/i18n';
 import type { UiState } from '@/core/types';
 import type { CommandResponse } from '../state/connection';
 
@@ -12,6 +12,9 @@ export interface ComponentContext {
   // Dil değişince bileşenler yeniden mount edilir (Revizyon 41), bu yüzden `t`
   // mount anında sabitlenebilir — update içinde tazelemeye gerek yok.
   t: Translate;
+  // Çözülmüş dil ('auto' tercihi zaten karara bağlanmış hâliyle). Dil anahtarının
+  // hangi seçeneği işaretleyeceğini bilmesi için gerekir (Revizyon 42).
+  locale: Locale;
 }
 
 export interface Component {

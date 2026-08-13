@@ -125,6 +125,9 @@ export const EN = {
   'badge.off': 'DR-SIM off',
   'banner.active': 'DR-SIM active — requests in this tab are being altered',
 
+  'footer.language': 'Language',
+  'footer.switchTo': 'Switch the interface to {language}',
+
   'footer.reportMd': 'Report MD',
   'footer.reportJson': 'Report JSON',
   'footer.reportFailed': 'Could not generate the report.',
@@ -330,6 +333,9 @@ export const TR: Record<MessageKey, string> = {
   'badge.on': 'DR-SIM açık — {count} istek bloklandı',
   'badge.off': 'DR-SIM kapalı',
   'banner.active': 'DR-SIM aktif — bu sekmedeki istekler değiştiriliyor',
+
+  'footer.language': 'Dil',
+  'footer.switchTo': 'Arayüzü {language} diline çevir',
 
   'footer.reportMd': 'Rapor MD',
   'footer.reportJson': 'Rapor JSON',

@@ -17,7 +17,7 @@ const t = createTranslator('tr');
 const setup = () => {
   const root = document.createElement('div');
   document.body.appendChild(root);
-  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn(), t };
+  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn(), t, locale: 'tr' };
   return { root, ctx, component: mountHeader(root, ctx) };
 };
 

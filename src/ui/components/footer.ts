@@ -1,4 +1,5 @@
 import { COMMANDS } from '@/core/constants';
+import { LOCALES, type Locale } from '@/core/i18n';
 import type { UiState } from '@/core/types';
 import { button, h, setText } from '../dom/h';
 import type { Component, ComponentContext } from './types';
@@ -31,6 +32,10 @@ const iconButton = (
   return element;
 };
 
+// Dil adları çevrilmez: kullanıcı kendi dilini kendi dilinde arar
+const LANGUAGE_NAMES: Record<Locale, string> = { en: 'English', tr: 'Türkçe' };
+const LANGUAGE_SHORT: Record<Locale, string> = { en: 'EN', tr: 'TR' };
+
 export const mountFooter = (root: HTMLElement, ctx: ComponentContext): Component => {
   const info = h('span', { class: 'drsim-hint' });
   const pruned = h('span', { class: 'drsim-hint' });
@@ -51,6 +56,26 @@ export const mountFooter = (root: HTMLElement, ctx: ComponentContext): Component
     download(payload.content, payload.extension ?? 'md', payload.name ?? 'dr-sim-rapor');
   };
 
+  // Dil anahtarı footer'da (Revizyon 42): header sürekli kullanılan ON/OFF içindir,
+  // dil ise bir kez seçilip unutulan bir tercih — Ayarlar kısayolunun yanı doğru yer.
+  // Panelden seçim AÇIK tercih yazar ('auto' değil): kullanıcı görünen dili seçti.
+  // Tercih ayarlarda saklandığı için sonraki oturumlarda da geçerli kalır.
+  const languageButtons = LOCALES.map((locale) => button(LANGUAGE_SHORT[locale], () => {
+    if (locale === ctx.locale) return;
+    void ctx.send(COMMANDS.UPDATE_SETTINGS, { settings: { locale } });
+  }, {
+    class: ctx.locale === locale ? 'drsim-chip-button drsim-chip-button--active' : 'drsim-chip-button',
+    title: ctx.t('footer.switchTo', { language: LANGUAGE_NAMES[locale] }),
+    aria: { pressed: String(ctx.locale === locale) },
+    dataset: { test: `dr-sim-language-${locale}` },
+  }));
+
+  const language = h('div', {
+    class: 'drsim-filters',
+    role: 'group',
+    aria: { label: ctx.t('footer.language') },
+  }, languageButtons);
+
   root.appendChild(
     h('footer', { class: 'drsim-footer' }, [
       h('div', { class: 'drsim-section__actions drsim-footer__actions' }, [
@@ -60,6 +85,7 @@ export const mountFooter = (root: HTMLElement, ctx: ComponentContext): Component
         iconButton('⤓', ctx.t('footer.reportMd'), () => void exportReport('markdown'), { test: 'dr-sim-report-export' }),
         iconButton('⤓', ctx.t('footer.reportJson'), () => void exportReport('json')),
         iconButton('⚙', ctx.t('common.settings'), () => chrome.runtime.openOptionsPage()),
+        language,
       ]),
       info,
       pruned,

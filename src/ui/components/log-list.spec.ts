@@ -46,7 +46,7 @@ const t = createTranslator('tr');
 const setup = (kind: 'success' | 'fail') => {
   const root = document.createElement('div');
   document.body.appendChild(root);
-  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn(), t };
+  const ctx: ComponentContext = { send: vi.fn(async () => ({ ok: true })), notify: vi.fn(), t, locale: 'tr' };
   return { root, ctx, component: mountLogList(root, ctx, kind) };
 };
 
