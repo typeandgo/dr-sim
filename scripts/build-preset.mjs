@@ -167,11 +167,11 @@ const PRESETS = [
       ['GET', '/favorites/collections/favorite', FULL],
       ['GET', '/saved-search', FULL],
       ['GET', '/suggestions', FULL],
-      // Turbo
+      // Boost
       ['GET', '/boosts/histories', FULL],
       ['GET', '/boosts/products', FULL],
       ['GET', '/boosts/count', FULL],
-      // Hesap / Firma / Diğer
+      // Hesap / Organizasyon / Diğer
       ['PUT', '/org-users/current/email', FULL],
       ['GET', '/org-users/current/resendActivationEmail', FULL],
       ['POST', '/org-users/{id}/resend-activation-email', FULL],
