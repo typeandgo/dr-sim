@@ -22,7 +22,7 @@
 .drsim-header__title {
   color: $drsim-text-strong;
   font-size: $drsim-font-size-lg;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -64,7 +64,7 @@
   flex: 1 1 auto;
   color: $drsim-text-subtle;
   font-size: $drsim-font-size-sm;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-align: center;
   text-transform: uppercase;
@@ -429,10 +429,11 @@
   padding: 8px 10px;
 }
 
+// Kılavuz bölüm başlığı — bölüm başlıklarıyla aynı seviyede
 .drsim-guide__summary {
   cursor: pointer;
   color: $drsim-text-strong;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.02em;
 }
 
@@ -468,9 +469,11 @@
   line-height: 1.65;
 }
 
+// Bölüm başlığının altında kalmalı: terim, içinde bulunduğu bölümün başlığından
+// kalın olursa hiyerarşi ters döner. Terimi gövdeden ayıran şey ağırlık değil renk.
 .drsim-guide__term {
   color: $drsim-text-strong;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 // Bölüm içi alt başlık: aynı kutuda ikinci bir konu başladığında (Örnek profil →
@@ -503,10 +506,11 @@
   align-items: center;
 }
 
+// Anahtar, grubun başlığından kalın olmamalı; monospace ve renk zaten ayırıyor
 .drsim-schema__key {
   color: $drsim-text-strong;
   font-family: $drsim-font-mono;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 // Tip, anahtarın yanında sessiz kalır: okunacak asıl şey açıklama

@@ -93,10 +93,7 @@ body {
 .drsim-section__title {
   color: $drsim-text-strong;
   font-size: 13px;
-
-  // 800 → 700 (Revizyon 45): başlıklar hâlâ gövdeden ayrışıyor ama DR-SIM
-  // markasının 800'ünü paylaşmıyor; hiyerarşi netleşiyor
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.03em;
 }
 
@@ -109,7 +106,7 @@ body {
 .drsim-label {
   color: $drsim-text;
   font-size: $drsim-font-size;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.03em;
 }
 
