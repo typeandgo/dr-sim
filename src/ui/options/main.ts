@@ -235,7 +235,7 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
     section(t('options.contact'), [
       h('p', { class: 'drsim-hint' }, [
         h('span', { text: t('options.contactHint') }),
-        h('a', { class: 'drsim-link', href: 'mailto:typeandgo@gmail.com', text: 'typeandgo@gmail.com' }),
+        h('a', { class: 'drsim-link', href: 'mailto:typeandgo07@gmail.com', text: 'typeandgo07@gmail.com' }),
       ]),
       h('p', { class: 'drsim-hint', text: `© ${new Date().getFullYear()} typeandgo` }),
     ]),
