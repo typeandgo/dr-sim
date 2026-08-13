@@ -1,0 +1,55 @@
+// Design token'lar — kaynak: 06-design-reference.md §B.2 literal renkleri (02-ui-spec.md §1.1)
+// Literal hex yalnızca bu dosyada bulunur (kural 100).
+
+// Yüzeyler
+$drsim-bg-panel: #1f2937;
+$drsim-bg-surface: #111827;
+$drsim-bg-raised: #263243;
+$drsim-border: #374151;
+$drsim-border-strong: #4b5563;
+
+// Metin
+$drsim-text: #f9fafb;
+$drsim-text-strong: #fff;
+$drsim-text-muted: #9ca3af;
+$drsim-text-subtle: #d1d5db;
+
+// Durum
+$drsim-success: #15803d;
+$drsim-success-fg: #dcfce7;
+$drsim-success-line: #22c55e;
+$drsim-danger: #b91c1c;
+$drsim-danger-fg: #fecaca;
+$drsim-danger-line: #ef4444;
+$drsim-danger-text: #fca5a5;
+$drsim-warning: #b45309;
+$drsim-warning-fg: #fef3c7;
+$drsim-warning-line: #f59e0b;
+
+// Durum / etiket renkleri
+$drsim-tag-block: #9a3412;
+$drsim-tag-block-fg: #ffedd5;
+$drsim-tag-allow: #0f766e;
+$drsim-tag-allow-fg: #ccfbf1;
+$drsim-tag-default: #1d4ed8;
+$drsim-tag-default-fg: #dbeafe;
+$drsim-tag-manual: #a16207;
+$drsim-tag-manual-fg: #fef9c3;
+$drsim-tag-neutral-fg: #e5e7eb;
+
+// Tipografi & ölçü
+$drsim-font-size: 12px;
+$drsim-font-size-sm: 10px;
+$drsim-font-size-lg: 14px;
+$drsim-line-height: 1.4;
+$drsim-font-mono: ui-monospace, sfmono-regular, menlo, monaco, consolas, monospace;
+$drsim-font-ui: -apple-system, blinkmacsystemfont, "Segoe UI", roboto, helvetica, arial, sans-serif;
+$drsim-radius: 4px;
+$drsim-radius-lg: 8px;
+$drsim-radius-pill: 999px;
+$drsim-gap: 4px;
+$drsim-gap-md: 8px;
+$drsim-gap-lg: 12px;
+$drsim-gap-xl: 20px;
+$drsim-panel-width: 420px;
+$drsim-shadow: 0 8px 24px rgb(0 0 0 / 35%);

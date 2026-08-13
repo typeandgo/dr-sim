@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "DR-SIM",
+  "version": "1.0.0",
+  "description": "Web uygulamalarında backend arızalarını simüle ederek dayanıklılık testi yapar.",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "storage",
+    "scripting",
+    "tabs",
+    "sidePanel",
+    "alarms"
+  ],
+  "host_permissions": [],
+  "optional_host_permissions": [
+    "*://*/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "ui/side-panel/index.html"
+  },
+  "action": {
+    "default_title": "DR-SIM",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "options_page": "ui/options/index.html",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "commands": {
+    "toggle-simulation": {
+      "suggested_key": {
+        "default": "Alt+Shift+D"
+      },
+      "description": "Simülasyonu aç/kapat"
+    }
+  }
+}

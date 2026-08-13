@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <title>DR-SIM test hedefi</title>
+    <style>
+      body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+             margin: 0; padding: 24px; background: #0b1220; color: #e5e7eb; }
+      h1 { font-size: 18px; margin: 0 0 4px; }
+      .hint { color: #9ca3af; font-size: 12px; margin: 0 0 16px; }
+      .row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+      button { background: #1f2937; color: #f9fafb; border: 1px solid #4b5563;
+               border-radius: 4px; padding: 8px 12px; font-size: 13px; cursor: pointer; }
+      button:hover { border-color: #9ca3af; }
+      table { width: 100%; border-collapse: collapse; font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+      th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid #374151; }
+      th { color: #9ca3af; font-weight: 600; }
+      .ok { color: #4ade80; }
+      .fail { color: #fca5a5; }
+      .sim { color: #fbbf24; }
+    </style>
+  </head>
+  <body>
+    <h1>DR-SIM test hedefi</h1>
+    <p class="hint">
+      Uygulama <code>localhost:5174</code> · API <code>localhost:5175</code> ·
+      Sonuçlar ayrıca <code>window.__results</code> içinde.
+    </p>
+
+    <div class="row">
+      <button id="load">Sayfa yükleme isteklerini at (6 EP)</button>
+      <button id="single">Tek EP: GET /offers/active</button>
+      <button id="xhr">XHR ile: GET /credit-cards</button>
+      <button id="post">POST /auth/refresh</button>
+      <button id="ids">Farklı id'li 3 istek (/items/N/summary)</button>
+      <button id="storm">30 istek at (blok fırtınası)</button>
+      <button id="nav">SPA gezinme (pushState)</button>
+      <button id="clear">Tabloyu temizle</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>#</th><th>EP</th><th>Durum</th><th>Kaynak</th><th>Gövde</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+
+    <script>
+      const API = 'http://localhost:5175';
+      const rows = document.getElementById('rows');
+      window.__results = [];
+
+      const PAGE_LOAD_ENDPOINTS = [
+        '/org-users/current',
+        '/offers/active',
+        '/carts/item-count',
+        '/messages/unread-message-count',
+        '/favorites/collections',
+        '/statistics/visit/count',
+      ];
+
+      const record = (method, path, status, ok, body, simulated) => {
+        window.__results.push({ method, path, status, ok, body, simulated });
+
+        const tr = document.createElement('tr');
+        const cells = [
+          String(window.__results.length),
+          method + ' ' + path,
+          String(status),
+          simulated ? 'simüle' : 'gerçek',
+          body,
+        ];
+        cells.forEach((value, index) => {
+          const td = document.createElement('td');
+          td.textContent = value;
+          if (index === 2) td.className = ok ? 'ok' : 'fail';
+          if (index === 3 && simulated) td.className = 'sim';
+          tr.appendChild(td);
+        });
+        rows.prepend(tr);
+      };
+
+      const call = async (path, method = 'GET') => {
+        try {
+          const response = await fetch(API + path, { method });
+          const text = await response.text();
+          record(method, path, response.status, response.ok, text.slice(0, 60),
+                 response.headers.get('x-drsim-simulated') === '1');
+        } catch (error) {
+          record(method, path, 0, false, String(error), false);
+        }
+      };
+
+      const callXhr = (path) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', API + path);
+        xhr.onload = () => record('GET(xhr)', path, xhr.status, xhr.status < 400,
+                                  xhr.responseText.slice(0, 60),
+                                  xhr.getAllResponseHeaders().includes('x-drsim-simulated'));
+        xhr.onerror = () => record('GET(xhr)', path, 0, false, 'network error', false);
+        xhr.send();
+      };
+
+      document.getElementById('load').onclick = () => PAGE_LOAD_ENDPOINTS.forEach((path) => call(path));
+      document.getElementById('single').onclick = () => call('/offers/active');
+      document.getElementById('xhr').onclick = () => callXhr('/credit-cards');
+      document.getElementById('post').onclick = () => call('/auth/refresh', 'POST');
+      document.getElementById('ids').onclick = () => [1, 8842, 777].forEach((id) => call('/items/' + id + '/summary'));
+      document.getElementById('storm').onclick = () => {
+        for (let i = 0; i < 30; i += 1) call('/widgets/' + i);
+      };
+      document.getElementById('nav').onclick = () => {
+        const next = location.pathname === '/app/detay' ? '/app/liste' : '/app/detay';
+        history.pushState({}, '', next);
+        call('/page-data' + next);
+      };
+      document.getElementById('clear').onclick = () => {
+        window.__results = [];
+        rows.replaceChildren();
+      };
+
+      // Sayfa açılışında envanterin doğal şekilde dolması için
+      PAGE_LOAD_ENDPOINTS.forEach((path) => call(path));
+    </script>
+  </body>
+</html>

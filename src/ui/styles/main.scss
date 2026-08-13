@@ -1,0 +1,253 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: $drsim-bg-panel;
+  color: $drsim-text;
+  font-family: $drsim-font-ui;
+  font-size: $drsim-font-size;
+  line-height: $drsim-line-height;
+}
+
+.drsim {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: $drsim-bg-panel;
+  color: $drsim-text;
+
+  :focus-visible {
+    @include focus-ring;
+  }
+}
+
+.drsim-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  // Bölümler arası boşluk kenar boşluğuyla aynı (Revizyon 14)
+  gap: $drsim-gap-lg;
+  padding: $drsim-gap-lg;
+  overflow-y: auto;
+}
+
+// Her bölüm kendi kutusunda: ana zeminden bir ton açık, ince kenarlıklı (Revizyon 11).
+// Ayraç çizgisi yok; bölümü kutunun kendisi sınırlıyor.
+.drsim-section {
+  display: flex;
+  flex-direction: column;
+  gap: $drsim-gap-md;
+  padding: $drsim-gap-lg;
+  border: 1px solid $drsim-border;
+  border-radius: $drsim-radius;
+  background: $drsim-bg-raised;
+}
+
+// Bir slot birden fazla kutu barındırabilir (Domain + Aktif sayfa gibi);
+// aradaki boşluk gövdedekiyle aynı ritimde kalmalı
+.drsim-slot {
+  display: flex;
+  flex-direction: column;
+  gap: $drsim-gap-lg;
+}
+
+.drsim-section__head {
+  display: flex;
+  gap: $drsim-gap-md;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Başlıksız, tek satırlık durum kartı (Revizyon 19)
+.drsim-section--row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  // Panel daraldığında butonlar iki satıra düşmesin (Revizyon 28): aksiyon grubu
+  // ne sarmalanır ne de daralır; yer sıkışırsa esneyen taraf durum cümlesidir.
+  .drsim-section__actions {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
+
+  .drsim-hint {
+    min-width: 0;
+  }
+}
+
+.drsim-section__title {
+  color: $drsim-text-strong;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.drsim-section__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $drsim-gap;
+}
+
+.drsim-label {
+  color: $drsim-text;
+  font-size: $drsim-font-size;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.drsim-hint {
+  margin: 0;
+  color: $drsim-text-muted;
+  font-size: $drsim-font-size-sm;
+}
+
+.drsim-hint--error {
+  color: $drsim-danger-text;
+}
+
+.drsim-input,
+.drsim-select,
+.drsim-button,
+.drsim-textarea {
+  background: $drsim-bg-surface;
+  color: $drsim-text;
+  border: 1px solid $drsim-border-strong;
+  border-radius: $drsim-radius;
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: $drsim-font-size;
+}
+
+.drsim-textarea {
+  font-family: $drsim-font-mono;
+  resize: vertical;
+  min-height: 64px;
+  width: 100%;
+}
+
+.drsim-button {
+  cursor: pointer;
+
+  &:hover {
+    border-color: $drsim-text-muted;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.drsim-button--compact {
+  @include compact-button;
+}
+
+// İkonlu buton: glif etiketten büyük çizilir, taban çizgisi değil merkez hizalanır
+.drsim-button--icon {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.drsim-button__icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.drsim-button--primary {
+  border-color: $drsim-success-line;
+  color: $drsim-success-fg;
+}
+
+.drsim-button--danger {
+  border-color: $drsim-danger-line;
+  color: $drsim-danger-fg;
+}
+
+.drsim-tag {
+  @include pill;
+}
+
+.drsim-tag--allow {
+  @include pill($drsim-tag-allow, $drsim-tag-allow-fg);
+}
+
+.drsim-tag--block {
+  @include pill($drsim-tag-block, $drsim-tag-block-fg);
+}
+
+.drsim-tag--default {
+  @include pill($drsim-tag-default, $drsim-tag-default-fg);
+}
+
+.drsim-tag--manual {
+  @include pill($drsim-tag-manual, $drsim-tag-manual-fg);
+}
+
+.drsim-tag--simulated {
+  @include pill($drsim-warning, $drsim-warning-fg);
+}
+
+.drsim-list {
+  display: flex;
+  flex-direction: column;
+  gap: $drsim-gap;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow: auto;
+  list-style: none;
+}
+
+.drsim-ep {
+  @include mono-ep;
+}
+
+.drsim-empty {
+  color: $drsim-text-muted;
+  font-size: $drsim-font-size-sm;
+  padding: 6px 0;
+}
+
+// Desteklenmeyen sekme uyarısı: tek görünen içerik olduğu için ortalanır ve kırmızıdır
+.drsim-empty--error {
+  color: $drsim-danger-text;
+  text-align: center;
+  padding: $drsim-gap-xl $drsim-gap-lg;
+}
+
+.drsim-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+  clip-path: inset(50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

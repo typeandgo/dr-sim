@@ -1,0 +1,147 @@
+import { COMMANDS } from '@/core/constants';
+import { reasonLabel } from '@/core/report.builder';
+import type { LogEntry, UiState } from '@/core/types';
+import { button, h, setText, toggleClass } from '../dom/h';
+import { createList } from '../dom/list';
+import type { Component, ComponentContext } from './types';
+
+// 02-ui-spec.md §3.8 / §3.9 — Son Success'ler (yeşil) ve Son Fail'ler (kırmızı).
+// Fail satırındaki "İzin ver" ürünün ana çalışma döngüsüdür: blokla → çöken yeri gör → izin ver → yenile.
+
+type Kind = 'success' | 'fail';
+type SourceFilter = 'all' | 'real' | 'simulated';
+
+const FILTERS: Array<{ id: SourceFilter; label: string }> = [
+  { id: 'all', label: 'Tümü' },
+  { id: 'real', label: 'Gerçek' },
+  { id: 'simulated', label: 'Simüle' },
+];
+
+const timeOf = (at: number): string => new Date(at).toLocaleTimeString('tr-TR', { hour12: false });
+
+export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kind): Component => {
+  const isFail = kind === 'fail';
+  const title = h('span', { class: 'drsim-section__title' });
+
+  const list = h('ul', {
+    class: `drsim-list drsim-log drsim-log--${kind}`,
+    aria: { live: 'polite' },
+    dataset: { test: isFail ? 'dr-sim-failed-log' : 'dr-sim-success-log' },
+  });
+
+  const empty = h('p', { class: 'drsim-empty', text: isFail ? 'Fail yok.' : 'Henüz success yok.' });
+
+  let filter: SourceFilter = 'all';
+  const filterButtons = FILTERS.map((entry) => button(entry.label, () => {
+    filter = entry.id;
+    syncFilters();
+    render();
+  }, { class: 'drsim-chip-button', role: 'tab' }));
+
+  const syncFilters = (): void => {
+    filterButtons.forEach((element, index) => {
+      const active = FILTERS[index]?.id === filter;
+      toggleClass(element, 'drsim-chip-button--active', active);
+      element.setAttribute('aria-selected', String(active));
+    });
+  };
+  syncFilters();
+
+  root.appendChild(
+    h('section', { class: 'drsim-section' }, [
+      // Başlık + Temizle üst satırda, filtreler kendi satırında (Revizyon 29):
+      // envanter bölümüyle aynı ritim, dar panelde üçünün birbirine girmesi engellenir.
+      h('div', { class: 'drsim-section__head' }, [
+        title,
+        button('Temizle', () => void ctx.send(COMMANDS.CLEAR_LOGS, { which: kind }), {
+          class: 'drsim-button drsim-button--compact',
+          dataset: { test: isFail ? 'dr-sim-clear-log' : 'dr-sim-clear-success-log' },
+        }),
+      ]),
+      h('div', { class: 'drsim-row' }, [h('div', { class: 'drsim-filters', role: 'tablist' }, filterButtons)]),
+      list,
+      empty,
+    ]),
+  );
+
+  let state: UiState | null = null;
+
+  const renderer = createList<LogEntry>(
+    list,
+    (entry) => entry.id,
+    (entry) => {
+      const ep = h('span', { class: 'drsim-log__ep' });
+      const meta = h('span', { class: 'drsim-log__label' });
+      const tag = h('span', { class: 'drsim-tag' });
+
+      const quickAllow = button('İzin ver', () => {
+        void ctx.send(COMMANDS.SET_RULE_STATE, {
+          method: entry.method,
+          path: entry.path,
+          state: 'allow',
+          source: 'quick-allow',
+        });
+      }, { class: 'drsim-button drsim-button--compact', dataset: { test: 'dr-sim-quick-allow' } });
+
+      const row = h('li', {
+        class: 'drsim-log__row',
+        title: entry.url,
+        on: {
+          click: () => {
+            void navigator.clipboard?.writeText(entry.url).then(() => ctx.notify('URL kopyalandı'));
+          },
+        },
+      }, [ep, meta, tag, quickAllow]);
+
+      return row;
+    },
+    (element, entry) => {
+      const [ep, meta, tag, quickAllow] = [...element.children] as HTMLElement[];
+
+      setText(ep!, `${entry.method} ${entry.path}`);
+      setText(
+        meta!,
+        [
+          entry.status ?? '—',
+          entry.durationMs === null ? null : `${Math.round(entry.durationMs)} ms`,
+          timeOf(entry.at),
+          `— ${reasonLabel(entry.reason)}`,
+        ].filter(Boolean).join(' · '),
+      );
+
+      setText(tag!, entry.simulated ? 'simüle' : 'gerçek');
+      toggleClass(tag!, 'drsim-tag--simulated', entry.simulated);
+
+      // Gerçek hata satırlarında hızlı izin görünmez (izin vermek bir şeyi düzeltmez)
+      if (quickAllow) quickAllow.hidden = !isFail || !entry.simulated;
+    },
+  );
+
+  function entries(): LogEntry[] {
+    const source = isFail ? state?.session?.failLog : state?.session?.successLog;
+    return (source ?? []).filter((entry) => {
+      if (filter === 'all') return true;
+      return filter === 'simulated' ? entry.simulated : !entry.simulated;
+    });
+  }
+
+  function render(): void {
+    const items = entries();
+    const total = (isFail ? state?.session?.failLog : state?.session?.successLog)?.length ?? 0;
+
+    setText(title, isFail ? `Son Fail'ler (${total})` : `Son Success'ler (${total})`);
+    renderer.render(items);
+    empty.hidden = items.length > 0;
+  }
+
+  return {
+    update: (next: UiState) => {
+      state = next;
+      render();
+    },
+    destroy: () => {
+      renderer.destroy();
+      root.replaceChildren();
+    },
+  };
+};

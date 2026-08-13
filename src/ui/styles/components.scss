@@ -1,0 +1,389 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+// Görsel imzalar 06-design-reference.md §B.2'den korunur: koyu slate zemin,
+// 12px taban tipografi, pill tag'ler, bloklanan satırda sol iç çubuk.
+
+.drsim-header {
+  display: flex;
+  flex-direction: column;
+  gap: $drsim-gap;
+  padding: 10px $drsim-gap-lg;
+  border-bottom: 1px solid $drsim-border;
+  user-select: none;
+}
+
+.drsim-header__row {
+  display: flex;
+  gap: $drsim-gap-md;
+  align-items: center;
+}
+
+.drsim-header__title {
+  color: $drsim-text-strong;
+  font-size: $drsim-font-size-lg;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+// Durum rozeti + master toggle tek kontrolde birleşiktir (Revizyon 2).
+// Kapalı: topuz solda, nötr. Açık: topuz sağda, yeşil.
+.drsim-switch {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.drsim-switch__track {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  width: 62px;
+  padding: 2px;
+  border: 1px solid $drsim-border-strong;
+  border-radius: $drsim-radius-pill;
+  background: $drsim-bg-surface;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.drsim-switch__knob {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: $drsim-text-muted;
+  transition: background 120ms ease;
+}
+
+.drsim-switch__text {
+  flex: 1 1 auto;
+  color: $drsim-text-subtle;
+  font-size: $drsim-font-size-sm;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.drsim-switch--on .drsim-switch__track {
+  flex-direction: row-reverse;
+  border-color: $drsim-success-line;
+  background: $drsim-success;
+}
+
+.drsim-switch--on .drsim-switch__knob {
+  background: $drsim-success-fg;
+}
+
+.drsim-switch--on .drsim-switch__text {
+  color: $drsim-success-fg;
+}
+
+.drsim-header__mode {
+  color: $drsim-text-muted;
+}
+
+.drsim-header__mode--on {
+  color: $drsim-warning-line;
+}
+
+.drsim-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.drsim-row > .drsim-input {
+  flex: 1 1 160px;
+  min-width: 140px;
+}
+
+.drsim-field {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drsim-input--number {
+  width: 96px;
+}
+
+.drsim-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $drsim-gap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.drsim-chip {
+  display: inline-flex;
+  gap: $drsim-gap;
+  align-items: center;
+  padding: 2px 4px 2px 8px;
+  border: 1px solid $drsim-border-strong;
+  border-radius: $drsim-radius-pill;
+  background: $drsim-bg-surface;
+}
+
+.drsim-chip--pending {
+  border-color: $drsim-warning-line;
+}
+
+// Chip içindeki ✕: çerçevesiz, yalnızca ikon
+.drsim-button--bare {
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: $drsim-text-muted;
+  line-height: 1;
+
+  &:hover {
+    border: 0;
+    color: $drsim-danger-text;
+  }
+}
+
+.drsim-chip__label {
+  @include mono-ep;
+
+  font-size: $drsim-font-size-sm;
+}
+
+.drsim-route {
+  @include mono-ep;
+
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: $drsim-text-subtle;
+  text-align: left;
+  cursor: pointer;
+}
+
+.drsim-radio-group {
+  display: flex;
+  gap: $drsim-gap-lg;
+  align-items: center;
+}
+
+.drsim-radio {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  cursor: pointer;
+}
+
+// Açıklamalı seçenekler yan yana sığmaz
+.drsim-radio-group--stacked {
+  flex-direction: column;
+  gap: $drsim-gap-md;
+  align-items: flex-start;
+}
+
+.drsim-filters {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.drsim-chip-button {
+  @include compact-button;
+
+  border: 1px solid $drsim-border-strong;
+  border-radius: $drsim-radius-pill;
+  background: $drsim-bg-surface;
+  color: $drsim-text-subtle;
+  cursor: pointer;
+}
+
+.drsim-chip-button--active {
+  background: $drsim-tag-default;
+  border-color: $drsim-tag-default;
+  color: $drsim-tag-default-fg;
+}
+
+.drsim-list--tall {
+  max-height: 380px;
+}
+
+.drsim-item {
+  @include panel-surface;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 8px;
+}
+
+.drsim-item--blocked {
+  @include state-bar($drsim-danger-line);
+}
+
+.drsim-item--allowed,
+.drsim-item--allow {
+  @include state-bar($drsim-success-line);
+}
+
+// Açık kaydı olmayan, varsayılan politikaya tabi satır: kesikli çubuk
+.drsim-item--default-blocked {
+  @include state-bar($drsim-danger-line, true);
+}
+
+.drsim-item--default-allowed {
+  @include state-bar($drsim-success-line, true);
+}
+
+.drsim-item__main {
+  display: flex;
+  gap: $drsim-gap-md;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.drsim-item__main .drsim-ep {
+  flex: 1 1 auto;
+}
+
+.drsim-item__count {
+  flex: 0 0 auto;
+  color: $drsim-text-muted;
+}
+
+.drsim-item__footer {
+  display: flex;
+  gap: $drsim-gap-md;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drsim-item__actions {
+  display: flex;
+  gap: $drsim-gap;
+  align-items: center;
+}
+
+.drsim-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.drsim-toggle {
+  @include compact-button;
+
+  min-width: 74px;
+  border: 1px solid $drsim-success-line;
+  border-radius: $drsim-radius-pill;
+  background: $drsim-success;
+  color: $drsim-success-fg;
+  cursor: pointer;
+}
+
+.drsim-toggle--blocked {
+  border-color: $drsim-danger-line;
+  background: $drsim-danger;
+  color: $drsim-danger-fg;
+}
+
+.drsim-log {
+  overflow: auto;
+}
+
+.drsim-log__row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: $drsim-gap;
+  align-items: baseline;
+  width: max-content;
+  min-width: 100%;
+  white-space: nowrap;
+
+  // İmleç varsayılan (Revizyon 37): satır tıklanınca URL kopyalanıyor ama liste
+  // okunacak bir kayıt akışı, tıklanacak bir eylem listesi değil — her satırda
+  // pointer'a dönmesi gürültü yapıyordu. Kopyalama çalışmaya devam ediyor.
+  cursor: default;
+  font-family: $drsim-font-mono;
+}
+
+.drsim-log--success .drsim-log__ep {
+  color: $drsim-success-fg;
+}
+
+.drsim-log--fail .drsim-log__ep {
+  color: $drsim-danger-text;
+}
+
+.drsim-log__ep {
+  flex: 0 0 auto;
+}
+
+.drsim-log__label {
+  flex: 0 0 auto;
+  color: $drsim-text-muted;
+  font-size: $drsim-font-size-sm;
+}
+
+// Ayraç çizgi yok (Revizyon 13); ayrım boşlukla kuruluyor.
+.drsim-footer {
+  display: flex;
+  flex-direction: column;
+  gap: $drsim-gap;
+  padding: $drsim-gap-md $drsim-gap-lg $drsim-gap-lg;
+}
+
+// Aksiyon satırı ile alttaki bilgi metinleri arası, metinlerin kendi
+// aralığından belirgin biçimde daha açık olmalı
+.drsim-footer__actions {
+  // Tam boy butonlar 4px aralıkta sıkışık duruyordu (Revizyon 36)
+  gap: $drsim-gap-md;
+  margin-bottom: $drsim-gap-md;
+}
+
+.drsim-footer__copyright {
+  margin-top: $drsim-gap;
+  color: $drsim-text-muted;
+}
+
+.drsim-link {
+  color: $drsim-success-line;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.drsim-notice {
+  margin: 0 $drsim-gap-lg;
+  padding: 6px 8px;
+  border: 1px solid $drsim-border-strong;
+  border-radius: $drsim-radius;
+  background: $drsim-bg-surface;
+  color: $drsim-text-subtle;
+  font-size: $drsim-font-size-sm;
+}
+
+.drsim-notice--error {
+  border-color: $drsim-danger-line;
+  color: $drsim-danger-fg;
+}
+
+.drsim-options {
+  padding: $drsim-gap-lg;
+}
+
+.drsim-options .drsim {
+  max-width: 640px;
+  margin: 0 auto;
+  gap: $drsim-gap-lg;
+}
+
+.drsim-options .drsim-section {
+  margin-bottom: $drsim-gap-lg;
+}

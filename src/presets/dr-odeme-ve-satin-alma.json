@@ -1,0 +1,567 @@
+{
+  "id": "dr-odeme-ve-satin-alma",
+  "name": "DR — Ödeme ve satın alma",
+  "defaultPolicy": "pass",
+  "domains": [],
+  "fault": {
+    "kind": "http",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "body": "{\"message\":\"DR simulated unavailable\"}",
+    "headers": {},
+    "delayMs": 0,
+    "timeoutMs": 30000
+  },
+  "rules": [
+    {
+      "key": "POST /carts/offer",
+      "method": "POST",
+      "path": "/carts/offer",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /carts/current",
+      "method": "GET",
+      "path": "/carts/current",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "PUT /carts/current/status",
+      "method": "PUT",
+      "path": "/carts/current/status",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /carts/current/completed",
+      "method": "GET",
+      "path": "/carts/current/completed",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /carts/current/complete",
+      "method": "POST",
+      "path": "/carts/current/complete",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /carts/current/single-pay-complete",
+      "method": "POST",
+      "path": "/carts/current/single-pay-complete",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /carts/item-count",
+      "method": "GET",
+      "path": "/carts/item-count",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "DELETE /cart-offers/:id",
+      "method": "DELETE",
+      "path": "/cart-offers/:id",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "DELETE /cart-packages/:id",
+      "method": "DELETE",
+      "path": "/cart-packages/:id",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "DELETE /cart-items/:id",
+      "method": "DELETE",
+      "path": "/cart-items/:id",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "PUT /cart-items/:id",
+      "method": "PUT",
+      "path": "/cart-items/:id",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /cart-promotions/apply-promotion",
+      "method": "POST",
+      "path": "/cart-promotions/apply-promotion",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /cart-promotions/remove-promotion",
+      "method": "POST",
+      "path": "/cart-promotions/remove-promotion",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "DELETE /cart-reservations/:id",
+      "method": "DELETE",
+      "path": "/cart-reservations/:id",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /discounts/payment",
+      "method": "GET",
+      "path": "/discounts/payment",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payments/contour",
+      "method": "POST",
+      "path": "/payments/contour",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payments/free",
+      "method": "POST",
+      "path": "/payments/free",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /payments",
+      "method": "GET",
+      "path": "/payments",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /payments/options",
+      "method": "GET",
+      "path": "/payments/options",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /payments/monthly-summary",
+      "method": "GET",
+      "path": "/payments/monthly-summary",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /payments/logs",
+      "method": "GET",
+      "path": "/payments/logs",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /payments/failed-logs",
+      "method": "GET",
+      "path": "/payments/failed-logs",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /bank-accounts",
+      "method": "GET",
+      "path": "/bank-accounts",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /order-details",
+      "method": "GET",
+      "path": "/order-details",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /offers/active",
+      "method": "GET",
+      "path": "/offers/active",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /offers",
+      "method": "GET",
+      "path": "/offers",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /offers/:id/detail",
+      "method": "GET",
+      "path": "/offers/:id/detail",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /offers/renewals-or-online-offers",
+      "method": "GET",
+      "path": "/offers/renewals-or-online-offers",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /offer-promotions/check-user-discounts",
+      "method": "GET",
+      "path": "/offer-promotions/check-user-discounts",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /products/member-club",
+      "method": "GET",
+      "path": "/products/member-club",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /card-info",
+      "method": "GET",
+      "path": "/card-info",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /credit-cards",
+      "method": "GET",
+      "path": "/credit-cards",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "DELETE /credit-cards/:id",
+      "method": "DELETE",
+      "path": "/credit-cards/:id",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /credit-cards/card-list",
+      "method": "GET",
+      "path": "/credit-cards/card-list",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /credit-card-sessions",
+      "method": "POST",
+      "path": "/credit-card-sessions",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /payments/card-installment-info",
+      "method": "GET",
+      "path": "/payments/card-installment-info",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payments/three-d-callback",
+      "method": "POST",
+      "path": "/payments/three-d-callback",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payments/add-card",
+      "method": "POST",
+      "path": "/payments/add-card",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payments/loyalties",
+      "method": "POST",
+      "path": "/payments/loyalties",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /operations/:id/installments",
+      "method": "GET",
+      "path": "/operations/:id/installments",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /operations/:id/installment-list",
+      "method": "GET",
+      "path": "/operations/:id/installment-list",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /payment-installments/options",
+      "method": "GET",
+      "path": "/payment-installments/options",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /payment-installments/waiting-payments",
+      "method": "GET",
+      "path": "/payment-installments/waiting-payments",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payment-installments/waiting-payments",
+      "method": "POST",
+      "path": "/payment-installments/waiting-payments",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /payment-installments/active-package-payments",
+      "method": "GET",
+      "path": "/payment-installments/active-package-payments",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /payment-installments/active-installments",
+      "method": "GET",
+      "path": "/payment-installments/active-installments",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /payment-installments/retry-policy-properties",
+      "method": "GET",
+      "path": "/payment-installments/retry-policy-properties",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payment-installments/payment/:id/installment-no/:id",
+      "method": "POST",
+      "path": "/payment-installments/payment/:id/installment-no/:id",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /webhooks/gateway",
+      "method": "POST",
+      "path": "/webhooks/gateway",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /carts",
+      "method": "POST",
+      "path": "/carts",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /carts/package",
+      "method": "POST",
+      "path": "/carts/package",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /carts/product-unit",
+      "method": "POST",
+      "path": "/carts/product-unit",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /carts/member-club",
+      "method": "POST",
+      "path": "/carts/member-club",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payments/three-d",
+      "method": "POST",
+      "path": "/payments/three-d",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payments/non-three-d",
+      "method": "POST",
+      "path": "/payments/non-three-d",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payments/token",
+      "method": "POST",
+      "path": "/payments/token",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payments/bank-transfer",
+      "method": "POST",
+      "path": "/payments/bank-transfer",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payments/add-card-ivr",
+      "method": "POST",
+      "path": "/payments/add-card-ivr",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payments/add-card-ivr/v2",
+      "method": "POST",
+      "path": "/payments/add-card-ivr/v2",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /partial-installments/three-d",
+      "method": "POST",
+      "path": "/partial-installments/three-d",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /partial-installments/token",
+      "method": "POST",
+      "path": "/partial-installments/token",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    }
+  ],
+  "updatedAt": 0
+}

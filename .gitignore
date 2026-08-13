@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+*.zip
+.DS_Store
+
+# Eklenti imza anahtarı ve paketlenmiş crx — asla commit'lenmez
+dist.crx
+dist.pem
+
+# Kişisel Claude Code ayarları (proje ayarları .claude/settings.json'da)
+.claude/settings.local.json

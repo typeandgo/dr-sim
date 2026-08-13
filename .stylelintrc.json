@@ -1,0 +1,20 @@
+{
+  "extends": "stylelint-config-standard-scss",
+  "rules": {
+    "selector-class-pattern": [
+      "^drsim(-[a-z0-9]+)*(__[a-z0-9]+(-[a-z0-9]+)*)?(--[a-z0-9]+(-[a-z0-9]+)*)?$",
+      { "message": "BEM: .drsim-blok__eleman--durum (kural 100)" }
+    ],
+    "color-no-hex": [true, { "message": "Literal hex yasak — _variables.scss token'ı kullan (kural 100)" }],
+    "scss/dollar-variable-pattern": "^drsim-[a-z0-9-]+$",
+    "declaration-property-value-no-unknown": null,
+    "no-descending-specificity": null,
+    "custom-property-pattern": "^drsim-[a-z0-9-]+$"
+  },
+  "overrides": [
+    {
+      "files": ["src/ui/styles/_variables.scss"],
+      "rules": { "color-no-hex": null }
+    }
+  ]
+}

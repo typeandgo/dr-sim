@@ -1,0 +1,468 @@
+{
+  "id": "dr-fatura-sozlesme-raporlama",
+  "name": "DR — Fatura, sözleşme ve raporlama",
+  "defaultPolicy": "pass",
+  "domains": [],
+  "fault": {
+    "kind": "http",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "body": "{\"message\":\"DR simulated unavailable\"}",
+    "headers": {},
+    "delayMs": 0,
+    "timeoutMs": 30000
+  },
+  "rules": [
+    {
+      "key": "GET /invoices",
+      "method": "GET",
+      "path": "/invoices",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /invoices/:id/download",
+      "method": "GET",
+      "path": "/invoices/:id/download",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /contracts",
+      "method": "POST",
+      "path": "/contracts",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /contracts",
+      "method": "GET",
+      "path": "/contracts",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /contracts/count",
+      "method": "GET",
+      "path": "/contracts/count",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /contracts/:id",
+      "method": "GET",
+      "path": "/contracts/:id",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "DELETE /contracts/:id",
+      "method": "DELETE",
+      "path": "/contracts/:id",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /contracts/:id/preview",
+      "method": "GET",
+      "path": "/contracts/:id/preview",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /contracts/:id/download",
+      "method": "GET",
+      "path": "/contracts/:id/download",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /contracts/:id/file",
+      "method": "POST",
+      "path": "/contracts/:id/file",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "PUT /contracts/:id/orgs",
+      "method": "PUT",
+      "path": "/contracts/:id/orgs",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "PUT /contracts/:id/users",
+      "method": "PUT",
+      "path": "/contracts/:id/users",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "PUT /contracts/:id/items",
+      "method": "PUT",
+      "path": "/contracts/:id/items",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "PUT /contracts/:id/lease-info",
+      "method": "PUT",
+      "path": "/contracts/:id/lease-info",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "PUT /contracts/:id/general-conditions",
+      "method": "PUT",
+      "path": "/contracts/:id/general-conditions",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "PUT /contracts/:id/partner",
+      "method": "PUT",
+      "path": "/contracts/:id/partner",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "PUT /contracts/:id/complete",
+      "method": "PUT",
+      "path": "/contracts/:id/complete",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /digital-contract/active",
+      "method": "GET",
+      "path": "/digital-contract/active",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /digital-contract",
+      "method": "POST",
+      "path": "/digital-contract",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /digital-contract/:id",
+      "method": "POST",
+      "path": "/digital-contract/:id",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "PUT /digital-contract/:id/accept",
+      "method": "PUT",
+      "path": "/digital-contract/:id/accept",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "PUT /digital-contract/:id/update/:id",
+      "method": "PUT",
+      "path": "/digital-contract/:id/update/:id",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /digital-contract/:id/show",
+      "method": "GET",
+      "path": "/digital-contract/:id/show",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /digital-contract/:id/show/accepted",
+      "method": "GET",
+      "path": "/digital-contract/:id/show/accepted",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /digital-contract/show/accepted-contracts-user",
+      "method": "GET",
+      "path": "/digital-contract/show/accepted-contracts-user",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /statistics/visit/count",
+      "method": "GET",
+      "path": "/statistics/visit/count",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /statistics/call/count",
+      "method": "GET",
+      "path": "/statistics/call/count",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /statistics/message/count",
+      "method": "GET",
+      "path": "/statistics/message/count",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /statistics/favorite/count",
+      "method": "GET",
+      "path": "/statistics/favorite/count",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /statistics/published-item/count",
+      "method": "GET",
+      "path": "/statistics/published-item/count",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /statistics/viewed-items",
+      "method": "GET",
+      "path": "/statistics/viewed-items",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /statistics/price-index",
+      "method": "GET",
+      "path": "/statistics/price-index",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /item-statistics/favorite",
+      "method": "GET",
+      "path": "/item-statistics/favorite",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /item-statistics/message",
+      "method": "GET",
+      "path": "/item-statistics/message",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /item-statistics/visit",
+      "method": "GET",
+      "path": "/item-statistics/visit",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /item-statistics/messenger",
+      "method": "GET",
+      "path": "/item-statistics/messenger",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /item-statistics/call",
+      "method": "GET",
+      "path": "/item-statistics/call",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /item-statistics/total-message",
+      "method": "GET",
+      "path": "/item-statistics/total-message",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /dashboard/favorite-statistics",
+      "method": "GET",
+      "path": "/dashboard/favorite-statistics",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /dashboard/org-statistics",
+      "method": "GET",
+      "path": "/dashboard/org-statistics",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /dashboard/message-statistics",
+      "method": "GET",
+      "path": "/dashboard/message-statistics",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /top-items",
+      "method": "GET",
+      "path": "/top-items",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /benchmark-report/average-visit-count",
+      "method": "POST",
+      "path": "/benchmark-report/average-visit-count",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /benchmark-report/average-item-count",
+      "method": "POST",
+      "path": "/benchmark-report/average-item-count",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /benchmark-report/region-activity",
+      "method": "POST",
+      "path": "/benchmark-report/region-activity",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /benchmark-report/benchmark-level",
+      "method": "POST",
+      "path": "/benchmark-report/benchmark-level",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /boost-statistics/social-boost",
+      "method": "GET",
+      "path": "/boost-statistics/social-boost",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /boost-statistics/ad-booster",
+      "method": "GET",
+      "path": "/boost-statistics/ad-booster",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: tamamen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /sales-agreements/current",
+      "method": "GET",
+      "path": "/sales-agreements/current",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /sales-agreements",
+      "method": "GET",
+      "path": "/sales-agreements",
+      "state": "block",
+      "source": "preset",
+      "note": "DR: kısmen kapalı",
+      "createdAt": 0
+    }
+  ],
+  "updatedAt": 0
+}
