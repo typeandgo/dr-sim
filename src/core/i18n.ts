@@ -48,7 +48,12 @@ export const EN = {
   'scope.domainPlaceholder': 'api.example.com',
   'scope.removeDomain': 'Remove domain',
   'scope.noDomains': 'No requests are managed until you add a domain. Add one above.',
-  'scope.permissionLost': 'Access to the marked domain was withdrawn — its requests are not being managed. Restore it with “Allow”, then reload the page.',
+  // Domain chip'indeki buton "Allow" DEĞİL: Son Fail'lerdeki hızlı izin de öyle
+  // yazıyordu ve ikisi bir arada görününce hangisinin ne yaptığı anlaşılmıyordu.
+  // Bu buton site erişimi ister, endpoint'e izin vermez.
+  'scope.grantAccess': 'Grant access',
+  'scope.grantAccessTitle': 'Ask Chrome for access to this site again',
+  'scope.permissionLost': 'Access to the marked domain was withdrawn — its requests are not being managed. Restore it with “Grant access”, then reload the page.',
   'scope.addFailed': 'Could not add the domain.',
   'scope.activePage': 'Active page',
   'scope.copyAddress': 'Copy to clipboard',
@@ -237,6 +242,7 @@ export const EN = {
   'options.resetButton': 'Reset the extension',
   'options.resetConfirm': 'EVERYTHING will be deleted:\n\n• all rules and domains\n• all saved profiles\n• fault settings, limits, language preference\n• the inventory and logs of every tab\n• the site access you granted\n\nThis cannot be undone. Continue?',
   'options.resetDone': 'Everything has been reset. Reload any open target pages.',
+  'options.resetPartial': 'Settings were cleared, but Chrome kept site access for: {origins}. Until you remove it from chrome://extensions → Site access, the permission dialog will not appear again for those hosts.',
   'options.resetFailed': 'Could not reset.',
 
   'options.contact': 'Contact',
@@ -291,7 +297,9 @@ export const TR: Record<MessageKey, string> = {
   'scope.domainPlaceholder': 'api.example.com',
   'scope.removeDomain': 'Domaini kaldır',
   'scope.noDomains': 'Domain girilmeden hiçbir istek yönetilmez. Yukarıdan bir domain ekle.',
-  'scope.permissionLost': 'İşaretli domain için erişim geri alınmış — istekleri yönetilmiyor. “İzin ver” ile geri kazandır, sonra sayfayı yenile.',
+  'scope.grantAccess': 'Erişim ver',
+  'scope.grantAccessTitle': 'Bu site için Chrome’dan erişimi yeniden iste',
+  'scope.permissionLost': 'İşaretli domain için erişim geri alınmış — istekleri yönetilmiyor. “Erişim ver” ile geri kazandır, sonra sayfayı yenile.',
   'scope.addFailed': 'Domain eklenemedi.',
   'scope.activePage': 'Aktif sayfa',
   'scope.copyAddress': 'Panoya kopyala',
@@ -464,6 +472,7 @@ export const TR: Record<MessageKey, string> = {
   'options.resetButton': 'Eklentiyi sıfırla',
   'options.resetConfirm': 'HER ŞEY silinecek:\n\n• tüm kurallar ve domainler\n• kayıtlı tüm profiller\n• arıza ayarı, limitler, dil tercihi\n• tüm sekmelerin envanteri ve logları\n• verdiğin site erişimleri\n\nBu geri alınamaz. Devam edilsin mi?',
   'options.resetDone': 'Her şey sıfırlandı. Açık hedef sayfaları yenile.',
+  'options.resetPartial': 'Ayarlar temizlendi ama Chrome şu host’lar için site erişimini korudu: {origins}. chrome://extensions → Site erişimi’nden kaldırmadan bu host’lar için izin penceresi bir daha açılmaz.',
   'options.resetFailed': 'Sıfırlanamadı.',
 
   'options.contact': 'İletişim',

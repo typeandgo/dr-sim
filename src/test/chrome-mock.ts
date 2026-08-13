@@ -88,10 +88,11 @@ export const installChromeMock = () => {
       onAlarm: createEvent(),
     },
     permissions: {
-      request: vi.fn(async () => true),
-      remove: vi.fn(async () => true),
-      contains: vi.fn(async () => true),
-      getAll: vi.fn(async () => ({ permissions: [], origins: [] as string[] })),
+      // Argümanlar tiplenir: testler hangi origin'in istendiğini/kaldırıldığını okuyor
+      request: vi.fn(async (_permissions: chrome.permissions.Permissions) => true),
+      remove: vi.fn(async (_permissions: chrome.permissions.Permissions) => true),
+      contains: vi.fn(async (_permissions: chrome.permissions.Permissions) => true),
+      getAll: vi.fn(async () => ({ permissions: [] as string[], origins: [] as string[] })),
       onAdded: createEvent(),
       onRemoved: createEvent(),
     },

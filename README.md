@@ -54,10 +54,12 @@ Kısayol: `Alt+Shift+D` simülasyonu açar/kapatır.
 Gerçek bir uygulamaya bağlanmadan denemek için repoda bağımlılıksız bir hedef var:
 
 ```bash
-npm run fixture   # uygulama :5174, API :5175
+npm run fixture   # uygulama :7174, API :7175
 ```
 
-`http://localhost:5174` sayfasını aç, panelde **Domain** = `localhost:5175` ekle (izin dialogu her iki host'u da kapsar), sayfayı yenile. Sayfadaki butonlar `fetch`/`XHR` istekleri atar, SPA gezinmesi yapar, blok fırtınası tetikler; sonuçlar tabloda ve `window.__results` içinde görünür.
+`http://localhost:7174` sayfasını aç, panelde **Domain** = `localhost:7175` ekle (izin dialogu her iki host'u da kapsar), sayfayı yenile. Sayfadaki butonlar `fetch`/`XHR` istekleri atar, SPA gezinmesi yapar, blok fırtınası tetikler; sonuçlar tabloda ve `window.__results` içinde görünür.
+
+Portlar çakışırsa env ile değiştirilebilir: `DRSIM_APP_PORT=8300 DRSIM_API_PORT=8301 npm run fixture`.
 
 ## Komutlar
 
@@ -178,7 +180,7 @@ Shortcut: `Alt+Shift+D` toggles the simulation.
 | `npm run lint` | ESLint + Stylelint |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run verify` | lint → typecheck → test → build |
-| `npm run fixture` | Dependency-free target app (app :5174, API :5175) |
+| `npm run fixture` | Dependency-free target app (app :7174, API :7175) |
 | `npm run pack` | `dist/` → version-tagged zip |
 
 ## Privacy

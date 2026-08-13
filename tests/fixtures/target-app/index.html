@@ -23,7 +23,7 @@
   <body>
     <h1>DR-SIM test hedefi</h1>
     <p class="hint">
-      Uygulama <code>localhost:5174</code> · API <code>localhost:5175</code> ·
+      Uygulama <code>localhost:__APP_PORT__</code> · API <code>localhost:__API_PORT__</code> ·
       Sonuçlar ayrıca <code>window.__results</code> içinde.
     </p>
 
@@ -46,7 +46,8 @@
     </table>
 
     <script>
-      const API = 'http://localhost:5175';
+      // Portlar sunucu tarafından enjekte edilir (server.mjs); env ile değiştirilebilir
+      const API = 'http://localhost:__API_PORT__';
       const rows = document.getElementById('rows');
       window.__results = [];
 

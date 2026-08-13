@@ -155,7 +155,20 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
     if (!window.confirm(t('options.resetConfirm'))) return;
 
     const result = await connection.send(COMMANDS.HARD_RESET);
-    setText(resetStatus, t(result.ok ? 'options.resetDone' : 'options.resetFailed'));
+    if (!result.ok) {
+      setText(resetStatus, t('options.resetFailed'));
+      return;
+    }
+
+    // Chrome bazı origin'lerin iznini bırakmayabilir; sessiz geçmek kullanıcıyı
+    // "sıfırladım ama izin penceresi açılmıyor" çıkmazına sokuyordu
+    const remaining = (result.data as { remainingOrigins?: string[] } | undefined)?.remainingOrigins ?? [];
+    setText(
+      resetStatus,
+      remaining.length
+        ? t('options.resetPartial', { origins: remaining.join(', ') })
+        : t('options.resetDone'),
+    );
   };
 
   // --- dil (Revizyon 41)

@@ -150,6 +150,64 @@ describe('background/session.store', () => {
     expect(entry?.headers).toEqual({ authorization: '***', 'x-trace-id': 't1' });
   });
 
+  describe('startDocument — her sayfa yüklemesi sıfırdan başlar', () => {
+    const seeded = () => {
+      const sessions = store();
+      sessions.applyTelemetry(1, [record(), blocked()], 0, settings());
+      sessions.startDocument(1, 'doc-1', settings());
+      sessions.applyTelemetry(1, [record(), blocked()], 0, settings());
+      return sessions;
+    };
+
+    it('yeni belge loglari ve envanteri sıfırlar', () => {
+      const sessions = seeded();
+      expect(sessions.get(1)?.successLog.length).toBeGreaterThan(0);
+      expect(sessions.get(1)?.failLog.length).toBeGreaterThan(0);
+
+      sessions.startDocument(1, 'doc-2', settings());
+
+      const session = sessions.get(1)!;
+      expect(session.successLog).toEqual([]);
+      expect(session.failLog).toEqual([]);
+      expect(session.inventory).toEqual({});
+      expect(session.blockedSinceLoad).toBe(0);
+      expect(session.documentId).toBe('doc-2');
+    });
+
+    // SW uykuya dalıp uyanınca bridge yeniden bağlanır ve AYNI kimliği gönderir.
+    // Bunu yeni sayfa sanmak, kullanıcının kayıtlarını sebepsiz silerdi.
+    it('aynı belge kimliği hiçbir şeyi silmez', () => {
+      const sessions = seeded();
+      const before = sessions.get(1)!.failLog.length;
+
+      sessions.startDocument(1, 'doc-1', settings());
+
+      expect(sessions.get(1)?.failLog).toHaveLength(before);
+      expect(Object.keys(sessions.get(1)!.inventory).length).toBeGreaterThan(0);
+    });
+
+    it('kimlik boşsa yok sayılır', () => {
+      const sessions = seeded();
+      const before = sessions.get(1)!.failLog.length;
+
+      sessions.startDocument(1, '', settings());
+
+      expect(sessions.get(1)?.failLog).toHaveLength(before);
+    });
+
+    // Ayarın adı "envanteri koru"; loglar her yüklemede yine de sıfırlanır
+    it('keepInventoryOnNavigate açıkken envanter kalır, loglar yine sıfırlanır', () => {
+      const sessions = seeded();
+
+      sessions.startDocument(1, 'doc-2', settings({ keepInventoryOnNavigate: true }));
+
+      const session = sessions.get(1)!;
+      expect(session.successLog).toEqual([]);
+      expect(session.failLog).toEqual([]);
+      expect(Object.keys(session.inventory).length).toBeGreaterThan(0);
+    });
+  });
+
   // Hard reset: tek sekme değil, tüm oturumlar
   it('clear tüm sekmeleri siler ve oturum deposunu boşaltır', async () => {
     const sessions = store();
@@ -168,13 +226,6 @@ describe('background/session.store', () => {
     const sessions = store();
     sessions.applyTelemetry(1, [record(), blocked()], 0, settings());
 
-    sessions.clearLogs(1, 'success');
-    expect(sessions.get(1)?.successLog).toHaveLength(0);
-    expect(sessions.get(1)?.failLog).toHaveLength(1);
-
-    sessions.clearLogs(1);
-    expect(sessions.get(1)?.failLog).toHaveLength(0);
-
     sessions.clearInventory(1);
     expect(sessions.get(1)?.inventory).toEqual({});
 
@@ -185,7 +236,6 @@ describe('background/session.store', () => {
   it('bilinmeyen sekmede temizleme sessizce geçer', () => {
     const sessions = store();
     expect(() => {
-      sessions.clearLogs(42);
       sessions.clearInventory(42);
     }).not.toThrow();
   });

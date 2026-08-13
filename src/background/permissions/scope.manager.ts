@@ -49,17 +49,40 @@ export const hasDomainPermission = async (pattern: string): Promise<boolean> => 
   }
 };
 
-// Verilmiş TÜM host izinlerini bırakır (hard reset).
+// Verilmiş TÜM host izinlerini bırakır (hard reset); bırakılAMAYANları döner.
+//
 // Manifest'te statik host izni yoktur, dolayısıyla `getAll().origins` yalnızca
 // kullanıcının çalışma anında verdiklerini içerir — zorunlu izinler etkilenmez.
-export const releaseAllPermissions = async (): Promise<void> => {
+//
+// Origin'ler TEK TEK kaldırılır. `chrome.permissions.remove()` hepsi-ya-hiç
+// çalışır: listedeki tek bir kaldırılamaz origin, diğerlerinin de kalmasına yol
+// açardı. Sonuç sessizce yutulmaz — geriye kalan izin, kullanıcının sıfırladığını
+// sanıp izin penceresinin bir daha hiç açılmamasına sebep olur (Chrome zaten
+// izinli olduğu için dialog göstermez).
+export const releaseAllPermissions = async (): Promise<string[]> => {
+  let origins: string[] = [];
+
   try {
     const granted = await chrome.permissions.getAll();
-    const origins = granted.origins ?? [];
-    if (origins.length) await chrome.permissions.remove({ origins });
+    origins = granted.origins ?? [];
   } catch {
-    // izinler bırakılamazsa sıfırlamanın geri kalanı yine de sürer
+    return [];
   }
+
+  if (!origins.length) return [];
+
+  const remaining: string[] = [];
+
+  await Promise.all(origins.map(async (origin) => {
+    try {
+      // `remove()` false döndürebilir: kaldırılamadı demektir, hata fırlatmaz
+      if (!await chrome.permissions.remove({ origins: [origin] })) remaining.push(origin);
+    } catch {
+      remaining.push(origin);
+    }
+  }));
+
+  return remaining;
 };
 
 // Bir domain silinirken, aynı origin başka bir domain tarafından kullanılmıyorsa izni kaldır
@@ -105,12 +128,17 @@ export const syncContentScripts = async (
   }
 
   if (!matches.length) {
-    appliedSignature = signature;
-    if (!registered.length) return;
+    if (!registered.length) {
+      appliedSignature = signature;
+      return;
+    }
     try {
       await chrome.scripting.unregisterContentScripts({ ids: registered.map((script) => script.id) });
+      // İmza yalnızca kaldırma BAŞARILIYSA yazılır; yoksa bir sonraki çağrı
+      // "zaten uygulandı" deyip atlar ve script'ler kayıtlı kalırdı
+      appliedSignature = signature;
     } catch {
-      // kayıt zaten yoksa yok say
+      appliedSignature = null;
     }
     return;
   }

@@ -22,6 +22,7 @@ const BLOCKED_REASONS: DecisionReason[] = ['blocked', 'default-block'];
 
 const emptySession = (tabId: number, now: number): TabSession => ({
   tabId,
+  documentId: '',
   origin: '',
   routePath: '/',
   title: '',
@@ -86,9 +87,9 @@ export interface SessionStore {
   ensure: (tabId: number) => TabSession;
   all: () => TabSession[];
   applyTelemetry: (tabId: number, records: TelemetryRecord[], dropped: number, settings: Settings) => TabSession;
+  startDocument: (tabId: number, documentId: string, settings: Settings) => TabSession;
   setRoute: (tabId: number, route: RouteInfo, title: string, settings: Settings) => TabSession;
   clearInventory: (tabId: number) => void;
-  clearLogs: (tabId: number, which?: 'success' | 'fail') => void;
   remove: (tabId: number) => void;
   clear: () => Promise<void>;
   hydrate: () => Promise<void>;
@@ -196,6 +197,37 @@ export const createSessionStore = (now: () => number = Date.now): SessionStore =
     return session;
   };
 
+  // Yeni bir sayfa yüklendi (refresh dahil): oturum sıfırdan başlar.
+  //
+  // Eskiden hiçbir şey sıfırlanmıyordu. `setRoute` yalnızca route DEĞİŞİNCE
+  // temizliyordu; refresh'te origin ve path aynı kaldığı için loglar birikiyor,
+  // envanter sayaçları üst üste toplanıyordu.
+  //
+  // Loglar her yüklemede koşulsuz sıfırlanır. Envanter ise `keepInventoryOnNavigate`
+  // açıksa korunur — o ayar zaten "sayfalar arası envanteri koru" demek.
+  const startDocument = (tabId: number, documentId: string, settings: Settings): TabSession => {
+    const session = ensure(tabId);
+
+    // Aynı belge: SW uyandı ve bridge yeniden bağlandı. Silinecek bir şey yok.
+    if (!documentId || session.documentId === documentId) return session;
+
+    session.documentId = documentId;
+    session.successLog = [];
+    session.failLog = [];
+    session.blockedSinceLoad = 0;
+    session.loadedAt = now();
+
+    if (!settings.keepInventoryOnNavigate) {
+      session.inventory = {};
+      session.droppedCount = 0;
+      session.outOfScopeCount = 0;
+    }
+
+    session.updatedAt = now();
+    schedulePersist();
+    return session;
+  };
+
   const setRoute = (tabId: number, route: RouteInfo, title: string, settings: Settings): TabSession => {
     const session = ensure(tabId);
     const changed = session.routePath !== route.pathname || session.origin !== route.origin;
@@ -224,20 +256,13 @@ export const createSessionStore = (now: () => number = Date.now): SessionStore =
     ensure,
     all: () => [...sessions.values()],
     applyTelemetry,
+    startDocument,
     setRoute,
     clearInventory: (tabId) => {
       const session = sessions.get(tabId);
       if (!session) return;
       session.inventory = {};
       session.droppedCount = 0;
-      session.updatedAt = now();
-      schedulePersist();
-    },
-    clearLogs: (tabId, which) => {
-      const session = sessions.get(tabId);
-      if (!session) return;
-      if (which !== 'fail') session.successLog = [];
-      if (which !== 'success') session.failLog = [];
       session.updatedAt = now();
       schedulePersist();
     },

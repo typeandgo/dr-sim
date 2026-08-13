@@ -7,6 +7,20 @@
   box-sizing: border-box;
 }
 
+// `element.hidden = true` UA stil sayfasındaki `[hidden] { display: none }` ile
+// çalışır. Yazar stilleri UA stillerini HER ZAMAN yener (özgüllükten bağımsız),
+// dolayısıyla `display` tanımlayan herhangi bir sınıf gizlemeyi sessizce etkisiz
+// bırakır — buton görünür kalır, kimse fark etmez.
+// Bu tam olarak yaşandı: `compact-button` mixin'ine erişilebilirlik için
+// `display: inline-flex` eklenince domain chip'indeki "Erişim ver", "Bu sayfada
+// çalıştır" ve Son Fail'lerdeki hızlı izin butonları gizlenemez oldu.
+// `.drsim-chips`, `.drsim-field` ve `.drsim-body` ise en baştan beri kırıktı.
+// Global ve `!important`: yoksa ileride eklenen her `display` kuralı aynı tuzağı
+// yeniden kurar. Birim testi bunu yakalayamaz — jsdom cascade uygulamaz.
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   margin: 0;

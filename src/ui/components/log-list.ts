@@ -51,16 +51,14 @@ export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kin
 
   root.appendChild(
     h('section', { class: 'drsim-section' }, [
-      // Başlık + Temizle üst satırda, filtreler kendi satırında (Revizyon 29):
-      // envanter bölümüyle aynı ritim, dar panelde üçünün birbirine girmesi engellenir.
+      // Filtreler başlıkla aynı satırda (Revizyon 53). "Temizle" kaldırıldı:
+      // loglar artık her sayfa yüklemesinde kendiliğinden sıfırlanıyor, elle
+      // temizlemenin bir karşılığı kalmadı. Boşalan sağ taraf filtrelere gitti
+      // ve bölüm bir satır kısaldı — politika bölümü de aynı düzeni kullanıyor.
       h('div', { class: 'drsim-section__head' }, [
         title,
-        button(ctx.t('common.clear'), () => void ctx.send(COMMANDS.CLEAR_LOGS, { which: kind }), {
-          class: 'drsim-button drsim-button--compact',
-          dataset: { test: isFail ? 'dr-sim-clear-log' : 'dr-sim-clear-success-log' },
-        }),
+        h('div', { class: 'drsim-filters', role: 'tablist' }, filterButtons),
       ]),
-      h('div', { class: 'drsim-row' }, [h('div', { class: 'drsim-filters', role: 'tablist' }, filterButtons)]),
       list,
       empty,
     ]),

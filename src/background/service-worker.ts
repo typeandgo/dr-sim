@@ -93,23 +93,40 @@ const applyRuntimeSideEffects = async (): Promise<void> => {
 // alsa bile kayıt `true` kalıyor, panel hiçbir uyarı vermiyor, eklenti ise
 // sessizce enjekte etmeyi bırakıyordu.
 const syncPermissions = async (): Promise<boolean> => {
-  const settings = settingsStore.get();
+  const snapshot = settingsStore.get();
+  const patterns = [...new Set([...snapshot.domains, ...snapshot.pageHosts].map((entry) => entry.pattern))];
+  if (!patterns.length) return false;
 
-  const check = async (list: DomainScope[]): Promise<DomainScope[]> => Promise.all(
-    list.map(async (entry) => {
-      const granted = await hasDomainPermission(entry.pattern);
-      // Aynı referansı döndürmek "değişmedi" demektir; `undefined` da normalize edilir
-      return entry.granted === granted ? entry : { ...entry, granted };
-    }),
-  );
+  const measured = new Map<string, boolean>();
+  await Promise.all(patterns.map(async (pattern) => {
+    measured.set(pattern, await hasDomainPermission(pattern));
+  }));
 
-  const [domains, pageHosts] = await Promise.all([check(settings.domains), check(settings.pageHosts)]);
+  // KRİTİK: ölçüm ile yazma arasında ayarlar değişmiş olabilir. İzin olayları tam
+  // da ekleme ve sıfırlama sırasında geliyor — `chrome.permissions.remove()`
+  // `onRemoved` yayınlar ve bu, hard reset'in ortasına denk gelir.
+  //
+  // Bu yüzden ölçümdeki anlık görüntü DEĞİL, yazma anındaki liste esas alınır ve
+  // yalnızca ölçtüğümüz pattern'lere dokunulur. Arada eklenen kayıt korunur,
+  // silinen kayıt geri gelmez. `get()` ile `update()` arasında await YOKTUR.
+  const apply = (list: DomainScope[]): { list: DomainScope[]; changed: boolean } => {
+    let changed = false;
+    const next = list.map((entry) => {
+      const granted = measured.get(entry.pattern);
+      if (granted === undefined || entry.granted === granted) return entry;
+      changed = true;
+      return { ...entry, granted };
+    });
+    return { list: next, changed };
+  };
 
-  const changed = domains.some((entry, index) => entry !== settings.domains[index])
-    || pageHosts.some((entry, index) => entry !== settings.pageHosts[index]);
+  const current = settingsStore.get();
+  const domains = apply(current.domains);
+  const pageHosts = apply(current.pageHosts);
+  if (!domains.changed && !pageHosts.changed) return false;
 
-  if (changed) await settingsStore.update({ domains, pageHosts });
-  return changed;
+  await settingsStore.update({ domains: domains.list, pageHosts: pageHosts.list });
+  return true;
 };
 
 const bootstrap = async (): Promise<void> => {
@@ -365,12 +382,6 @@ const handlers: Record<string, (ctx: CommandContext) => CommandResult | Promise<
     sessionStore.clearInventory(target);
     return { ok: true };
   },
-  [COMMANDS.CLEAR_LOGS]: ({ tabId, payload }) => {
-    const target = tabId ?? asNumber(payload.tabId, -1);
-    if (target < 0) return { ok: false, error: 'no-tab' };
-    sessionStore.clearLogs(target, payload.which as 'success' | 'fail' | undefined);
-    return { ok: true };
-  },
   [COMMANDS.APPLY_PROFILE]: applyProfile,
   [COMMANDS.DELETE_PROFILE]: async ({ payload }) => {
     const id = asString(payload.id);
@@ -419,11 +430,13 @@ const handlers: Record<string, (ctx: CommandContext) => CommandResult | Promise<
   // Content script kaydını ayrıca kaldırmaya gerek yok: sıfırlamadan sonra
   // domain listesi boş olduğu için `applyRuntimeSideEffects` onu zaten çözer.
   [COMMANDS.HARD_RESET]: async () => {
-    await releaseAllPermissions();
+    const remaining = await releaseAllPermissions();
     await cancelAutoOff();
     await settingsStore.reset();
     await sessionStore.clear();
-    return { ok: true };
+    // Bırakılamayan izin varsa kullanıcı bunu BİLMELİ: aksi hâlde sıfırladığını
+    // sanır, sonra izin penceresinin neden açılmadığını anlayamaz.
+    return { ok: true, data: { remainingOrigins: remaining } };
   },
 };
 
@@ -440,8 +453,15 @@ const runCommand = async (command: string, ctx: CommandContext): Promise<Command
 
 // -------------------------------------------------------------------- portlar
 
-const handleContentMessage = async (message: unknown, tabId: number): Promise<void> => {
-  const data = message as { type?: string; records?: TelemetryRecord[]; dropped?: number; route?: RouteInfo; title?: string };
+const handleContentMessage = async (message: unknown, tabId: number, frameId: number): Promise<void> => {
+  const data = message as {
+    type?: string;
+    records?: TelemetryRecord[];
+    dropped?: number;
+    route?: RouteInfo;
+    title?: string;
+    documentId?: string;
+  };
   if (!data?.type) return;
 
   await bootstrap();
@@ -450,6 +470,18 @@ const handleContentMessage = async (message: unknown, tabId: number): Promise<vo
   if (data.type === SW_MESSAGES.TELEMETRY_BATCH) {
     sessionStore.applyTelemetry(tabId, data.records ?? [], data.dropped ?? 0, settings);
     if (settings.enabled) await updateBadge(true, badgeTitle(true, sessionStore.get(tabId)?.blockedSinceLoad ?? 0));
+    pushState();
+    return;
+  }
+
+  // Bridge TÜM çerçevelerde çalışır (allFrames). Bir iframe'in kendi belge
+  // kimliği ve kendi route'u vardır; bunları sekmenin oturumuna uygulamak
+  // sayfayı yenilememişken logları siler ve panelde yanlış adres gösterirdi.
+  // Oturumun sahibi yalnızca üst çerçevedir.
+  if (frameId !== 0) return;
+
+  if (data.type === SW_MESSAGES.CONTENT_READY) {
+    sessionStore.startDocument(tabId, asString(data.documentId), settings);
     pushState();
     return;
   }
@@ -489,7 +521,7 @@ chrome.runtime.onConnect.addListener((port) => {
     if (!entry) return;
 
     port.onMessage.addListener((message) => {
-      void handleContentMessage(message, entry.tabId).catch(() => {});
+      void handleContentMessage(message, entry.tabId, entry.frameId).catch(() => {});
     });
 
     void bootstrap().then(() => {

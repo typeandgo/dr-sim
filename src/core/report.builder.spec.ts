@@ -46,6 +46,7 @@ const log = (simulated: boolean): LogEntry => ({
 
 const session = (over: Partial<TabSession> = {}): TabSession => ({
   tabId: 1,
+  documentId: 'doc',
   origin: 'https://app.x.com',
   routePath: '/portfoy',
   title: 'Portföy',

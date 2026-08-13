@@ -124,8 +124,13 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
     (domain) => domain.id,
     (domain) => {
       const label = h('span', { class: 'drsim-chip__label' });
-      const grant = button(ctx.t('common.allow'), () => void requestPermission(domain.pattern, domain.id), {
+      // Etiket "İzin ver" DEĞİL: Son Fail'lerdeki hızlı izin butonu da öyle
+      // yazıyor ve ikisi aynı anda görününce karışıyordu. Bu buton site
+      // erişimi ister, endpoint'e izin vermez.
+      const grant = button(ctx.t('scope.grantAccess'), () => void requestPermission(domain.pattern, domain.id), {
         class: 'drsim-button drsim-button--compact',
+        title: ctx.t('scope.grantAccessTitle'),
+        dataset: { test: 'dr-sim-domain-grant' },
       });
       const remove = button('✕', () => void ctx.send(COMMANDS.REMOVE_DOMAIN, { id: domain.id }), {
         class: 'drsim-button drsim-button--compact drsim-button--bare',
@@ -144,6 +149,9 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
 
   let activeHost = '';
   let pageCovered = false;
+  // Sayfa host listesinde KAYITLI olanlar. `pageCovered`'dan ayrıdır: bir sayfa
+  // domain'in enjeksiyon pattern'i sayesinde kapsanıyor ama kayıtlı olmayabilir.
+  let recordedPageHosts: string[] = [];
 
   async function addPageHost(): Promise<void> {
     if (!activeHost) return;
@@ -192,11 +200,16 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
       return;
     }
 
-    // Aktif sayfa henüz kapsamda değilse enjeksiyon izni de AYNI dialoga eklenir;
-    // böylece kullanıcı ayrıca "Bu sayfada çalıştır" demek zorunda kalmaz (Revizyon 8).
-    const alsoPage = activeHost && !isCoveredBy(activeHost, [validation.pattern]) && !pageCovered
-      ? activeHost
-      : '';
+    // Aktif sayfa, izin dialoguna da eklenir; böylece kullanıcı ayrıca
+    // "Bu sayfada çalıştır" demek zorunda kalmaz (Revizyon 8). İzinler origin
+    // pattern'ine göre tekilleştiği için bu ikinci bir dialog AÇMAZ.
+    //
+    // Kapsanıyor olsa bile KAYDEDİLİR (Revizyon 54): `localhost:7175` domaini
+    // `localhost:7174` sayfasını enjeksiyon pattern'i (`*://localhost/*`)
+    // üzerinden zaten kapsıyor, ama o zaman panelde hiç pill görünmüyor ve
+    // kullanıcı hangi sayfalarda çalıştığını göremiyordu. Kayıt ayrıca domain
+    // sonradan değişirse sayfayı ayakta tutar.
+    const alsoPage = activeHost && !recordedPageHosts.includes(activeHost) ? activeHost : '';
 
     // İzin, komuttan ÖNCE ve tıklama bağlamında istenir (bkz. ui/permissions.ts)
     const patterns = alsoPage ? [validation.pattern, alsoPage] : [validation.pattern];
@@ -234,6 +247,7 @@ export const mountScope = (root: HTMLElement, ctx: ComponentContext): Component 
 
       activeHost = hostOf(state.tabUrl || state.session?.origin || '');
       pageCovered = isPageCovered(activeHost, state);
+      recordedPageHosts = state.settings.pageHosts.map((host) => host.pattern);
       const covered = pageCovered;
 
       enablePage.hidden = !activeHost || covered;

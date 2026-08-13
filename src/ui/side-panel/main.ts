@@ -71,8 +71,11 @@ const mountAll = (t: Translate, locale: Locale): Component[] => {
     mountPolicy(slot(), ctx),
     mountProfile(slot(), ctx),
     mountInventory(slot(), ctx),
-    mountLogList(slot(), ctx, 'success'),
+    // Fail'ler Success'in ÜSTÜNDE (Revizyon 53): ürünün ana döngüsü bunun
+    // üzerinden yürüyor — blokla, çöken yeri gör, izin ver, yenile. Success
+    // listesi teyit içindir; birincil olanı aşağı itmemeli.
     mountLogList(slot(), ctx, 'fail'),
+    mountLogList(slot(), ctx, 'success'),
     mountFooter(slot(), ctx),
   ];
 };

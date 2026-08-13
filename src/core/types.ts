@@ -165,6 +165,10 @@ export interface LogEntry {
 
 export interface TabSession {
   tabId: number;
+  // Üst çerçevenin belge kimliği. Her sayfa yüklemesinde yenilenir; SW port'u
+  // koptuğunda veya SPA gezinmesinde AYNI kalır. Envanter ve logların ne zaman
+  // sıfırdan başlayacağını bu ayırır.
+  documentId: string;
   origin: string;
   routePath: string;
   title: string;

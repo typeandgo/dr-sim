@@ -10,6 +10,13 @@ const BANNER_ID = 'drsim-page-banner';
 const MAX_BACKOFF_MS = 30_000;
 
 const channelToken = crypto.randomUUID();
+
+// Belge kimliği: bu script her sayfa yüklemesinde document_start'ta yeniden
+// çalışır, dolayısıyla değer sayfa başına tektir. SW port'u koptuğunda
+// (service worker uykuya daldığında) bridge yeniden bağlanır ama AYNI kimliği
+// gönderir — böylece SW "yeni sayfa mı, yoksa yeniden bağlanma mı" ayrımını
+// güvenle yapar ve logları boş yere silmez.
+const documentId = crypto.randomUUID();
 const allowMessage = createRateLimiter();
 
 let port: chrome.runtime.Port | null = null;
@@ -114,7 +121,7 @@ function connect(): void {
     scheduleReconnect();
   });
 
-  send({ type: SW_MESSAGES.CONTENT_READY, href: window.location.href });
+  send({ type: SW_MESSAGES.CONTENT_READY, href: window.location.href, documentId });
 }
 
 function send(payload: Record<string, unknown>): void {

@@ -27,6 +27,7 @@ const state = (failLog: LogEntry[] = [entry()], successLog: LogEntry[] = []): Ui
   settings: { ...DEFAULT_SETTINGS },
   session: {
     tabId: 1,
+    documentId: 'doc',
     origin: 'https://app.x.com',
     routePath: '/home',
     title: '',
@@ -58,18 +59,19 @@ describe('ui/log-list', () => {
     document.body.replaceChildren();
   });
 
-  it('başlık satırında yalnızca Temizle vardır, filtreler alt satırda kalır (Revizyon 29)', () => {
+  // Revizyon 53: loglar her sayfa yüklemesinde kendiliğinden sıfırlandığı için
+  // "Temizle" kaldırıldı; boşalan sağ taraf filtrelere gitti ve bölüm kısaldı.
+  it('filtreler başlıkla aynı satırdadır, Temizle yoktur', () => {
     const { root, component } = setup('fail');
     component.update(state());
 
     const head = root.querySelector<HTMLElement>('.drsim-section__head')!;
-    expect(head.querySelector('.drsim-filters')).toBeNull();
-    expect(head.lastElementChild?.getAttribute('data-test')).toBe('dr-sim-clear-log');
+    const filters = head.querySelector<HTMLElement>('.drsim-filters')!;
 
-    const filters = root.querySelector<HTMLElement>('.drsim-filters')!;
+    expect(filters).not.toBeNull();
     expect(filters.children).toHaveLength(3);
-    expect(head.contains(filters)).toBe(false);
-    expect(head.compareDocumentPosition(filters) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(root.querySelector('[data-test="dr-sim-clear-log"]')).toBeNull();
+    expect(root.querySelector('[data-test="dr-sim-clear-success-log"]')).toBeNull();
   });
 
   it('satırda yalnızca EP seçilebilir, tıklama kopyalamaz (Revizyon 48)', () => {
@@ -119,15 +121,6 @@ describe('ui/log-list', () => {
     component.update(state([], [entry({ outcome: 'success', simulated: false, reason: 'allowed', status: 200 })]));
 
     expect(quickAllow(root).hidden).toBe(true);
-  });
-
-  it('temizle komutu doğru listeyi hedefler', () => {
-    const { root, ctx, component } = setup('fail');
-    component.update(state());
-
-    root.querySelector<HTMLElement>('[data-test="dr-sim-clear-log"]')!.click();
-
-    expect(ctx.send).toHaveBeenCalledWith(COMMANDS.CLEAR_LOGS, { which: 'fail' });
   });
 
   it('sebep etiketini yazar', () => {

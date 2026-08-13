@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { COMMANDS, STORAGE_KEYS } from '@/core/constants';
 import { installChromeMock, type ChromeMock } from '@/test/chrome-mock';
 import type { buildState as BuildState, runCommand as RunCommand } from './service-worker';
+import type { sessionStore as SessionStore } from './stores/session.store';
+import type { settingsStore as SettingsStore } from './stores/settings.store';
 
 // Service worker komut yüzeyi — 546 satırın tamamı buradan geçiyor ve dosyanın
 // sonundaki `export { buildState, runCommand }` tam bu test için açılmıştı.
@@ -13,6 +15,8 @@ import type { buildState as BuildState, runCommand as RunCommand } from './servi
 let chromeMock: ChromeMock;
 let runCommand: typeof RunCommand;
 let buildState: typeof BuildState;
+let settingsStore: typeof SettingsStore;
+let sessionStore: typeof SessionStore;
 
 const run = (command: string, payload: Record<string, unknown> = {}, tabId: number | null = null) => runCommand(command, { tabId, payload });
 
@@ -23,12 +27,21 @@ beforeEach(async () => {
   const module = await import('./service-worker');
   runCommand = module.runCommand;
   buildState = module.buildState;
+  ({ settingsStore } = await import('./stores/settings.store'));
+  ({ sessionStore } = await import('./stores/session.store'));
 
   // bootstrap top-level'da tetikleniyor; store'un yüklenmesini bekle
   await run(COMMANDS.DISMISS_NOTICE);
 });
 
-afterEach(() => {
+// Depo yazmaları debounce'lu ve zamanlayıcılar MODÜL seviyesinde tutuluyor;
+// `vi.resetModules()` onları iptal etmez. İptal edilmezlerse test bittikten
+// sonra tetiklenip bir SONRAKİ testin chrome mock'una yazıyor ve o testi
+// alakasız bir sebeple düşürüyorlar (bu gerçekten yaşandı: sızan `locale: 'tr'`
+// yüzünden dosya adı `dr-sim-profil-` çıkıp profil testi kırıldı).
+afterEach(async () => {
+  await settingsStore.flush();
+  await sessionStore.clear();
   vi.clearAllMocks();
 });
 
@@ -271,12 +284,10 @@ describe('background/service-worker — komut yüzeyi', () => {
   describe('oturum komutları', () => {
     it('sekme yokken temizleme reddedilir', async () => {
       expect(await run(COMMANDS.CLEAR_INVENTORY, {})).toEqual({ ok: false, error: 'no-tab' });
-      expect(await run(COMMANDS.CLEAR_LOGS, {})).toEqual({ ok: false, error: 'no-tab' });
     });
 
     it('sekme verilince temizleme çalışır', async () => {
       expect(await run(COMMANDS.CLEAR_INVENTORY, {}, 7)).toEqual({ ok: true });
-      expect(await run(COMMANDS.CLEAR_LOGS, { which: 'fail' }, 7)).toEqual({ ok: true });
     });
   });
 
@@ -322,7 +333,7 @@ describe('background/service-worker — komut yüzeyi', () => {
 
     it('her şeyi varsayılana döndürür', async () => {
       await seed();
-      expect(await run(COMMANDS.HARD_RESET)).toEqual({ ok: true });
+      expect((await run(COMMANDS.HARD_RESET)).ok).toBe(true);
 
       const { settings } = buildState(null);
       expect(settings.domains).toEqual([]);
@@ -345,9 +356,8 @@ describe('background/service-worker — komut yüzeyi', () => {
 
       await run(COMMANDS.HARD_RESET);
 
-      expect(chromeMock.permissions.remove).toHaveBeenCalledWith({
-        origins: ['*://api.example.com/*', '*://panel.example.com/*'],
-      });
+      expect(chromeMock.permissions.remove).toHaveBeenCalledWith({ origins: ['*://api.example.com/*'] });
+      expect(chromeMock.permissions.remove).toHaveBeenCalledWith({ origins: ['*://panel.example.com/*'] });
     });
 
     it('bırakılacak izin yoksa remove çağrılmaz', async () => {
@@ -377,19 +387,191 @@ describe('background/service-worker — komut yüzeyi', () => {
       expect(buildState(null).autoOffAt).toBeNull();
     });
 
+    // Chrome, remove() sonrası permissions.onRemoved YAYINLAR. Bu olay
+    // syncPermissions'ı tetikler; o da eski ayar anlık görüntüsünü yazarsa
+    // sıfırlanan domainler geri gelir.
+    it('sıfırlama sırasında gelen izin olayı ayarları geri getirmez', async () => {
+      await run(COMMANDS.ADD_DOMAIN, { pattern: 'api.example.com' });
+      await run(COMMANDS.ADD_PAGE_HOST, { pattern: 'app.example.com' });
+
+      chromeMock.permissions.getAll.mockResolvedValueOnce({
+        permissions: [],
+        origins: ['*://api.example.com/*', '*://app.example.com/*'],
+      });
+      chromeMock.permissions.remove.mockImplementationOnce(async () => {
+        chromeMock.permissions.contains.mockResolvedValue(false);
+        chromeMock.permissions.onRemoved.emit();
+        return true;
+      });
+
+      await run(COMMANDS.HARD_RESET);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(buildState(null).settings.domains).toEqual([]);
+      expect(buildState(null).settings.pageHosts).toEqual([]);
+    });
+
+    // remove() hepsi-ya-hiç çalışır: tek bir kaldırılamaz origin, diğerlerinin de
+    // kalmasına yol açardı. Kalan izin, izin penceresinin bir daha hiç
+    // açılmamasına sebep olur — Chrome zaten izinli olduğu için dialog göstermez.
+    it('origin’ler tek tek bırakılır, biri başarısız olsa diğerleri kalkar', async () => {
+      chromeMock.permissions.getAll.mockResolvedValueOnce({
+        permissions: [],
+        origins: ['*://a.example.com/*', '*://b.example.com/*', '*://c.example.com/*'],
+      });
+      chromeMock.permissions.remove.mockImplementation(async ({ origins }) => origins?.[0] !== '*://b.example.com/*');
+
+      const result = await run(COMMANDS.HARD_RESET);
+
+      expect(chromeMock.permissions.remove).toHaveBeenCalledTimes(3);
+      expect(result.data).toEqual({ remainingOrigins: ['*://b.example.com/*'] });
+    });
+
+    it('hepsi bırakılabilirse kalan bildirilmez', async () => {
+      chromeMock.permissions.getAll.mockResolvedValueOnce({
+        permissions: [],
+        origins: ['*://a.example.com/*'],
+      });
+
+      const result = await run(COMMANDS.HARD_RESET);
+
+      expect(result.data).toEqual({ remainingOrigins: [] });
+    });
+
+    // Kullanıcının bildirdiği akış: sıfırla → domaini yeniden ekle → çalışsın
+    it('sıfırlama sonrası domain yeniden eklenip çalışır', async () => {
+      await run(COMMANDS.ADD_DOMAIN, { pattern: 'api.example.com' });
+
+      chromeMock.permissions.getAll.mockResolvedValueOnce({
+        permissions: [],
+        origins: ['*://api.example.com/*'],
+      });
+      chromeMock.permissions.remove.mockImplementationOnce(async () => {
+        chromeMock.permissions.contains.mockResolvedValue(false);
+        chromeMock.permissions.onRemoved.emit();
+        return true;
+      });
+
+      await run(COMMANDS.HARD_RESET);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(buildState(null).settings.domains).toEqual([]);
+
+      // Kullanıcı izni yeniden verdi
+      chromeMock.permissions.contains.mockResolvedValue(true);
+      chromeMock.permissions.onAdded.emit();
+      await run(COMMANDS.ADD_DOMAIN, { pattern: 'api.example.com' });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const { domains } = buildState(null).settings;
+      expect(domains).toHaveLength(1);
+      // granted true olmalı — false olsaydı compileConfig domaini eleyip
+      // interceptor her isteği pass-through yapardı ("tüm istekler yeşil")
+      expect(domains[0]?.granted).toBe(true);
+    });
+
     it('izinler bırakılamazsa da sıfırlama tamamlanır', async () => {
       await seed();
       chromeMock.permissions.getAll.mockRejectedValueOnce(new Error('nope'));
 
-      expect(await run(COMMANDS.HARD_RESET)).toEqual({ ok: true });
+      expect((await run(COMMANDS.HARD_RESET)).ok).toBe(true);
       expect(buildState(null).settings.rules).toEqual([]);
+    });
+  });
+
+  describe('içerik portu — sayfa yüklemesi', () => {
+    const TAB = 5;
+    const settle = (): Promise<void> => new Promise((resolve) => { setTimeout(resolve, 5); });
+
+    const failRecord = {
+      method: 'GET',
+      url: 'https://api.example.com/a',
+      path: '/a',
+      key: 'GET /a',
+      status: 503,
+      durationMs: 5,
+      outcome: 'fail',
+      simulated: true,
+      reason: 'default-block',
+      origin: 'fetch',
+      at: 1,
+      routePath: '/',
+    };
+
+    const connectFrame = async (frameId: number) => {
+      const listeners: Array<(message: unknown) => void> = [];
+      const port = {
+        name: 'drsim-content',
+        sender: { tab: { id: TAB }, frameId },
+        onMessage: { addListener: (fn: (message: unknown) => void) => listeners.push(fn) },
+        onDisconnect: { addListener: () => {} },
+        postMessage: vi.fn(),
+      };
+
+      chromeMock.runtime.onConnect.emit(port as never);
+      await settle();
+
+      return async (message: unknown) => {
+        listeners.forEach((fn) => fn(message));
+        await settle();
+      };
+    };
+
+    it('refresh logları sıfırdan başlatır, birikmez', async () => {
+      const send = await connectFrame(0);
+
+      await send({ type: 'CONTENT_READY', documentId: 'doc-1' });
+      await send({ type: 'TELEMETRY_BATCH', records: [failRecord], dropped: 0 });
+      expect(buildState(TAB).session?.failLog).toHaveLength(1);
+
+      // Aynı belge (SW uyanışı / yeniden bağlanma) — silmemeli
+      await send({ type: 'CONTENT_READY', documentId: 'doc-1' });
+      expect(buildState(TAB).session?.failLog).toHaveLength(1);
+
+      // Gerçek refresh — sıfırlamalı
+      await send({ type: 'CONTENT_READY', documentId: 'doc-2' });
+      expect(buildState(TAB).session?.failLog).toEqual([]);
+      expect(buildState(TAB).session?.inventory).toEqual({});
+    });
+
+    // Bridge allFrames ile çalışır: her iframe kendi belge kimliğini gönderir.
+    // Üst çerçeve gibi davranırlarsa reklam/analitik iframe'i olan bir sayfada
+    // loglar durup dururken silinirdi.
+    it('iframe’in belge kimliği sekme oturumunu sıfırlamaz', async () => {
+      const top = await connectFrame(0);
+      await top({ type: 'CONTENT_READY', documentId: 'doc-1' });
+      await top({ type: 'TELEMETRY_BATCH', records: [failRecord], dropped: 0 });
+
+      const frame = await connectFrame(1);
+      await frame({ type: 'CONTENT_READY', documentId: 'iframe-doc' });
+
+      expect(buildState(TAB).session?.failLog).toHaveLength(1);
+    });
+
+    it('iframe’in route’u panelde gösterilen adresi değiştirmez', async () => {
+      const top = await connectFrame(0);
+      await top({
+        type: 'ROUTE_CHANGE',
+        route: { origin: 'https://app.example.com', pathname: '/orders', search: '', hash: '' },
+        title: 'Siparişler',
+      });
+
+      const frame = await connectFrame(1);
+      await frame({
+        type: 'ROUTE_CHANGE',
+        route: { origin: 'https://ads.example.net', pathname: '/pixel', search: '', hash: '' },
+        title: 'reklam',
+      });
+
+      const session = buildState(TAB).session;
+      expect(session?.origin).toBe('https://app.example.com');
+      expect(session?.routePath).toBe('/orders');
     });
   });
 
   describe('kaldırılan komutlar geri gelmemeli', () => {
     // O2: UI yüzeyi olmayan üç komut silindi. Protokolde kalırlarsa test edilemeyen
     // yüzey geri döner; bu test onları kapıda tutar.
-    it.each(['ADD_MANUAL_ENDPOINT', 'BULK_SET_RULE_STATE', 'SAVE_PROFILE'])(
+    it.each(['ADD_MANUAL_ENDPOINT', 'BULK_SET_RULE_STATE', 'SAVE_PROFILE', 'CLEAR_LOGS'])(
       '%s artık tanınmıyor',
       async (command) => {
         expect(await run(command)).toEqual({ ok: false, error: 'unknown-command' });

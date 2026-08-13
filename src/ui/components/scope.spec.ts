@@ -87,15 +87,47 @@ describe('ui/scope', () => {
     expect(ctx.send).not.toHaveBeenCalledWith(COMMANDS.ADD_PAGE_HOST, expect.anything());
   });
 
-  it('eklenen domain aktif sayfayı zaten kapsıyorsa ayrıca sayfa izni istenmez', async () => {
-    const { root, ctx, component } = setup();
+  it('aynı origin ikinci bir dialog açmaz — izinler tekilleştirilir', async () => {
+    const { root, component } = setup();
     component.update(state({}, 'https://api.example.com/app'));
 
     root.querySelector<HTMLInputElement>('[data-test="dr-sim-domain-input"]')!.value = 'api.example.com';
     click(root, 'dr-sim-domain-add');
     await flush();
 
+    expect(chromeMock.permissions.request).toHaveBeenCalledTimes(1);
     expect(chromeMock.permissions.request).toHaveBeenCalledWith({ origins: ['*://api.example.com/*'] });
+  });
+
+  // Kullanıcı bildirimi: fixture'da ilk sayfada pill hiç eklenmiyordu.
+  // Sebep: `*://localhost/*` iki portu da kapsadığı için "kayda gerek yok"
+  // deniyordu — ama o zaman panelde hangi sayfada çalıştığı görünmüyordu.
+  it('port farkı olan sayfa da kaydedilir (fixture senaryosu)', async () => {
+    const { root, ctx, component } = setup();
+    component.update(state({}, 'http://localhost:7174/'));
+
+    root.querySelector<HTMLInputElement>('[data-test="dr-sim-domain-input"]')!.value = 'localhost:7175';
+    click(root, 'dr-sim-domain-add');
+    await flush();
+
+    // Tek dialog: iki host da `*://localhost/*` origin'ine düşer
+    expect(chromeMock.permissions.request).toHaveBeenCalledTimes(1);
+    expect(chromeMock.permissions.request).toHaveBeenCalledWith({ origins: ['*://localhost/*'] });
+
+    expect(ctx.send).toHaveBeenCalledWith(COMMANDS.ADD_DOMAIN, { pattern: 'localhost:7175' });
+    expect(ctx.send).toHaveBeenCalledWith(COMMANDS.ADD_PAGE_HOST, { pattern: 'localhost:7174' });
+  });
+
+  it('zaten kayıtlı sayfa ikinci kez eklenmez', async () => {
+    const { root, ctx, component } = setup();
+    component.update(state({
+      pageHosts: [{ id: '1', pattern: 'localhost:7174', granted: true }],
+    }, 'http://localhost:7174/'));
+
+    root.querySelector<HTMLInputElement>('[data-test="dr-sim-domain-input"]')!.value = 'localhost:7175';
+    click(root, 'dr-sim-domain-add');
+    await flush();
+
     expect(ctx.send).not.toHaveBeenCalledWith(COMMANDS.ADD_PAGE_HOST, expect.anything());
   });
 
@@ -170,6 +202,7 @@ describe('ui/scope', () => {
       ...state({}, 'https://panel.example.com/portfoy/123/detay'),
       session: {
         tabId: 1,
+        documentId: 'doc',
         origin: 'https://panel.example.com',
         routePath: '/portfoy/123/detay',
         title: '',
@@ -220,6 +253,49 @@ describe('ui/scope', () => {
 
     expect(root.querySelector<HTMLElement>('[data-test="dr-sim-domain-chips"]')!.hidden).toBe(false);
     expect(root.querySelector<HTMLElement>('[data-test="dr-sim-domain-empty"]')!.hidden).toBe(true);
+  });
+
+  // Bu buton kullanıcıyı yanılttı: izin verilmiş bir domainin yanında görünürse
+  // "eklendi ama izin yok" izlenimi verir. Üç durumun üçü de kilitleniyor.
+  describe('erişim ver butonu', () => {
+    const grantButton = (root: HTMLElement): HTMLElement => root
+      .querySelector<HTMLElement>('[data-test="dr-sim-domain-grant"]')!;
+
+    it('izin verilmişken gizlidir', () => {
+      const { root, component } = setup();
+      component.update(state({ domains: [{ id: '1', pattern: 'api.example.com', granted: true }] }));
+
+      expect(grantButton(root).hidden).toBe(true);
+      expect(root.querySelector<HTMLElement>('[data-test="dr-sim-permission-lost"]')!.hidden).toBe(true);
+    });
+
+    it('izin hiç sorulmamışken de gizlidir', () => {
+      const { root, component } = setup();
+      component.update(state({ domains: [{ id: '1', pattern: 'api.example.com' }] }));
+
+      expect(grantButton(root).hidden).toBe(true);
+    });
+
+    it('yalnızca erişim geri alınmışsa görünür ve uyarı satırı çıkar', () => {
+      const { root, component } = setup();
+      component.update(state({ domains: [{ id: '1', pattern: 'api.example.com', granted: false }] }));
+
+      expect(grantButton(root).hidden).toBe(false);
+      expect(root.querySelector('.drsim-chip')!.classList.contains('drsim-chip--pending')).toBe(true);
+
+      const lost = root.querySelector<HTMLElement>('[data-test="dr-sim-permission-lost"]')!;
+      expect(lost.hidden).toBe(false);
+      expect(lost.textContent).toContain('Erişim ver');
+    });
+
+    // Son Fail'lerdeki hızlı izin butonu da "İzin ver" yazıyor; ikisi aynı anda
+    // görününce hangisinin ne yaptığı anlaşılmıyordu
+    it('etiketi Son Fail’lerdeki “İzin ver” ile karışmaz', () => {
+      const { root, component } = setup();
+      component.update(state({ domains: [{ id: '1', pattern: 'api.example.com', granted: false }] }));
+
+      expect(grantButton(root).textContent).toBe('Erişim ver');
+    });
   });
 
   it('hata mesajı yalnızca hata varken görünür', async () => {
