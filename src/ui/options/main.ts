@@ -6,6 +6,9 @@ import {
   type Translate,
 } from '@/core/i18n';
 import { normalizePath } from '@/core/path.util';
+import { buildProfileFile } from '@/core/profile';
+import { GUIDE, type GuideBlock } from './guide';
+import { sampleProfile } from './sample-profile';
 import type { FaultConfig, NormalizationRules, Settings, UiState } from '@/core/types';
 import { button, h, setText } from '../dom/h';
 import { localeOf, translatorFor } from '../locale';
@@ -31,7 +34,51 @@ const save = (patch: Partial<Settings>): void => {
 // Dil adları çevrilmez: kullanıcı kendi dilini kendi dilinde arar
 const LANGUAGE_NAMES: Record<Locale, string> = { en: 'English', tr: 'Türkçe' };
 
-const buildOptions = (mount: HTMLElement, t: Translate) => {
+// Kılavuz bölüm bölüm açılır: kapsamlı bir metni tek blokta göstermek yerine
+// başlıklar içindekiler gibi çalışsın, kullanıcı ihtiyacı olanı açsın (Revizyon 47).
+const renderGuideBlock = (block: GuideBlock): HTMLElement => {
+  if (block.kind === 'note') return h('p', { class: 'drsim-guide__note', text: block.text });
+  if (block.kind === 'steps') {
+    return h('ol', { class: 'drsim-guide__steps' }, block.items.map((item) => h('li', { text: item })));
+  }
+  if (block.kind === 'list') {
+    return h('ul', { class: 'drsim-guide__list' }, block.items.map((item) => h('li', { text: item })));
+  }
+  if (block.kind === 'terms') {
+    return h('ul', { class: 'drsim-guide__list' }, block.items.map((item) => h('li', {}, [
+      h('span', { class: 'drsim-guide__term', text: item.term }),
+      h('span', { text: ` — ${item.desc}` }),
+    ])));
+  }
+  return h('p', { class: 'drsim-guide__text', text: block.text });
+};
+
+const renderGuide = (locale: Locale): HTMLElement => h('div', { class: 'drsim-guide' }, GUIDE[locale]
+  .map((chapter) => {
+    const details = h('details', { class: 'drsim-guide__chapter' }, [
+      h('summary', { class: 'drsim-guide__summary', text: chapter.title }),
+      h('div', { class: 'drsim-guide__body' }, chapter.blocks.map(renderGuideBlock)),
+    ]);
+    return details;
+  }));
+
+const buildOptions = (mount: HTMLElement, t: Translate, locale: Locale) => {
+  // --- örnek profil (Revizyon 49)
+  // Dosya, gerçek dışa aktarmayla AYNI üreticiden geçer: örnek ile ürünün ürettiği
+  // biçim ayrışamaz. Kullanıcı indirip düzenler, panelden "⤓ İçe" ile yükler.
+  const sampleFile = buildProfileFile(sampleProfile(t));
+
+  const sampleStatus = h('span', { class: 'drsim-hint', aria: { live: 'polite' } });
+
+  const downloadSample = (): void => {
+    const blob = new Blob([sampleFile.content], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = h('a', { href: url });
+    link.download = `${sampleFile.name}.${sampleFile.extension}`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const section = (title: string, children: HTMLElement[]): HTMLElement => h('section', { class: 'drsim-section' }, [
     h('div', { class: 'drsim-section__head' }, [h('span', { class: 'drsim-section__title', text: title })]),
     ...children,
@@ -160,6 +207,27 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
 
   mount.replaceChildren(
     h('h1', { class: 'drsim-header__title', text: t('options.title') }),
+    section(t('options.guide'), [
+      h('p', { class: 'drsim-hint', text: t('options.guideHint') }),
+      renderGuide(locale),
+    ]),
+    section(t('options.sample'), [
+      h('p', { class: 'drsim-hint', text: t('options.sampleHint') }),
+      h('pre', { class: 'drsim-code', text: sampleFile.content }),
+      h('p', { class: 'drsim-hint', text: t('options.sampleFields') }),
+      h('div', { class: 'drsim-section__actions' }, [
+        button(t('options.sampleDownload'), downloadSample, {
+          class: 'drsim-button drsim-button--compact',
+          dataset: { test: 'dr-sim-sample-download' },
+        }),
+        button(t('options.sampleCopy'), () => {
+          void navigator.clipboard?.writeText(sampleFile.content).then(() => {
+            setText(sampleStatus, t('options.sampleCopied'));
+          });
+        }, { class: 'drsim-button drsim-button--compact' }),
+        sampleStatus,
+      ]),
+    ]),
     section(t('options.fault'), [
       faultSelect,
       faultBodyRow,
@@ -333,7 +401,7 @@ connection.store.subscribe((state) => {
   // tek tek güncellemek yerine DOM'u baştan üretmek hem daha kısa hem daha güvenli.
   if (!sync || locale !== next) {
     locale = next;
-    sync = buildOptions(root, translatorFor(state.settings.locale));
+    sync = buildOptions(root, translatorFor(state.settings.locale), next);
   }
 
   sync(state);

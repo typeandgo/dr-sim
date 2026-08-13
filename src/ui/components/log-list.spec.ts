@@ -72,6 +72,19 @@ describe('ui/log-list', () => {
     expect(head.compareDocumentPosition(filters) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  it('satırda yalnızca EP seçilebilir, tıklama kopyalamaz (Revizyon 48)', () => {
+    const { root, ctx, component } = setup('fail');
+    component.update(state());
+
+    const row = root.querySelector<HTMLElement>('.drsim-log__row')!;
+    row.click();
+
+    // Satırın tıklama davranışı yok; yalnızca hover'da ham URL gösterir
+    expect(ctx.notify).not.toHaveBeenCalled();
+    expect(row.title).toBe('https://api.x.com/auth/refresh');
+    expect(row.querySelector('.drsim-log__ep')).not.toBeNull();
+  });
+
   it('hızlı izin EP’yi allow yapar ve kaynağı quick-allow olur', () => {
     const { root, ctx, component } = setup('fail');
     component.update(state());

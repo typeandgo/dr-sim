@@ -304,10 +304,14 @@
   min-width: 100%;
   white-space: nowrap;
 
-  // İmleç varsayılan (Revizyon 37): satır tıklanınca URL kopyalanıyor ama liste
-  // okunacak bir kayıt akışı, tıklanacak bir eylem listesi değil — her satırda
-  // pointer'a dönmesi gürültü yapıyordu. Kopyalama çalışmaya devam ediyor.
+  // İmleç varsayılan (Revizyon 37): liste okunacak bir kayıt akışı, tıklanacak
+  // bir eylem listesi değil. Metin imleci yalnızca gerçekten seçilebilen yerde,
+  // yani EP'nin üzerinde görünür (Revizyon 48).
   cursor: default;
+
+  // Satırda seçilebilir tek şey `METHOD /path` (Revizyon 48): status, süre, saat
+  // ve rozetler seçime karışınca kopyalanan metin kirleniyordu.
+  user-select: none;
   font-family: $drsim-font-mono;
 }
 
@@ -321,20 +325,38 @@
 
 .drsim-log__ep {
   flex: 0 0 auto;
+
+  // Satırdaki seçilebilir ve imleçle etkileşen tek öğe (Revizyon 48)
+  cursor: text;
+  user-select: text;
 }
 
 .drsim-log__label {
   flex: 0 0 auto;
   color: $drsim-text-muted;
   font-size: $drsim-font-size-sm;
+
+  // İmleç bu alanda hiçbir şey yapmaz; tıklama satıra geçer (Revizyon 48)
+  pointer-events: none;
+}
+
+// Rozetler de bilgi etiketidir, etkileşim yüzeyi değil. `İzin ver` düğmesi
+// bilinçli olarak kapsam dışı: döngünün ana aksiyonu, tıklanabilir kalmalı.
+.drsim-log__row .drsim-tag {
+  pointer-events: none;
 }
 
 // Ayraç çizgi yok (Revizyon 13); ayrım boşlukla kuruluyor.
+// Footer'ın tamamı ortalı (Revizyon 46): panelin kapanış bloğu, sola dayalı
+// içerik akışının devamı değil. `align-items` sütundaki her çocuğu (aksiyon
+// satırı ve bilgi metinleri) yatayda ortalar.
 .drsim-footer {
   display: flex;
   flex-direction: column;
   gap: $drsim-gap;
+  align-items: center;
   padding: $drsim-gap-md $drsim-gap-lg $drsim-gap-lg;
+  text-align: center;
 }
 
 // Aksiyon satırı ile alttaki bilgi metinleri arası, metinlerin kendi
@@ -342,6 +364,9 @@
 .drsim-footer__actions {
   // Tam boy butonlar 4px aralıkta sıkışık duruyordu (Revizyon 36)
   gap: $drsim-gap-md;
+
+  // Dar panelde satır sarınca alt satır da ortalı kalsın
+  justify-content: center;
   margin-bottom: $drsim-gap-md;
 }
 
@@ -386,4 +411,79 @@
 
 .drsim-options .drsim-section {
   margin-bottom: $drsim-gap-lg;
+}
+
+// Kullanıcı kılavuzu (Revizyon 47) — Ayarlar sayfasının ilk bölümü.
+// Bölümler `<details>`: içindekiler gibi çalışır, kullanıcı ihtiyacı olanı açar.
+.drsim-guide {
+  display: flex;
+  flex-direction: column;
+  gap: $drsim-gap-md;
+}
+
+.drsim-guide__chapter {
+  border: 1px solid $drsim-border;
+  border-radius: $drsim-radius;
+  background: $drsim-bg-surface;
+  padding: 8px 10px;
+}
+
+.drsim-guide__summary {
+  cursor: pointer;
+  color: $drsim-text-strong;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.drsim-guide__body {
+  display: flex;
+  flex-direction: column;
+  gap: $drsim-gap-md;
+  margin-top: $drsim-gap-md;
+}
+
+// Kılavuz gövdesi panelin kompakt ritmini değil, okuma ritmini izler
+.drsim-guide__text,
+.drsim-guide__note {
+  margin: 0;
+  color: $drsim-text-subtle;
+  line-height: 1.65;
+}
+
+.drsim-guide__note {
+  border-left: 2px solid $drsim-tag-default;
+  padding-left: $drsim-gap-md;
+  color: $drsim-text-muted;
+}
+
+.drsim-guide__steps,
+.drsim-guide__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+  color: $drsim-text-subtle;
+  line-height: 1.65;
+}
+
+.drsim-guide__term {
+  color: $drsim-text-strong;
+  font-weight: 700;
+}
+
+// Örnek profil bloğu (Revizyon 49) — okunabilir, kopyalanabilir, taşmaz
+.drsim-code {
+  margin: 0;
+  border: 1px solid $drsim-border;
+  border-radius: $drsim-radius;
+  background: $drsim-bg-surface;
+  padding: $drsim-gap-md;
+  max-height: 320px;
+  overflow: auto;
+  color: $drsim-text-subtle;
+  font-family: $drsim-font-mono;
+  font-size: $drsim-font-size-sm;
+  line-height: 1.5;
+  user-select: text;
 }

@@ -84,14 +84,12 @@ export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kin
         });
       }, { class: 'drsim-button drsim-button--compact', dataset: { test: 'dr-sim-quick-allow' } });
 
+      // Satır tıklaması yok (Revizyon 48): tıklayınca URL kopyalanıyordu, ama satır
+      // artık metin seçmek içindir — seçim yapmak da tıklama üretir ve kullanıcının
+      // az önce seçtiği metnin yerine URL panoya yazılırdı. Ham URL hover'da (title).
       const row = h('li', {
         class: 'drsim-log__row',
         title: entry.url,
-        on: {
-          click: () => {
-            void navigator.clipboard?.writeText(entry.url).then(() => ctx.notify(ctx.t('log.urlCopied')));
-          },
-        },
       }, [ep, meta, tag, quickAllow]);
 
       return row;
