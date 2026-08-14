@@ -84,7 +84,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
   const syncProfileKeys = (): void => {
     const settings = state?.settings;
     const active = settings?.profiles.find((entry) => entry.id === settings.activeProfileId);
-    profileKeys = new Set(active?.rules.map((rule) => rule.path));
+    profileKeys = new Set([...(active?.allow ?? []), ...(active?.block ?? [])]);
   };
 
   // Panelin gördüğü tablo ile karar motorunun gördüğü tablo AYNI fonksiyondan

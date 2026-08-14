@@ -2,7 +2,7 @@ import { ALARM_AUTO_OFF, COMMANDS, SW_MESSAGES } from '@/core/constants';
 import { compileConfig } from '@/core/compile-config';
 import { validateDomainPattern } from '@/core/matcher';
 import { createTranslator, resolveLocale } from '@/core/i18n';
-import { buildProfileFile, snapshotProfile } from '@/core/profile';
+import { buildProfileFile, profileToRules, snapshotProfile } from '@/core/profile';
 import { buildReportFile } from '@/core/report.builder';
 import {
   removeRule,
@@ -12,6 +12,7 @@ import {
 } from '@/core/rules';
 import type {
   DomainScope,
+  FaultConfig,
   Profile,
   RouteInfo,
   Settings,
@@ -282,14 +283,30 @@ const applyProfile = async ({ payload }: CommandContext): Promise<CommandResult>
   await settingsStore.mutate((current) => ({
     ...current,
     defaultPolicy: profile.defaultPolicy,
-    rules: profile.rules,
+    rules: profileToRules(profile, Date.now()),
     fault: profile.fault,
-    domains: profile.domains.length ? profile.domains : current.domains,
+    // `granted` yazılmaz: yerel izin durumu `syncPermissions` ile ayrıca ölçülür.
+    // Aksi hâlde paylaşılan profil, PAYLAŞANIN izin durumunu taşırdı.
+    domains: profile.domains.length
+      ? profile.domains.map((pattern) => ({ id: crypto.randomUUID(), pattern }))
+      : current.domains,
     activeProfileId: profile.id,
   }));
 
   return { ok: true };
 };
+
+const asPathList = (value: unknown): string[] => (Array.isArray(value) ? value : [])
+  .filter((entry): entry is string => typeof entry === 'string')
+  .map((entry) => validateRulePath(entry))
+  .filter((result): result is { ok: true; path: string } => result.ok)
+  .map((result) => result.path);
+
+const asDomainList = (value: unknown): string[] => (Array.isArray(value) ? value : [])
+  .filter((entry): entry is string => typeof entry === 'string')
+  .map((entry) => validateDomainPattern(entry))
+  .filter((result): result is { ok: true; pattern: string } => result.ok)
+  .map((result) => result.pattern);
 
 const importProfile = async ({ payload }: CommandContext): Promise<CommandResult> => {
   let parsed: unknown;
@@ -299,18 +316,27 @@ const importProfile = async ({ payload }: CommandContext): Promise<CommandResult
     return { ok: false, error: 'invalid-json' };
   }
 
-  const candidate = parsed as Partial<Profile>;
-  if (!candidate || typeof candidate !== 'object' || !Array.isArray(candidate.rules)) {
+  const candidate = parsed as Record<string, unknown> | null;
+
+  // Geçerlilik koşulu tek: en az bir liste. Eski `rules[]` dosyaları da tam
+  // buradan reddolur — ayrı bir uyumluluk kontrolü yok (Revizyon 59).
+  if (!candidate || typeof candidate !== 'object'
+    || (!Array.isArray(candidate.allow) && !Array.isArray(candidate.block))) {
     return { ok: false, error: 'profile-schema' };
   }
 
+  const name = asString(candidate.name, translator()('profile.importedName'));
+  // Kimlik isim üzerinden: aynı dosyayı ikinci kez yüklemek kopya üretmemeli.
+  const existing = settingsStore.get().profiles.find((entry) => entry.name === name);
+
   const profile: Profile = {
-    id: asString(candidate.id) || crypto.randomUUID(),
-    name: asString(candidate.name, translator()('profile.importedName')),
+    id: existing?.id ?? crypto.randomUUID(),
+    name,
     defaultPolicy: candidate.defaultPolicy === 'pass' ? 'pass' : 'block',
-    domains: Array.isArray(candidate.domains) ? candidate.domains : [],
-    rules: candidate.rules,
-    fault: candidate.fault ?? settingsStore.get().fault,
+    domains: asDomainList(candidate.domains),
+    allow: asPathList(candidate.allow),
+    block: asPathList(candidate.block),
+    fault: (candidate.fault as FaultConfig | undefined) ?? settingsStore.get().fault,
     updatedAt: Date.now(),
   };
 

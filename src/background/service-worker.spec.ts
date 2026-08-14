@@ -222,7 +222,7 @@ describe('background/service-worker — komut yüzeyi', () => {
     const profileJson = JSON.stringify({
       name: 'DR — ödeme',
       defaultPolicy: 'pass',
-      rules: [{ path: '/a', state: 'allow', createdAt: 0 }],
+      allow: ['/a'],
     });
 
     it('profil içe aktarılır ve uygulanır', async () => {
@@ -239,7 +239,7 @@ describe('background/service-worker — komut yüzeyi', () => {
     });
 
     it('adsız profil arayüz dilinde yedek ad alır — sabit Türkçe değil', async () => {
-      await run(COMMANDS.IMPORT_PROFILE, { json: JSON.stringify({ rules: [] }) });
+      await run(COMMANDS.IMPORT_PROFILE, { json: JSON.stringify({ allow: [] }) });
 
       // Varsayılan dil tercihi 'auto'; jsdom’da tarayıcı dili İngilizce
       expect(buildState(null).settings.profiles[0]?.name).toBe('Imported profile');
@@ -268,7 +268,62 @@ describe('background/service-worker — komut yüzeyi', () => {
       expect(file.extension).toBe('json');
       // Dosya adı da arayüz dilini izler
       expect(file.name.startsWith('dr-sim-profile-')).toBe(true);
-      expect(JSON.parse(file.content)).toMatchObject({ id: 'current' });
+      // Anlık görüntü yerel defter alanı taşımaz: dosyada `id` yoktur (Adım 3)
+      expect(JSON.parse(file.content)).toMatchObject({ defaultPolicy: 'block', allow: [], block: [] });
+      expect(Object.keys(JSON.parse(file.content))).not.toContain('id');
+    });
+  });
+
+  describe('profil import — yeni şema', () => {
+    const file = (over: Record<string, unknown> = {}) => JSON.stringify({
+      name: 'DR turu',
+      defaultPolicy: 'pass',
+      domains: ['api.x.com'],
+      block: ['/payments/checkout'],
+      ...over,
+    });
+
+    it('allow/block listeleriyle gelen dosya kabul edilir', async () => {
+      const result = await run(COMMANDS.IMPORT_PROFILE, { json: file() });
+
+      expect(result.ok).toBe(true);
+      const [profile] = buildState(null).settings.profiles;
+      expect(profile?.block).toEqual(['/payments/checkout']);
+      expect(profile?.allow).toEqual([]);
+      expect(profile?.domains).toEqual(['api.x.com']);
+    });
+
+    it('eski rules[] biçimi reddedilir', async () => {
+      const json = JSON.stringify({ name: 'eski', rules: [{ key: 'GET /x', method: 'GET', path: '/x', state: 'block' }] });
+
+      expect(await run(COMMANDS.IMPORT_PROFILE, { json })).toEqual({ ok: false, error: 'profile-schema' });
+    });
+
+    it('geçersiz path atlanır, dosya reddedilmez', async () => {
+      const result = await run(COMMANDS.IMPORT_PROFILE, { json: file({ block: ['/ok', '/*', ''] }) });
+
+      expect(result.ok).toBe(true);
+      expect(buildState(null).settings.profiles[0]?.block).toEqual(['/ok']);
+    });
+
+    it('aynı isimle ikinci import üzerine yazar, kopya üretmez', async () => {
+      await run(COMMANDS.IMPORT_PROFILE, { json: file() });
+      await run(COMMANDS.IMPORT_PROFILE, { json: file({ block: ['/baska'] }) });
+
+      const { profiles } = buildState(null).settings;
+      expect(profiles).toHaveLength(1);
+      expect(profiles[0]?.block).toEqual(['/baska']);
+    });
+
+    it('uygulanınca iki listede geçen path block olur', async () => {
+      await run(COMMANDS.IMPORT_PROFILE, { json: file({ allow: ['/x'], block: ['/x'] }) });
+      const { id } = buildState(null).settings.profiles[0]!;
+
+      await run(COMMANDS.APPLY_PROFILE, { id });
+
+      expect(buildState(null).settings.rules).toEqual([
+        { path: '/x', state: 'block', createdAt: expect.any(Number) },
+      ]);
     });
   });
 

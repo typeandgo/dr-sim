@@ -37,13 +37,15 @@ export interface FaultConfig {
   timeoutMs: number;
 }
 
-// Profil = kaydedilmiş kural listesi + kapsam. "Strateji" kavramı yoktur.
+// Profil = paylaşılabilir DR kurulumu. Dosyanın şeklini BİREBİR taşır: `id` ve
+// `updatedAt` yerel defterdir ve dosyaya yazılmaz (Revizyon 59).
 export interface Profile {
   id: string;
   name: string;
   defaultPolicy: DefaultPolicy;
-  domains: DomainScope[];
-  rules: Rule[];
+  domains: string[];
+  allow: string[];
+  block: string[];
   fault: FaultConfig;
   updatedAt: number;
 }

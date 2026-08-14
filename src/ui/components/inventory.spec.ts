@@ -128,7 +128,8 @@ describe('ui/inventory', () => {
         domains: [],
         fault: DEFAULT_SETTINGS.fault,
         updatedAt: 0,
-        rules: paths.map((path) => ({ path, state: 'block' as const, createdAt: 0 })),
+        allow: [],
+        block: paths,
       }],
     });
 

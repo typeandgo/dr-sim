@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SETTINGS } from './constants';
+import { DEFAULT_FAULT, DEFAULT_SETTINGS } from './constants';
 import { createTranslator } from './i18n';
 import { buildProfileFile, profileFileName, slugify, snapshotProfile } from './profile';
 import type { Profile, Rule, Settings } from './types';
@@ -16,7 +16,8 @@ const profile = (over: Partial<Profile> = {}): Profile => ({
   name: 'Ödeme kapalı',
   defaultPolicy: 'block',
   domains: [],
-  rules: [rule('/a')],
+  allow: ['/a'],
+  block: [],
   fault: DEFAULT_SETTINGS.fault,
   updatedAt: 7,
   ...over,
@@ -56,12 +57,43 @@ describe('core/profile', () => {
   });
 
   describe('buildProfileFile', () => {
-    it('profili birebir serileştirir — içe aktarılan dosya aynen geri çıkar', () => {
+    it('profili dosya biçimine serileştirir — kurulum alanları aynen geçer', () => {
       const source = profile();
       const file = buildProfileFile(source, tr);
 
       expect(file).toMatchObject({ extension: 'json', name: 'dr-sim-profil-odeme-kapali' });
-      expect(JSON.parse(file.content)).toEqual(source);
+      expect(JSON.parse(file.content)).toEqual({
+        name: source.name,
+        defaultPolicy: source.defaultPolicy,
+        domains: source.domains,
+        allow: source.allow,
+        block: source.block,
+        fault: source.fault,
+      });
+    });
+
+    it('dosyaya id ve updatedAt yazılmaz', () => {
+      const file = buildProfileFile({
+        id: 'p1',
+        name: 'DR',
+        defaultPolicy: 'pass',
+        domains: ['api.x.com'],
+        allow: ['/users/current'],
+        block: ['/payments/checkout'],
+        fault: DEFAULT_FAULT,
+        updatedAt: 123,
+      }, tr);
+
+      const parsed = JSON.parse(file.content);
+
+      expect(parsed).toEqual({
+        name: 'DR',
+        defaultPolicy: 'pass',
+        domains: ['api.x.com'],
+        allow: ['/users/current'],
+        block: ['/payments/checkout'],
+        fault: DEFAULT_FAULT,
+      });
     });
   });
 
@@ -81,12 +113,35 @@ describe('core/profile', () => {
         defaultPolicy: 'pass',
         updatedAt: now,
       });
-      expect(snapshot.rules).toHaveLength(1);
+      expect(snapshot.allow).toEqual(['/b']);
+      expect(snapshot.block).toEqual([]);
     });
 
     it('anlık görüntü de aynı şemaya uyar — dışa aktarılıp geri okunabilir', () => {
       const snapshot = snapshotProfile(settings(), 'current', 'DR-SIM profili', 1);
-      expect(JSON.parse(buildProfileFile(snapshot, tr).content)).toEqual(snapshot);
+      expect(JSON.parse(buildProfileFile(snapshot, tr).content)).toEqual({
+        name: snapshot.name,
+        defaultPolicy: snapshot.defaultPolicy,
+        domains: snapshot.domains,
+        allow: snapshot.allow,
+        block: snapshot.block,
+        fault: snapshot.fault,
+      });
+    });
+
+    it('anlık görüntü kuralları iki listeye ayırır ve domainleri stringe indirir', () => {
+      const profile = snapshotProfile({
+        ...DEFAULT_SETTINGS,
+        domains: [{ id: 'd1', pattern: 'api.x.com', granted: true }],
+        rules: [
+          { path: '/users/current', state: 'allow', createdAt: 0 },
+          { path: '/payments/checkout', state: 'block', createdAt: 0 },
+        ],
+      }, 'p1', 'DR', 5);
+
+      expect(profile.allow).toEqual(['/users/current']);
+      expect(profile.block).toEqual(['/payments/checkout']);
+      expect(profile.domains).toEqual(['api.x.com']);
     });
   });
 });

@@ -173,7 +173,7 @@ export const EN = {
   'error.not-found': 'Record not found.',
   'error.invalid-settings': 'Invalid settings.',
   'error.invalid-json': 'Invalid JSON file.',
-  'error.profile-schema': 'Does not match the profile schema (no rules list).',
+  'error.profile-schema': 'Does not match the profile schema (no allow or block list).',
   'error.settings-write': 'Settings could not be saved (storage may be full).',
   'error.settings-read': 'Settings could not be read, defaults restored.',
 
@@ -390,7 +390,7 @@ export const TR: Record<MessageKey, string> = {
   'error.not-found': 'Kayıt bulunamadı.',
   'error.invalid-settings': 'Geçersiz ayar.',
   'error.invalid-json': 'Geçersiz JSON dosyası.',
-  'error.profile-schema': 'Profil şemasına uymuyor (rules listesi yok).',
+  'error.profile-schema': 'Profil şemasına uymuyor (allow veya block listesi yok).',
   'error.settings-write': 'Ayarlar kaydedilemedi (depolama dolu olabilir).',
   'error.settings-read': 'Ayarlar okunamadı, varsayılanlara dönüldü.',
 
