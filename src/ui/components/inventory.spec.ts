@@ -9,9 +9,9 @@ import type { ComponentContext } from './types';
 // Kural 400: DOM ağacı değil, gönderilen komut ve payload doğrulanır.
 
 const item = (over: Partial<InventoryItem> = {}): InventoryItem => ({
-  key: 'GET /offers',
-  method: 'GET',
+  key: '/offers',
   path: '/offers',
+  methods: ['GET'],
   sampleUrl: 'https://api.x.com/offers',
   count: 2,
   lastAt: 1,
@@ -179,7 +179,15 @@ describe('ui/inventory', () => {
       const { root, component } = setup();
       component.update(state({}, [item({ origin: 'xhr', lastReason: 'sync-xhr' })]));
 
-      expect(tagsOf(root)).toEqual(['sayfa', 'xhr', 'sync XHR']);
+      expect(tagsOf(root)).toEqual(['sayfa', 'GET', 'xhr', 'sync XHR']);
+    });
+
+    it('satır path yazar, method’lar etiket olarak durur', () => {
+      const { root, component } = setup();
+      component.update(state({}, [item({ methods: ['GET', 'POST'] })]));
+
+      expect(root.querySelector('.drsim-ep')!.textContent).toBe('/offers');
+      expect(tagsOf(root)).toEqual(['sayfa', 'GET', 'POST']);
     });
   });
 
@@ -220,7 +228,7 @@ describe('ui/inventory', () => {
 
   it('engelli / toplam sayacını yazar', () => {
     const { root, component } = setup();
-    component.update(state({ defaultPolicy: 'block' }, [item(), item({ key: 'GET /b', path: '/b' })]));
+    component.update(state({ defaultPolicy: 'block' }, [item(), item({ key: '/b', path: '/b' })]));
 
     expect(root.textContent).toContain('Sayfa EP Envanteri (2 engelli / 2)');
   });

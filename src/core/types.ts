@@ -124,9 +124,11 @@ export interface RuntimeConfig {
 export type RequestOrigin = 'fetch' | 'xhr' | 'manual';
 
 export interface InventoryItem {
-  key: string;
-  method: HttpMethod;
+  key: string; // = path; liste kimliği olarak korunur
   path: string;
+  // Bu path'te GÖZLENEN method'lar, ilk görülme sırasına göre. Karara girmez;
+  // yalnızca satırda etiket olarak gösterilir (Revizyon 59).
+  methods: HttpMethod[];
   sampleUrl: string;
   count: number;
   lastAt: number;

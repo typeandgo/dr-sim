@@ -11,11 +11,11 @@ import {
 } from './report.builder';
 import type { DecisionReason, InventoryItem, LogEntry, Settings, TabSession } from './types';
 
-const item = (key: string, reason: DecisionReason): InventoryItem => ({
-  key,
-  method: key.split(' ')[0] as InventoryItem['method'],
-  path: key.split(' ')[1] ?? '/',
-  sampleUrl: `https://api.x.com${key.split(' ')[1]}`,
+const item = (path: string, reason: DecisionReason): InventoryItem => ({
+  key: path,
+  path,
+  methods: ['GET'],
+  sampleUrl: `https://api.x.com${path}`,
   count: 2,
   lastAt: 0,
   lastStatus: 503,
@@ -50,10 +50,10 @@ const session = (over: Partial<TabSession> = {}): TabSession => ({
   routePath: '/portfoy',
   title: 'Portföy',
   inventory: {
-    'GET /offers/active': item('GET /offers/active', 'default-block'),
-    'GET /org-users/current': item('GET /org-users/current', 'allowed'),
-    'GET /credit-cards': item('GET /credit-cards', 'blocked'),
-    'GET /out': item('GET /out', 'out-of-scope'),
+    '/offers/active': item('/offers/active', 'default-block'),
+    '/org-users/current': item('/org-users/current', 'allowed'),
+    '/credit-cards': item('/credit-cards', 'blocked'),
+    '/out': item('/out', 'out-of-scope'),
   },
   successLog: [],
   failLog: [log(true), log(false)],
@@ -79,8 +79,8 @@ describe('core/report.builder', () => {
   });
 
   it('bloklanan ve bloklanmayan EP’leri sebebe göre ayırır', () => {
-    expect(blockedItems(session()).map((entry) => entry.key)).toEqual(['GET /credit-cards', 'GET /offers/active']);
-    expect(passedItems(session()).map((entry) => entry.key)).toEqual(['GET /org-users/current']);
+    expect(blockedItems(session()).map((entry) => entry.key)).toEqual(['/credit-cards', '/offers/active']);
+    expect(passedItems(session()).map((entry) => entry.key)).toEqual(['/org-users/current']);
   });
 
   it('oturum yokken boş liste döner', () => {
@@ -94,7 +94,7 @@ describe('core/report.builder', () => {
     expect(markdown).toContain("***Bloklanan EP'ler***");
     expect(markdown).toContain("***Bloklanmayan EP'ler***");
     expect(markdown).toContain('***Çıktı***');
-    expect(markdown).toContain('- GET /offers/active');
+    expect(markdown).toContain('- /offers/active (GET)');
   });
 
   it('meta bloğu fail dağılımını yazar', () => {

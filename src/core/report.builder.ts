@@ -26,7 +26,7 @@ export const blockedItems = (session: TabSession | null): InventoryItem[] => byR
 export const passedItems = (session: TabSession | null): InventoryItem[] => byReason(session, PASSED_REASONS);
 
 const bulletList = (items: InventoryItem[], t: Translate): string => (items.length
-  ? items.map((item) => `- ${item.method} ${item.path}`).join('\n')
+  ? items.map((item) => `- ${item.path} (${item.methods.join(', ')})`).join('\n')
   : `- ${t('common.none')}`);
 
 const formatDate = (at: number): string => new Date(at).toISOString().slice(0, 16).replace('T', ' ');

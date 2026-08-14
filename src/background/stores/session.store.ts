@@ -6,6 +6,7 @@ import {
 import { redactHeaders } from '@/core/redact';
 import type {
   DecisionReason,
+  HttpMethod,
   InventoryItem,
   LogEntry,
   RouteInfo,
@@ -130,14 +131,17 @@ export const createSessionStore = (now: () => number = Date.now): SessionStore =
   };
 
   const upsertInventory = (session: TabSession, record: TelemetryRecord, settings: Settings): void => {
-    const key = record.key;
-    const existing = session.inventory[key];
+    const path = record.path;
+    const existing = session.inventory[path];
     const isFail = record.outcome === 'fail';
+    const method = record.method.toUpperCase() as HttpMethod;
 
-    session.inventory[key] = {
-      key,
-      method: record.method.toUpperCase() as InventoryItem['method'],
-      path: record.path,
+    session.inventory[path] = {
+      key: path,
+      path,
+      // `methods ?? []` zorunlu: `storage.session`'da bu alanı taşımayan eski bir
+      // kayıt hydrate edilebilir ve `existing.methods.includes` orada patlardı.
+      methods: existing?.methods?.includes(method) ? existing.methods : [...(existing?.methods ?? []), method],
       sampleUrl: record.url,
       count: (existing?.count ?? 0) + 1,
       lastAt: record.at,

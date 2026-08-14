@@ -140,7 +140,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
       const effective = effectiveState(explicit, state?.settings.defaultPolicy ?? 'block');
       const blocked = effective === 'block';
 
-      setText(ep, `${item.method} ${item.path}`);
+      setText(ep, item.path);
       setText(count, `x${item.count}`);
       setText(
         status!,
@@ -157,7 +157,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
 
       setText(toggle, ctx.t(blocked ? 'common.blocked' : 'common.allowed'));
       toggle.setAttribute('aria-checked', String(!blocked));
-      toggle.setAttribute('aria-label', `${item.method} ${item.path} — ${ctx.t(blocked ? 'common.blocked' : 'common.allowed')}`);
+      toggle.setAttribute('aria-label', `${item.path} — ${ctx.t(blocked ? 'common.blocked' : 'common.allowed')}`);
       toggleClass(toggle, 'drsim-toggle--blocked', blocked);
 
       // Açık kayıt: düz çubuk. Kayıt yok (varsayılana tabi): kesikli çubuk.
@@ -171,6 +171,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
       // bilgi aynı satırda iki kez duruyordu.
       const wanted = [
         ctx.t(profileKeys.has(item.path) ? 'tag.profile' : 'tag.page'),
+        ...(item.methods ?? []),
         item.origin === 'xhr' ? ctx.t('tag.xhr') : null,
         item.lastReason === 'sync-xhr' ? ctx.t('tag.syncXhr') : null,
       ].filter((label): label is string => label !== null);
@@ -190,7 +191,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
 
     return items
       .filter((item) => {
-        if (query && !item.key.toLowerCase().includes(query)) return false;
+        if (query && !item.path.toLowerCase().includes(query)) return false;
         if (filter === 'all') return true;
         const blocked = effectiveState(rules[item.path], policy) === 'block';
         return filter === 'blocked' ? blocked : !blocked;

@@ -47,7 +47,7 @@ describe('background/session.store', () => {
     const sessions = store();
     sessions.applyTelemetry(1, [record(), record({ status: 500, outcome: 'fail', reason: 'real-error' })], 0, settings());
 
-    const item = sessions.get(1)?.inventory['GET /offers'];
+    const item = sessions.get(1)?.inventory['/offers'];
     expect(item).toMatchObject({ count: 2, successCount: 1, failCount: 1, lastStatus: 500 });
     expect(sessions.get(1)?.successLog).toHaveLength(1);
     expect(sessions.get(1)?.failLog).toHaveLength(1);
@@ -67,8 +67,8 @@ describe('background/session.store', () => {
     sessions.applyTelemetry(2, [record({ key: 'GET /b', path: '/b' })], 0, settings());
     sessions.applyTelemetry(3, [record({ key: 'GET /c', path: '/c' })], 0, settings());
 
-    expect(Object.keys(sessions.get(1)!.inventory)).toEqual(['GET /a']);
-    expect(Object.keys(sessions.get(2)!.inventory)).toEqual(['GET /b']);
+    expect(Object.keys(sessions.get(1)!.inventory)).toEqual(['/a']);
+    expect(Object.keys(sessions.get(2)!.inventory)).toEqual(['/b']);
     expect(sessions.all()).toHaveLength(3);
   });
 
@@ -89,7 +89,7 @@ describe('background/session.store', () => {
     sessions.applyTelemetry(1, records, 0, settings({ maxInventoryItems: 3 }));
 
     expect(Object.keys(sessions.get(1)!.inventory)).toHaveLength(3);
-    expect(sessions.get(1)?.inventory['GET /p0']).toBeUndefined();
+    expect(sessions.get(1)?.inventory['/p0']).toBeUndefined();
   });
 
   it('1000 istek sonrası limitler aşılmaz', () => {
@@ -101,6 +101,22 @@ describe('background/session.store', () => {
 
     expect(Object.keys(sessions.get(1)!.inventory).length).toBeLessThanOrEqual(500);
     expect(sessions.get(1)!.successLog.length).toBeLessThanOrEqual(200);
+  });
+
+  it('aynı path’in farklı method’ları tek envanter satırında toplanır', () => {
+    const sessions = store();
+
+    sessions.applyTelemetry(1, [
+      { ...record(), method: 'GET', key: 'GET /orders', path: '/orders' },
+      { ...record(), method: 'POST', key: 'POST /orders', path: '/orders' },
+      { ...record(), method: 'GET', key: 'GET /orders', path: '/orders' },
+    ], 0, settings());
+
+    const inventory = sessions.get(1)!.inventory;
+
+    expect(Object.keys(inventory)).toEqual(['/orders']);
+    expect(inventory['/orders']!.methods).toEqual(['GET', 'POST']);
+    expect(inventory['/orders']!.count).toBe(3);
   });
 
   it('route değişiminde envanteri sıfırlar, ayarla korunabilir', () => {
@@ -249,7 +265,7 @@ describe('background/session.store', () => {
 
     const second = store();
     await second.hydrate();
-    expect(second.get(1)?.inventory['GET /offers']).toBeTruthy();
+    expect(second.get(1)?.inventory['/offers']).toBeTruthy();
   });
 
   it('rehydrate verisi yoksa boş başlar', async () => {
