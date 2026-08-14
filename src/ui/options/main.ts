@@ -40,19 +40,32 @@ const buildOptions = (mount: HTMLElement, t: Translate, pageLocale: Locale) => {
     ...children,
   ]);
 
-  const checkbox = (label: string, onChange: (checked: boolean) => void): { row: HTMLElement; input: HTMLInputElement } => {
+  // Her ayar kendi açıklamasını taşır (Revizyon 61). Açıklama bölüm sonunda değil
+  // kontrolün ALTINDA duruyor: bölüm sonundaki tek ipucu, hangi cümlenin hangi
+  // kutuya ait olduğunu okuyucuya bırakıyordu — üç seçenekli bir bölümde bu
+  // tahmin işi oluyor.
+  const setting = (control: HTMLElement, hint: string): HTMLElement => h('div', { class: 'drsim-setting' }, [
+    control,
+    h('p', { class: 'drsim-hint drsim-hint--setting', text: hint }),
+  ]);
+
+  const checkbox = (label: string, hint: string, onChange: (checked: boolean) => void): { row: HTMLElement; input: HTMLInputElement } => {
     const input = h('input', { type: 'checkbox', on: { change: () => onChange(input.checked) } });
-    return { row: h('label', { class: 'drsim-radio' }, [input, h('span', { text: label })]), input };
+    const control = h('label', { class: 'drsim-radio' }, [input, h('span', { text: label })]);
+
+    return { row: setting(control, hint), input };
   };
 
-  const numberField = (label: string, onChange: (value: number) => void): { row: HTMLElement; input: HTMLInputElement } => {
+  const numberField = (label: string, hint: string, onChange: (value: number) => void): { row: HTMLElement; input: HTMLInputElement } => {
     const input = h('input', {
       class: 'drsim-input drsim-input--number',
       type: 'number',
       min: '0',
       on: { change: () => onChange(Number(input.value) || 0) },
     });
-    return { row: h('label', { class: 'drsim-field' }, [h('span', { class: 'drsim-label', text: label }), input]), input };
+    const control = h('label', { class: 'drsim-field' }, [h('span', { class: 'drsim-label', text: label }), input]);
+
+    return { row: setting(control, hint), input };
   };
 
   // --- arıza (Revizyon 23: panelden buraya taşındı)
@@ -78,8 +91,8 @@ const buildOptions = (mount: HTMLElement, t: Translate, pageLocale: Locale) => {
     on: { change: () => setFault({ body: faultBody.value }) },
   });
 
-  const faultDelay = numberField(t('options.faultDelay'), (value) => setFault({ delayMs: value }));
-  const faultTimeout = numberField(t('options.faultTimeout'), (value) => setFault({ timeoutMs: value || 30000 }));
+  const faultDelay = numberField(t('options.faultDelay'), t('options.faultDelayHint'), (value) => setFault({ delayMs: value }));
+  const faultTimeout = numberField(t('options.faultTimeout'), t('options.faultTimeoutHint'), (value) => setFault({ timeoutMs: value || 30000 }));
   const faultBodyRow = h('label', { class: 'drsim-field' }, [
     h('span', { class: 'drsim-label', text: t('options.faultBody') }),
     faultBody,
@@ -109,9 +122,9 @@ const buildOptions = (mount: HTMLElement, t: Translate, pageLocale: Locale) => {
     updatePreview();
   };
 
-  const numericId = checkbox(t('options.numericId'), (checked) => saveNormalization({ numericId: checked }));
-  const uuid = checkbox(t('options.uuid'), (checked) => saveNormalization({ uuid: checked }));
-  const longHex = checkbox(t('options.longHex'), (checked) => saveNormalization({ longHex: checked }));
+  const numericId = checkbox(t('options.numericId'), t('options.numericIdHint'), (checked) => saveNormalization({ numericId: checked }));
+  const uuid = checkbox(t('options.uuid'), t('options.uuidHint'), (checked) => saveNormalization({ uuid: checked }));
+  const longHex = checkbox(t('options.longHex'), t('options.longHexHint'), (checked) => saveNormalization({ longHex: checked }));
   const customPatterns = h('textarea', {
     class: 'drsim-textarea',
     rows: '3',
@@ -124,17 +137,17 @@ const buildOptions = (mount: HTMLElement, t: Translate, pageLocale: Locale) => {
   });
 
   // --- gizlilik
-  const captureHeaders = checkbox(t('options.captureHeaders'), (checked) => save({ captureHeaders: checked }));
+  const captureHeaders = checkbox(t('options.captureHeaders'), t('options.privacyHint'), (checked) => save({ captureHeaders: checked }));
 
   // --- limitler
-  const maxLogEntries = numberField(t('options.maxLogEntries'), (value) => save({ maxLogEntries: value }));
-  const maxInventoryItems = numberField(t('options.maxInventoryItems'), (value) => save({ maxInventoryItems: value }));
-  const keepInventory = checkbox(t('options.keepInventory'), (checked) => save({ keepInventoryOnNavigate: checked }));
+  const maxLogEntries = numberField(t('options.maxLogEntries'), t('options.maxLogEntriesHint'), (value) => save({ maxLogEntries: value }));
+  const maxInventoryItems = numberField(t('options.maxInventoryItems'), t('options.maxInventoryItemsHint'), (value) => save({ maxInventoryItems: value }));
+  const keepInventory = checkbox(t('options.keepInventory'), t('options.keepInventoryHint'), (checked) => save({ keepInventoryOnNavigate: checked }));
 
   // --- güvenlik
-  const autoOffMinutes = numberField(t('options.autoOff'), (value) => save({ autoOffMinutes: value || null }));
-  const productionGuard = checkbox(t('options.productionGuard'), (checked) => save({ productionGuard: checked }));
-  const showPageBanner = checkbox(t('options.showPageBanner'), (checked) => save({ showPageBanner: checked }));
+  const autoOffMinutes = numberField(t('options.autoOff'), t('options.autoOffHint'), (value) => save({ autoOffMinutes: value || null }));
+  const productionGuard = checkbox(t('options.productionGuard'), t('options.productionGuardHint'), (checked) => save({ productionGuard: checked }));
+  const showPageBanner = checkbox(t('options.showPageBanner'), t('options.showPageBannerHint'), (checked) => save({ showPageBanner: checked }));
   const productionHostPatterns = h('textarea', {
     class: 'drsim-textarea',
     rows: '3',
@@ -196,36 +209,35 @@ const buildOptions = (mount: HTMLElement, t: Translate, pageLocale: Locale) => {
       ]),
     ]),
     section(t('options.fault'), [
-      faultSelect,
-      faultBodyRow,
+      setting(faultSelect, t('options.faultHint')),
+      setting(faultBodyRow, t('options.faultBodyHint')),
       faultDelay.row,
       faultTimeout.row,
-      h('p', { class: 'drsim-hint', text: t('options.faultHint') }),
     ]),
     section(t('options.rules'), [
       ruleSummary,
       ruleList,
       h('p', { class: 'drsim-hint', text: t('options.rulesHint') }),
     ]),
-    section(t('options.normalization'), [numericId.row, uuid.row, longHex.row, customPatterns, preview]),
+        section(t('options.normalization'), [
+      h('p', { class: 'drsim-hint', text: t('options.normalizationHint') }),
+      numericId.row,
+      uuid.row,
+      longHex.row,
+      setting(customPatterns, t('options.customPatternsHint')),
+      preview,
+    ]),
     section(t('options.capture'), [
       captureHeaders.row,
-      h('p', { class: 'drsim-hint', text: t('options.privacyHint') }),
     ]),
-    // Envanteri koruma seçeneği panelde bir düğme AÇIYOR (Revizyon 56); bunu
-    // yazmazsak kullanıcı düğmenin nereden geldiğini bilmiyor.
-    section(t('options.limits'), [
-      maxLogEntries.row,
-      maxInventoryItems.row,
-      keepInventory.row,
-      h('p', { class: 'drsim-hint', text: t('options.keepInventoryHint') }),
-    ]),
+    section(t('options.limits'), [maxLogEntries.row, maxInventoryItems.row, keepInventory.row]),
+    // Sıra anlamlı: prod pattern kutusu, ait olduğu guard'ın hemen altında durur.
+    // Aralarında başka bir ayar varken kutunun neye hizmet ettiği belli olmuyordu.
     section(t('options.security'), [
       autoOffMinutes.row,
-      h('p', { class: 'drsim-hint', text: t('options.autoOffHint') }),
       productionGuard.row,
+      setting(productionHostPatterns, t('options.productionHostsHint')),
       showPageBanner.row,
-      productionHostPatterns,
     ]),
     section(t('options.language'), [
       h('label', { class: 'drsim-field' }, [
@@ -235,9 +247,12 @@ const buildOptions = (mount: HTMLElement, t: Translate, pageLocale: Locale) => {
       h('p', { class: 'drsim-hint', text: t('options.languageHint') }),
     ]),
     section(t('options.shortcuts'), [
-      button(t('options.editShortcuts'), () => {
-        void chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
-      }, { class: 'drsim-button drsim-button--compact' }),
+      h('p', { class: 'drsim-hint', text: t('options.shortcutsHint') }),
+      h('div', { class: 'drsim-section__actions' }, [
+        button(t('options.editShortcuts'), () => {
+          void chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+        }, { class: 'drsim-button drsim-button--compact' }),
+      ]),
     ]),
     // En altta ve tek kırmızı buton: yanlışlıkla tıklanacak bir yerde durmamalı
     section(t('options.reset'), [

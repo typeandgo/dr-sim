@@ -468,3 +468,17 @@
 .drsim-options .drsim-section {
   margin-bottom: $drsim-gap-lg;
 }
+
+// Ayar + kendi açıklaması tek blok (Revizyon 61). Açıklama kontrolün altında ve
+// hafif içeride: bölüm boşluğuyla aynı hizada dursaydı hangi kutuya ait olduğu
+// yine belirsiz kalırdı — asıl çözülen sorun buydu.
+.drsim-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.drsim-hint--setting {
+  padding-left: $drsim-gap-xl;
+  max-width: 60ch;
+}
