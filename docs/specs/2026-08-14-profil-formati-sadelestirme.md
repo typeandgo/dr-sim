@@ -1,7 +1,7 @@
 # Profil formatını sadeleştirme — tasarım
 
 **Tarih:** 2026-08-14
-**Durum:** onaylandı, uygulanmayı bekliyor
+**Durum:** uygulandı — dal `refactor/profil-formati`, `2573ad8..07d23f6`
 
 ## Sorun
 
@@ -172,3 +172,30 @@ Mevcut desen korunur: DOM değil komut/payload doğrulanır, her modülün kendi
 ## Dokunulacak dosyalar
 
 `core/types.ts` · `core/path.util.ts` · `core/rules.ts` · `core/decision-engine.ts` · `core/compile-config.ts` · `core/profile.ts` · `core/report.builder.ts` · `core/constants.ts` (SCHEMA_VERSION) · `background/stores/settings.store.ts` · `background/stores/session.store.ts` · `background/service-worker.ts` · `ui/components/inventory.ts` · `ui/components/log-list.ts` · `ui/options/main.ts` · `scripts/build-preset.mjs` + `src/presets/*.json` (3) · `docs/guide.md` + `docs/guide.tr.md` (profil alanları bölümü) · ilgili spec dosyaları.
+
+
+---
+
+## Uygulama sonrası takip maddeleri
+
+Dal tamamlandıktan sonra açık bırakılan, merge'i engellemeyen maddeler.
+
+### Sürüm notuna girmeli
+
+1.0.1 döneminde dışa aktarılmış profil dosyaları kural listesini kaybetmiş olabilir. v5 göçü depodaki ayar kaydını onarır ama indirilmiş dosyaları kurtaramaz — o dosyalar yeniden dışa aktarılmalı.
+
+### Spec sapması
+
+`decide()` içinde `key` hâlâ `` `${method} ${path}` `` olarak üretiliyor; spec `key = path` diyordu. `Decision.key` ve `TelemetryRecord.key` artık hiçbir yerde okunmuyor (envanter `record.path` ile anahtarlanıyor), ama `message.schema.ts` alanı zorunlu tutup her istekte MAIN→bridge→SW sınırından geçiriyor. Runtime etkisi yok, ölü yük.
+
+### Ertelenen küçük maddeler
+
+- `toggleRule` path'i iki kez normalize ediyor (`rules.ts`). `normalizePath` idempotent olduğu için zararsız; idempotentliği kaybederse sessiz bug olur.
+- `build-preset.mjs` preset-**içi** path çakışmasını artık uyarmadan yutuyor (eskiden `console.warn` vardı). Kaynak listede gerçek bir mükerrer var (`/cart-items/{id}`), çıktı doğru ama veri girişi hatası diagnostic üretmiyor.
+- `importProfile` `candidate.fault`'u doğrulamadan cast ediyor (pre-existing).
+- `keepInventoryOnNavigate` açıkken, eski şemalı bir oturum envanteri hydrate edilirse aynı EP iki satır görünebilir. Sayfa yenilenince düzelir, tüm okumalar savunmacı.
+- Kılavuz düz `xhr` etiketini hiç anlatmıyor (bu dalla gelmedi).
+
+### Bilinçli karar: `buildProfileFile` savunmacı değil
+
+`profile.allow`/`block` için `?? []` **eklenmedi**. Gerekçe: `importProfile`'ın kapısı iki liste de yoksa `profile-schema` ile gürültülü reddediyor. `?? []` eklenirse dosyaya boş listeler yazılır ve dosya başarıyla ama boş içe aktarılır — sessizlik hem dışa hem içe aktarmada sürer. Şekil garantisi migration ve import doğrulamasından geliyor.
