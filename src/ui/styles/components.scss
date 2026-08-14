@@ -128,11 +128,26 @@
   min-width: 140px;
 }
 
+// Etiket ve kontrol eşit iki sütun (Revizyon 62). Öncesinde `space-between`
+// her satırın kontrolünü kendi genişliğine göre yerleştiriyordu — select geniş,
+// sayı kutusu 96px, textarea kalan alan kadar; kontrollerin sol kenarları
+// satırdan satıra kayıyordu. Eşit yarımlarla sütun bir dikdörtgen oluyor.
+// `.drsim-field` yalnızca ayarlar sayfasında kullanılır; panel etkilenmez.
 .drsim-field {
   display: flex;
   gap: 6px;
   align-items: center;
-  justify-content: space-between;
+}
+
+.drsim-field > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+// Flex bağlamında `flex-basis: 0` zaten `width`i eziyor; bildirimi açıkça geri
+// alıyoruz ki 96px'in burada geçersiz olduğu okunur olsun.
+.drsim-field > .drsim-input--number {
+  width: auto;
 }
 
 .drsim-input--number {
@@ -478,7 +493,10 @@
   gap: 2px;
 }
 
+// Açıklama satır boyunca akar; genişliği sınırlanmaz. Kaptaki 640px zaten
+// okunabilir bir ölçü veriyor, üstüne bir de 60ch koymak metni erken sarıp
+// kontrol sütununun altında dar bir şerit bırakıyordu. İçerideki boşluk kalır:
+// açıklamayı ait olduğu kontrole bağlayan tek görsel ipucu o.
 .drsim-hint--setting {
   padding-left: $drsim-gap-xl;
-  max-width: 60ch;
 }
