@@ -187,6 +187,7 @@ export const EN = {
   'options.guideHint': 'The guide and the sample profile file live in the project repository, so this page stays a place for settings. It opens in a new tab.',
 
   'options.fault': 'Fault',
+  'options.faultKind': 'Fault type',
   'options.faultBody': 'Body (JSON)',
   'options.faultBodyHint': 'The response body returned for a blocked request. Only used by the HTTP fault type; ignored for network error and timeout.',
   'options.faultDelay': 'Delay (ms)',
@@ -417,6 +418,7 @@ export const TR: Record<MessageKey, string> = {
   'options.guideHint': 'Kılavuz ve örnek profil dosyası proje deposunda; burası ayar yapılan yer olarak kalsın diye. Yeni sekmede açılır.',
 
   'options.fault': 'Arıza',
+  'options.faultKind': 'Arıza tipi',
   'options.faultBody': 'Gövde (JSON)',
   'options.faultBodyHint': 'Bloklanan isteğe dönen cevap gövdesi. Yalnızca HTTP arıza tipinde kullanılır; ağ hatası ve timeout’ta yok sayılır.',
   'options.faultDelay': 'Gecikme (ms)',

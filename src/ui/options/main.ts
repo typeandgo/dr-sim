@@ -93,6 +93,13 @@ const buildOptions = (mount: HTMLElement, t: Translate, pageLocale: Locale) => {
 
   const faultDelay = numberField(t('options.faultDelay'), t('options.faultDelayHint'), (value) => setFault({ delayMs: value }));
   const faultTimeout = numberField(t('options.faultTimeout'), t('options.faultTimeoutHint'), (value) => setFault({ timeoutMs: value || 30000 }));
+  // Seçici de diğer alanlarla aynı düzende: etiket solda, kontrol sağda.
+  // Tek etiketsiz alan oydu; başlığın altında çıplak duruyordu.
+  const faultKindRow = h('label', { class: 'drsim-field' }, [
+    h('span', { class: 'drsim-label', text: t('options.faultKind') }),
+    faultSelect,
+  ]);
+
   const faultBodyRow = h('label', { class: 'drsim-field' }, [
     h('span', { class: 'drsim-label', text: t('options.faultBody') }),
     faultBody,
@@ -209,7 +216,7 @@ const buildOptions = (mount: HTMLElement, t: Translate, pageLocale: Locale) => {
       ]),
     ]),
     section(t('options.fault'), [
-      setting(faultSelect, t('options.faultHint')),
+      setting(faultKindRow, t('options.faultHint')),
       setting(faultBodyRow, t('options.faultBodyHint')),
       faultDelay.row,
       faultTimeout.row,
