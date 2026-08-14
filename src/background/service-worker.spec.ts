@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { COMMANDS, STORAGE_KEYS } from '@/core/constants';
+import { COMMANDS, DEFAULT_FAULT, STORAGE_KEYS } from '@/core/constants';
 import { installChromeMock, type ChromeMock } from '@/test/chrome-mock';
 import type { buildState as BuildState, runCommand as RunCommand } from './service-worker';
 import type { sessionStore as SessionStore } from './stores/session.store';
@@ -401,6 +401,91 @@ describe('background/service-worker — komut yüzeyi', () => {
 
       expect(imported.ok).toBe(true);
       expect(buildState(null).settings.profiles[0]?.domains).toEqual([]);
+    });
+  });
+
+  // Fix round 2: v4'te kayıtlı profiller v5'e HİÇ göç etmiyordu. `allow`/`block`
+  // yokken `applyProfile` ham TypeError fırlatıyor ("Cannot read properties of
+  // undefined"), dışa aktarma ise `JSON.stringify` bu anahtarları atladığı için
+  // kural listesini SESSİZCE düşürüyordu: indirilen dosya boş çıkıyor ve geri
+  // yüklenemiyordu. Aşağıdaki testler depodan başlayıp iki yolu da uçtan uca sürer.
+  describe('v4 deposundan göç eden profil', () => {
+    const storedV4 = {
+      schemaVersion: 4,
+      profiles: [{
+        id: 'v4-profil',
+        name: 'DR — eski kayıt',
+        defaultPolicy: 'pass',
+        domains: [{ id: 'd1', pattern: 'api.eski.com', granted: true }],
+        rules: [
+          { key: 'GET /users/current', method: 'GET', path: '/users/current', state: 'allow', source: 'manual', createdAt: 10 },
+          { key: 'POST /payments/checkout', method: 'POST', path: '/payments/checkout', state: 'block', source: 'preset', note: 'ödeme', createdAt: 20 },
+        ],
+        fault: DEFAULT_FAULT,
+        updatedAt: 30,
+      }],
+    };
+
+    // Göç yalnızca depo okunurken çalışır: modül, veri yerine konduktan SONRA
+    // baştan yüklenmeli. Modül seviyesindeki store referansları da tazelenir,
+    // yoksa afterEach eski örneği flush eder ve yazma bir sonraki teste sızar.
+    const bootWithStored = async (stored: Record<string, unknown>): Promise<void> => {
+      vi.resetModules();
+      chromeMock = installChromeMock();
+      chromeMock.storage.local.__data[STORAGE_KEYS.SETTINGS] = stored;
+
+      const module = await import('./service-worker');
+      runCommand = module.runCommand;
+      buildState = module.buildState;
+      ({ settingsStore } = await import('./stores/settings.store'));
+      ({ sessionStore } = await import('./stores/session.store'));
+      await run(COMMANDS.DISMISS_NOTICE);
+    };
+
+    it('profil listesi yeni biçimde okunur', async () => {
+      await bootWithStored(storedV4);
+
+      const [profile] = buildState(null).settings.profiles;
+
+      expect(profile?.allow).toEqual(['/users/current']);
+      expect(profile?.block).toEqual(['/payments/checkout']);
+      expect(profile?.domains).toEqual(['api.eski.com']);
+    });
+
+    it('APPLY_PROFILE hata vermeden kural listesini ve domain kapsamını yazar', async () => {
+      await bootWithStored(storedV4);
+
+      expect(await run(COMMANDS.APPLY_PROFILE, { id: 'v4-profil' })).toEqual({ ok: true });
+
+      const { settings } = buildState(null);
+      expect(settings.defaultPolicy).toBe('pass');
+      expect(settings.rules).toEqual([
+        { path: '/users/current', state: 'allow', createdAt: expect.any(Number) },
+        { path: '/payments/checkout', state: 'block', createdAt: expect.any(Number) },
+      ]);
+      // Pattern string olarak taşınır: eskiden `{id, pattern, granted}` NESNESİ
+      // `pattern` alanına gömülüp `granted: false` yazılıyordu
+      expect(settings.domains).toEqual([
+        { id: expect.any(String), pattern: 'api.eski.com', granted: true },
+      ]);
+      expect(settings.activeProfileId).toBe('v4-profil');
+    });
+
+    // Sessiz veri kaybının kapandığının kanıtı: indirilen dosya kural listesini
+    // taşıyor VE aynı dosya şemadan geri geçiyor.
+    it('EXPORT_PROFILE kural listesini taşır ve dosya geri yüklenebilir', async () => {
+      await bootWithStored(storedV4);
+
+      const result = await run(COMMANDS.EXPORT_PROFILE, { id: 'v4-profil' });
+      const file = result.data as { content: string };
+      const parsed = JSON.parse(file.content) as Record<string, unknown>;
+
+      expect(parsed.allow).toEqual(['/users/current']);
+      expect(parsed.block).toEqual(['/payments/checkout']);
+      expect(parsed.domains).toEqual(['api.eski.com']);
+      expect(parsed).not.toHaveProperty('rules');
+
+      expect(await run(COMMANDS.IMPORT_PROFILE, { json: file.content })).toMatchObject({ ok: true });
     });
   });
 

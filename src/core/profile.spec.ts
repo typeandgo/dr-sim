@@ -171,5 +171,20 @@ describe('core/profile', () => {
       expect(profileToRules(profile({ allow: ['/x'], block: ['/x'] }), 1))
         .toEqual([{ path: '/x', state: 'block', createdAt: 1 }]);
     });
+
+    // v4 profili `rules[]` taşırdı; göçü kaçırmış bir kayıt buraya kadar gelirse
+    // ham TypeError yerine boş liste üretilir (panelde İngilizce hata metni çıkmaz).
+    it('allow/block taşımayan eski biçimli profilde patlamaz', () => {
+      const legacy = {
+        id: 'p1',
+        name: 'v4 kaydı',
+        defaultPolicy: 'block',
+        domains: [],
+        fault: DEFAULT_FAULT,
+        updatedAt: 0,
+      } as unknown as Profile;
+
+      expect(profileToRules(legacy, 1)).toEqual([]);
+    });
   });
 });

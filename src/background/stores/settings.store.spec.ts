@@ -91,6 +91,128 @@ describe('background/settings.store', () => {
     });
   });
 
+  // v4'te KAYITLI PROFİLLER de dönüşmeli. Atlandıklarında profil `allow`/`block`
+  // taşımadığı için `applyProfile` ham TypeError fırlatıyor, `buildProfileFile`
+  // ise `JSON.stringify` bu anahtarları atladığı için kural listesini SESSİZCE
+  // düşürüyordu: kullanıcı dosyayı indiriyor, dosya boş çıkıyor ve geri
+  // yüklenemiyordu. Yayındaki her 1.0.1 kurulumu bu durumdaydı.
+  describe('v5 migration — kayıtlı profiller', () => {
+    const v4Profile = {
+      id: 'p1',
+      name: 'DR — ödeme',
+      defaultPolicy: 'pass',
+      domains: [{ id: 'd1', pattern: 'api.sirket.com', granted: true }],
+      rules: [
+        { key: 'GET /orders', method: 'GET', path: '/orders', state: 'allow', source: 'manual', note: 'x', createdAt: 100 },
+        { key: 'GET /users/current', method: 'GET', path: '/users/current', state: 'allow', source: 'preset', createdAt: 200 },
+        { key: 'POST /payments', method: 'POST', path: '/payments', state: 'block', source: 'manual', createdAt: 50 },
+      ],
+      fault: { kind: 'http', status: 503 },
+      updatedAt: 1234,
+    };
+
+    const migrateProfiles = (profiles: unknown): Record<string, unknown>[] => migrate({ schemaVersion: 4, profiles })
+      .profiles as Record<string, unknown>[];
+
+    it('v4 profilindeki rules[] allow/block listelerine iner ve alan düşer', () => {
+      const [profile] = migrateProfiles([v4Profile]);
+
+      expect(profile).toEqual({
+        id: 'p1',
+        name: 'DR — ödeme',
+        defaultPolicy: 'pass',
+        domains: ['api.sirket.com'],
+        allow: ['/orders', '/users/current'],
+        block: ['/payments'],
+        fault: { kind: 'http', status: 503 },
+        updatedAt: 1234,
+      });
+      expect(profile).not.toHaveProperty('rules');
+    });
+
+    // `granted` makineye özeldir; profile taşınmaz, izin uygulama anında ölçülür
+    it('domains nesne dizisinden string dizisine iner, granted taşınmaz', () => {
+      const [profile] = migrateProfiles([{ ...v4Profile, domains: [{ id: 'd1', pattern: 'a.com', granted: true }, { id: 'd2', pattern: 'b.com' }] }]);
+
+      expect(profile?.domains).toEqual(['a.com', 'b.com']);
+    });
+
+    it('aynı path iki durumda geçerse block kazanır, createdAt en eskiden devralınır', () => {
+      const [profile] = migrateProfiles([{
+        ...v4Profile,
+        rules: [
+          { key: 'GET /orders', method: 'GET', path: '/orders', state: 'allow', createdAt: 100 },
+          { key: 'POST /orders', method: 'POST', path: '/orders', state: 'block', createdAt: 50 },
+        ],
+      }]);
+
+      expect(profile?.allow).toEqual([]);
+      expect(profile?.block).toEqual(['/orders']);
+    });
+
+    it('zaten yeni biçimdeki profil ikinci kez dönüştürülmez — liste boşalmaz', () => {
+      const current = {
+        id: 'p2',
+        name: 'yeni biçim',
+        defaultPolicy: 'block',
+        domains: ['api.x.com'],
+        allow: ['/a'],
+        block: ['/b'],
+        fault: { kind: 'http' },
+        updatedAt: 9,
+      };
+
+      const once = migrateProfiles([current]);
+      const twice = migrateProfiles(once);
+
+      expect(once).toEqual([current]);
+      expect(twice).toEqual([current]);
+    });
+
+    it('tek liste taşıyan yeni biçimli profilde eksik liste boş dizi olur', () => {
+      const [profile] = migrateProfiles([{ id: 'p3', name: 'tek liste', block: ['/b'] }]);
+
+      expect(profile).toMatchObject({ allow: [], block: ['/b'] });
+    });
+
+    it('bozuk profil verisinde patlamaz', () => {
+      expect(migrate({ schemaVersion: 4, profiles: 'dizi-değil' }).profiles).toEqual([]);
+      expect(migrate({ schemaVersion: 4 }).profiles).toEqual([]);
+      // nesne olmayan kayıtlar düşer: `profiles.find(entry => entry.id === id)` onlarda patlardı
+      expect(migrateProfiles([null, 'metin', 42, []])).toEqual([]);
+    });
+
+    it('eksik ve bozuk alanlar boş listeye iner, kayıt yine de kurtarılır', () => {
+      const [profile] = migrateProfiles([{
+        id: 'p4',
+        name: 'bozuk',
+        rules: 'dizi-değil',
+        domains: [null, 42, { id: 'd1' }, 'a.com'],
+      }]);
+
+      expect(profile).toEqual({ id: 'p4', name: 'bozuk', domains: ['a.com'], allow: [], block: [] });
+    });
+
+    it('path taşımayan kural kaydı atlanır', () => {
+      const [profile] = migrateProfiles([{
+        id: 'p5',
+        rules: [null, { method: 'GET' }, { path: 42 }, { path: '/ok', state: 'block' }],
+      }]);
+
+      expect(profile).toMatchObject({ allow: [], block: ['/ok'] });
+    });
+
+    // Depodan okunan yol da doğrulanır: `normalizeSettings` yalnızca `Array.isArray`
+    // baktığı için eski biçimli profiller eskiden buradan olduğu gibi geçiyordu.
+    it('normalizeSettings üzerinden okunan v4 profili de yeni biçimde çıkar', () => {
+      const [profile] = normalizeSettings({ schemaVersion: 4, profiles: [v4Profile] }).profiles;
+
+      expect(profile?.allow).toEqual(['/orders', '/users/current']);
+      expect(profile?.block).toEqual(['/payments']);
+      expect(profile?.domains).toEqual(['api.sirket.com']);
+    });
+  });
+
   describe('reset', () => {
     it('varsayılana döner ve kalıcı kaydı siler', async () => {
       const store = createSettingsStore();
