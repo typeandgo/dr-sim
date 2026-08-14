@@ -97,6 +97,20 @@ describe('core/report.builder', () => {
     expect(markdown).toContain('- /offers/active (GET)');
   });
 
+  // SW yeniden başladığında `hydrate()` eski şemalı bir `TabSession`'ı hiçbir runtime
+  // doğrulaması yapmadan map'e koyabilir (session.store.ts, `as Record<string, TabSession>`).
+  // Böyle bir kayıtta `methods` alanı hiç yoksa, savunmasız `item.methods.join(...)`
+  // markdown rapor indirmeyi `TypeError` ile sessizce başarısız kılıyordu. Tip sistemi bu
+  // senaryoyu göremez — kasıtlı tip zorlaması bu yüzden burada doğru araç.
+  it('methods alanı taşımayan eski bir envanter kaydıyla da markdown raporu çökmeden üretilir', () => {
+    const legacyItem: Partial<InventoryItem> = { ...item('/legacy', 'default-block') };
+    delete legacyItem.methods;
+    const legacySession = session({ inventory: { '/legacy': legacyItem as unknown as InventoryItem } });
+
+    expect(() => buildResultReport({ session: legacySession, t, settings: settings(), now: 0 })).not.toThrow();
+    expect(buildResultReport({ session: legacySession, t, settings: settings(), now: 0 })).toContain('- /legacy ()');
+  });
+
   it('meta bloğu fail dağılımını yazar', () => {
     const markdown = buildResultReport({ session: session(), t, settings: settings(), now: 0 });
     expect(markdown).toContain('1 simüle · 1 gerçek');
