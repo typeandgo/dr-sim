@@ -19,3 +19,6 @@ dr-sim-extension/
 # bir ürünün endpoint yüzeyini taşıdıkları için takipten çıkarıldılar; dosyalar yerelde
 # durur ve `npm run preset` ile her an yeniden üretilebilir.
 src/presets/*.json
+
+# SDD çalışma alanı — plan başına scratch, depoya girmez
+.superpowers/
