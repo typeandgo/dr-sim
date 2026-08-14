@@ -137,7 +137,18 @@ Felaket senaryosu tatbikatları ve dayanıklılık testleri için bir geliştiri
 | Marquee | 1400×560 | Hayır |
 | İkon | 128×128 | Manifest'ten otomatik gelir |
 
-Önerilen ekran görüntüleri: (1) panel açıkken dolu EP envanteri, (2) fail listesi + `İzin ver` düğmesi, (3) Ayarlar sayfası — açıklamalı ayar listesi.
+Hepsi depoda üretilir — elle hazırlanmaz:
+
+```bash
+npm run build
+npm run store:assets   # → store-assets/ (5 ekran görüntüsü + 2 kapak)
+```
+
+Hangi dosyanın hangi alana gideceği ve tezgâhın nasıl çalıştığı [`store-assets/README.md`](../store-assets/README.md) içinde. Kısaca: panel ve ayarlar sayfası `dist/`'ten gelen **gerçek** arayüzdür, yanındaki demo uygulama **gerçek** interceptor'ı çalıştırır ve envanter/log/rapor ürünün kendi modüllerinden üretilir. Kareler 2× alınıp `sips` ile ölçeğe indirilir.
+
+Anlatılan beş kare: (1) simülasyon açık — kırılan sayfa + EP envanteri, (2) gözlem modu — kurulum ve dolan envanter, (3) arıza tipi ve path normalizasyonu, (4) profil paylaşımı + rapor çıktısı, (5) gizlilik ve izinler.
+
+Senaryoları değiştirmek gerekirse tek yer: `scripts/store-assets/scenes.mjs`.
 
 ---
 
@@ -264,7 +275,7 @@ Kullanıcı bunları panelden `⤓ İçe` ile yükler. Jenerik bir başlangıç 
 - [ ] Zip içinde `src/presets/` yok
 - [ ] `_locales/en` ve `_locales/tr` mesaj dosyaları eksiksiz (`extName`, `extDescription`, `commandToggle`)
 - [ ] Manifest'te kullanıcıya görünen hiçbir metin sabit kodlanmamış (hepsi `__MSG_*__`)
-- [ ] En az 1 ekran görüntüsü hazır (1280×800 veya 640×400)
+- [ ] `npm run store:assets` çalıştı, `store-assets/` güncel (5 ekran görüntüsü + 2 kapak)
 - [ ] Gizlilik politikası bir URL'de yayında (`PRIVACY.md`, repo public)
 - [ ] Görünürlük seçildi (Unlisted önerilir)
 - [ ] `dist.pem` commit edilmemiş — `.gitignore`'da
