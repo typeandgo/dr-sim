@@ -333,6 +333,21 @@ describe('background/service-worker — komut yüzeyi', () => {
       expect(result.ok).toBe(true);
       expect(buildState(null).settings.profiles[0]?.block.length).toBeGreaterThan(50);
     });
+
+    // Kılavuzda dağıtılan örnek dosya kullanıcının birebir kopyalayacağı şey —
+    // şemaya uymuyorsa kılavuz yalan söylüyor demektir (docs/guide.md, docs/guide.tr.md).
+    it('docs/sample-profile.json gerçekten yeni şemadan geçer', async () => {
+      const sample = await import('../../docs/sample-profile.json');
+      const result = await run(COMMANDS.IMPORT_PROFILE, { json: JSON.stringify(sample.default) });
+
+      expect(result.ok).toBe(true);
+      const [profile] = buildState(null).settings.profiles;
+      expect(profile?.name).toBe('Örnek — ödeme kapalı');
+      expect(profile?.defaultPolicy).toBe('block');
+      expect(profile?.domains).toEqual(['api.example.com']);
+      expect(profile?.allow).toEqual(['/users/current', '/orders/:id/detail']);
+      expect(profile?.block).toEqual(['/payments/checkout']);
+    });
   });
 
   // Fix round 1: `granted` alanı BOŞ bırakılınca dört tüketici (`compile-config.ts`,

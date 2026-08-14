@@ -125,44 +125,11 @@ A ready-made profile file. Download it, adjust the domain and rules to your own 
 
 ```json
 {
-  "id": "ornek-profil",
   "name": "Sample — payment closed",
   "defaultPolicy": "block",
-  "domains": [
-    {
-      "id": "d1",
-      "pattern": "api.example.com"
-    }
-  ],
-  "rules": [
-    {
-      "key": "GET /users/current",
-      "method": "GET",
-      "path": "/users/current",
-      "state": "allow",
-      "source": "preset",
-      "note": "needed for login, must stay open",
-      "createdAt": 0
-    },
-    {
-      "key": "GET /orders/:id/detail",
-      "method": "GET",
-      "path": "/orders/:id/detail",
-      "state": "allow",
-      "source": "preset",
-      "note": "record id normalized with :id",
-      "createdAt": 0
-    },
-    {
-      "key": "POST /payments/checkout",
-      "method": "POST",
-      "path": "/payments/checkout",
-      "state": "block",
-      "source": "preset",
-      "note": "the endpoint being tested for the DR scenario",
-      "createdAt": 0
-    }
-  ],
+  "domains": ["api.example.com"],
+  "allow": ["/users/current", "/orders/:id/detail"],
+  "block": ["/payments/checkout"],
   "fault": {
     "kind": "http",
     "status": 503,
@@ -171,8 +138,7 @@ A ready-made profile file. Download it, adjust the domain and rules to your own 
     "headers": {},
     "delayMs": 0,
     "timeoutMs": 30000
-  },
-  "updatedAt": 0
+  }
 }
 ```
 
@@ -182,45 +148,22 @@ The same file is in the repository: [`sample-profile.json`](./sample-profile.jso
 
 ## Profile fields
 
-A reference for the file above: what each key means. Only the “rules” list is required; everything else falls back to your current settings.
+A reference for the file above: what each key means. The only requirement is that at least one of the `allow` or `block` lists is present; everything else falls back to your current settings.
 
 ### `{ … }` — Top-level fields
 
-The outermost layer of the file. The only field the import requires is the “rules” list; anything missing keeps your current settings or the defaults.
+This is the whole file. The only requirement is that at least one of the `allow` or `block` lists is present.
 
 | Field | Type | Required | Meaning |
 | --- | --- | --- | --- |
-| `rules` | array | yes | The rule records. This is the actual content of a profile; an empty array is valid but then the profile changes nothing. |
-| `name` | string | no | The name shown in the panel’s profile list. If left empty a fallback name in the interface language is assigned. The exported file name is derived from it too. |
-| `defaultPolicy` | "block" \| "pass" | no | What happens to endpoints you wrote no rule for. "block" → everything not on the list fails. "pass" → only the ones you explicitly blocked fail. An unrecognised value is treated as "block". |
-| `domains` | array | no | The domain scope shipped with the profile. If you pass an empty array your current domains are kept when the profile is applied — so a shared profile cannot wipe your scope. |
+| `allow` | string array | one of the two | Paths that keep working normally. No method is written: a rule for a path applies to every method of that path. |
+| `block` | string array | one of the two | Paths that return a fault. If a path appears in both lists, `block` wins. |
+| `name` | text | no | The name shown in the panel's profile list. If a profile with the same name exists it is overwritten — importing the same file twice does not create a copy. |
+| `defaultPolicy` | `"block"` \| `"pass"` | no | What happens to paths in neither list. An unrecognised value counts as `"block"`. |
+| `domains` | string array | no | The domain scope shipped with the profile, e.g. `["api.company.com"]`. Leave it empty to keep your current domains. Site permission is always asked for locally; the file carries no permission. |
 | `fault` | object | no | How blocked requests fail. If omitted, your current fault setting is kept. |
-| `id` | string | no | The profile identity. Importing twice with the same id overwrites the earlier one. Leave it out and a new identity is generated — you rarely need to write it by hand. |
-| `updatedAt` | number | no | Last change time (Unix ms). Ignored on import and replaced with the current time; you can leave it at 0. |
 
-### `rules[]` — Rule record
-
-Each record sets the state of exactly one endpoint. Wildcards are not supported: an endpoint has one single state, there is no precedence or conflict logic.
-
-| Field | Type | Required | Meaning |
-| --- | --- | --- | --- |
-| `key` | string | yes | The primary key, written as “METHOD /path” — it must be exactly `method` + a space + `path`. Matching runs on this, so a key inconsistent with the other two fields makes the rule unreachable. |
-| `method` | string | yes | HTTP method in upper case: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS. |
-| `path` | string | yes | The normalized path. Variable segments are written as :id — not /orders/8842/detail but /orders/:id/detail. Leaving a raw id in matches that single record only, so in practice it never matches. |
-| `state` | "allow" \| "block" | yes | "allow" → the request reaches the real backend. "block" → the request is intercepted and the selected fault is returned. |
-| `source` | "inventory" \| "manual" \| "preset" \| "quick-allow" | no | Where the record came from; informational only, it does not affect the decision. "preset" is a sensible choice for hand-written profiles. |
-| `note` | string | no | A free-form comment — “needed for login, must stay open”. The easiest way to carry the reasoning along when you share a profile. |
-| `createdAt` | number | no | When the record was created (Unix ms). You can leave it at 0 when writing by hand. |
-
-### `domains[]` — Domain scope
-
-Selects which requests are managed — that is, the API host. Nothing outside this list is ever touched.
-
-| Field | Type | Required | Meaning |
-| --- | --- | --- | --- |
-| `pattern` | string | yes | A host with an optional base path: api.example.com, *.example.com, api.example.com/gw. Do not write the protocol. A port is allowed (localhost:5175) and is preserved when matching requests. |
-| `id` | string | no | Record identity. A short value is enough when writing by hand; it means nothing beyond being unique. |
-| `granted` | true \| false | no | Whether host access was granted. This field is not read from the file — it is recomputed from the browser’s real permission state, so permissions cannot travel inside a shared profile. |
+Paths are written normalized: variable segments become `:id` — `/orders/:id/detail`, not `/orders/8842/detail`. Wildcards (`*`) are not supported; an invalid path is skipped silently and the rest of the file still loads.
 
 ### `fault` — Fault setting
 

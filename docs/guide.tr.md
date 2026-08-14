@@ -125,44 +125,11 @@ Hazır bir profil dosyası. İndir, domain ve kuralları kendi uygulamana göre 
 
 ```json
 {
-  "id": "ornek-profil",
   "name": "Örnek — ödeme kapalı",
   "defaultPolicy": "block",
-  "domains": [
-    {
-      "id": "d1",
-      "pattern": "api.example.com"
-    }
-  ],
-  "rules": [
-    {
-      "key": "GET /users/current",
-      "method": "GET",
-      "path": "/users/current",
-      "state": "allow",
-      "source": "preset",
-      "note": "giriş için gerekli, açık kalmalı",
-      "createdAt": 0
-    },
-    {
-      "key": "GET /orders/:id/detail",
-      "method": "GET",
-      "path": "/orders/:id/detail",
-      "state": "allow",
-      "source": "preset",
-      "note": "kayıt id’si :id ile normalize edildi",
-      "createdAt": 0
-    },
-    {
-      "key": "POST /payments/checkout",
-      "method": "POST",
-      "path": "/payments/checkout",
-      "state": "block",
-      "source": "preset",
-      "note": "DR senaryosunda test edilen uç",
-      "createdAt": 0
-    }
-  ],
+  "domains": ["api.example.com"],
+  "allow": ["/users/current", "/orders/:id/detail"],
+  "block": ["/payments/checkout"],
   "fault": {
     "kind": "http",
     "status": 503,
@@ -171,8 +138,7 @@ Hazır bir profil dosyası. İndir, domain ve kuralları kendi uygulamana göre 
     "headers": {},
     "delayMs": 0,
     "timeoutMs": 30000
-  },
-  "updatedAt": 0
+  }
 }
 ```
 
@@ -182,45 +148,22 @@ Aynı dosya depoda: [`sample-profile.json`](./sample-profile.json)
 
 ## Profil alanları
 
-Yukarıdaki dosyanın sözlüğü: hangi anahtar ne demek. Zorunlu olan tek alan “rules” listesidir; kalanı verilmezse mevcut ayarların geçerli kalır.
+Yukarıdaki dosyanın sözlüğü: hangi anahtar ne demek. Zorunlu olan tek şey `allow` veya `block` listelerinden en az birinin bulunmasıdır; kalanı verilmezse mevcut ayarların geçerli kalır.
 
 ### `{ … }` — Kök alanlar
 
-Dosyanın en dış katmanı. İçe aktarmanın zorunlu tuttuğu tek alan “rules” listesidir; kalanı eksikse mevcut ayarların ya da varsayılanların yerini korur.
+Dosyanın tamamı bu kadardır. Zorunlu olan tek şey `allow` veya `block` listelerinden en az birinin bulunmasıdır.
 
 | Alan | Tip | Zorunlu | Anlamı |
 | --- | --- | --- | --- |
-| `rules` | dizi | evet | Kural kayıtları. Profilin asıl içeriği budur; boş dizi de geçerlidir ama o zaman profil hiçbir şey değiştirmez. |
-| `name` | metin | hayır | Panelin profil listesinde görünen ad. Boş bırakılırsa arayüz dilinde bir yedek ad atanır. Dışa aktarılan dosyanın adı da bundan türer. |
-| `defaultPolicy` | "block" \| "pass" | hayır | Hakkında kural yazılmamış EP’lere ne olacağı. "block" → listede olmayan her şey arıza döner. "pass" → yalnızca tek tek engellediklerin arıza döner. Tanınmayan değer "block" sayılır. |
-| `domains` | dizi | hayır | Profille birlikte gelen domain kapsamı. Boş dizi verirsen profil uygulanırken mevcut domainlerin korunur — paylaşılan bir profilin senin kapsamını silmemesi için. |
+| `allow` | string dizisi | biri zorunlu | Normal çalışacak path'ler. Method yazılmaz: bir path'in kuralı o path'in bütün method'ları için geçerlidir. |
+| `block` | string dizisi | biri zorunlu | Arıza dönecek path'ler. Bir path iki listede birden geçerse `block` kazanır. |
+| `name` | metin | hayır | Panelin profil listesinde görünen ad. Aynı isimli bir profil varsa üzerine yazılır — aynı dosyayı ikinci kez yüklemek kopya üretmez. |
+| `defaultPolicy` | `"block"` \| `"pass"` | hayır | İki listede de olmayan path'lere ne olacağı. Tanınmayan değer `"block"` sayılır. |
+| `domains` | string dizisi | hayır | Profille gelen domain kapsamı, örneğin `["api.sirket.com"]`. Boş bırakırsan mevcut domainlerin korunur. Site izni her zaman yerelde sorulur; dosya izin taşımaz. |
 | `fault` | nesne | hayır | Engellenen isteklerin nasıl başarısız olacağı. Verilmezse mevcut arıza ayarın korunur. |
-| `id` | metin | hayır | Profilin kimliği. Aynı id ile ikinci kez içe aktarırsan eskisinin üzerine yazılır. Boş bırakırsan yeni bir kimlik üretilir — elle yazmana genelde gerek yoktur. |
-| `updatedAt` | sayı | hayır | Son değişiklik zamanı (Unix ms). İçe aktarırken yok sayılır ve o anki zamanla değiştirilir; elle 0 bırakabilirsin. |
 
-### `rules[]` — Kural kaydı
-
-Her kayıt tek bir EP’nin durumunu belirtir. Joker desteklenmez: bir EP’nin tek bir durumu vardır, öncelik ya da çakışma mantığı yoktur.
-
-| Alan | Tip | Zorunlu | Anlamı |
-| --- | --- | --- | --- |
-| `key` | metin | evet | Birincil anahtar; “METHOD /path” biçiminde ve tam olarak `method` + boşluk + `path` olmalıdır. Eşleşme bunun üzerinden yapılır, iki alanla tutarsız bir key kuralı ulaşılmaz kılar. |
-| `method` | metin | evet | HTTP metodu, büyük harf: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS. |
-| `path` | metin | evet | Normalize edilmiş yol. Değişken segmentler :id ile yazılır — /orders/8842/detail değil, /orders/:id/detail. Ham id bırakırsan kural yalnızca o tek kayda uyar ve pratikte hiç eşleşmez. |
-| `state` | "allow" \| "block" | evet | "allow" → istek gerçek backend’e gider. "block" → istek kesilir ve seçili arıza döner. |
-| `source` | "inventory" \| "manual" \| "preset" \| "quick-allow" | hayır | Kaydın nereden geldiği; yalnızca bilgi amaçlıdır, karara etkisi yoktur. Elle yazılan profillerde "preset" uygun bir seçimdir. |
-| `note` | metin | hayır | Serbest açıklama — “giriş için gerekli, açık kalmalı” gibi. Profili paylaşırken kararın gerekçesini taşımanın en kolay yolu. |
-| `createdAt` | sayı | hayır | Kaydın oluşturulma zamanı (Unix ms). Elle yazarken 0 bırakabilirsin. |
-
-### `domains[]` — Domain kapsamı
-
-Hangi isteklerin yönetileceğini seçer; yani API host’unu. Bu listede olmayan hiçbir isteğe dokunulmaz.
-
-| Alan | Tip | Zorunlu | Anlamı |
-| --- | --- | --- | --- |
-| `pattern` | metin | evet | Host, isteğe bağlı bir alt yol ile: api.example.com, *.example.com, api.example.com/gw. Protokol yazma. Port yazabilirsin (localhost:5175) — istek eşleşmesinde korunur. |
-| `id` | metin | hayır | Kayıt kimliği. Elle yazarken kısa bir değer yeterlidir; benzersiz olması dışında bir anlamı yoktur. |
-| `granted` | true \| false | hayır | Host izninin verilip verilmediği. Bu alan dosyadan okunmaz, uygulanırken tarayıcının gerçek izin durumuna göre yeniden hesaplanır — profil paylaşarak izin taşınamaz. |
+Path'ler normalize edilmiş yazılır: değişken segmentler `:id` olur — `/orders/8842/detail` değil, `/orders/:id/detail`. Joker (`*`) desteklenmez; geçersiz bir path sessizce atlanır, dosyanın kalanı yüklenir.
 
 ### `fault` — Arıza ayarı
 

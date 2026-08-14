@@ -1,42 +1,9 @@
 {
-  "id": "ornek-profil",
-  "name": "Sample — payment closed",
+  "name": "Örnek — ödeme kapalı",
   "defaultPolicy": "block",
-  "domains": [
-    {
-      "id": "d1",
-      "pattern": "api.example.com"
-    }
-  ],
-  "rules": [
-    {
-      "key": "GET /users/current",
-      "method": "GET",
-      "path": "/users/current",
-      "state": "allow",
-      "source": "preset",
-      "note": "needed for login, must stay open",
-      "createdAt": 0
-    },
-    {
-      "key": "GET /orders/:id/detail",
-      "method": "GET",
-      "path": "/orders/:id/detail",
-      "state": "allow",
-      "source": "preset",
-      "note": "record id normalized with :id",
-      "createdAt": 0
-    },
-    {
-      "key": "POST /payments/checkout",
-      "method": "POST",
-      "path": "/payments/checkout",
-      "state": "block",
-      "source": "preset",
-      "note": "the endpoint being tested for the DR scenario",
-      "createdAt": 0
-    }
-  ],
+  "domains": ["api.example.com"],
+  "allow": ["/users/current", "/orders/:id/detail"],
+  "block": ["/payments/checkout"],
   "fault": {
     "kind": "http",
     "status": 503,
@@ -45,6 +12,5 @@
     "headers": {},
     "delayMs": 0,
     "timeoutMs": 30000
-  },
-  "updatedAt": 0
+  }
 }
