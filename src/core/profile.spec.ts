@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_FAULT, DEFAULT_SETTINGS } from './constants';
 import { createTranslator } from './i18n';
-import { buildProfileFile, profileFileName, slugify, snapshotProfile } from './profile';
+import { buildProfileFile, profileFileName, profileToRules, slugify, snapshotProfile } from './profile';
 import type { Profile, Rule, Settings } from './types';
 
 const tr = createTranslator('tr');
@@ -142,6 +142,34 @@ describe('core/profile', () => {
       expect(profile.allow).toEqual(['/users/current']);
       expect(profile.block).toEqual(['/payments/checkout']);
       expect(profile.domains).toEqual(['api.x.com']);
+    });
+  });
+
+  describe('profileToRules', () => {
+    it('path listelerini kural kayıtlarına çevirir', () => {
+      const rules = profileToRules(profile({ allow: ['/users/current'], block: ['/payments/checkout'] }), 99);
+
+      expect(rules).toEqual([
+        { path: '/users/current', state: 'allow', createdAt: 99 },
+        { path: '/payments/checkout', state: 'block', createdAt: 99 },
+      ]);
+    });
+
+    it('path normalize edilir — değişken segment :id olur', () => {
+      expect(profileToRules(profile({ allow: ['/orders/8842/detail'], block: [] }), 0)[0]?.path)
+        .toBe('/orders/:id/detail');
+    });
+
+    // Dosya elle yazılabilir olmalı: tek bozuk satır dosyanın tamamını düşürmez
+    it('geçersiz path atlanır, geçerliler kalır', () => {
+      const rules = profileToRules(profile({ allow: ['/*', '', '   ', '/ok'], block: ['/*'] }), 1);
+
+      expect(rules).toEqual([{ path: '/ok', state: 'allow', createdAt: 1 }]);
+    });
+
+    it('iki listede birden geçen path block olur', () => {
+      expect(profileToRules(profile({ allow: ['/x'], block: ['/x'] }), 1))
+        .toEqual([{ path: '/x', state: 'block', createdAt: 1 }]);
     });
   });
 });
