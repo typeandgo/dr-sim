@@ -325,6 +325,14 @@ describe('background/service-worker — komut yüzeyi', () => {
         { path: '/x', state: 'block', createdAt: expect.any(Number) },
       ]);
     });
+
+    it('depodaki preset dosyası olduğu gibi içe aktarılır', async () => {
+      const preset = await import('../presets/dr-odeme-ve-satin-alma.json');
+      const result = await run(COMMANDS.IMPORT_PROFILE, { json: JSON.stringify(preset.default) });
+
+      expect(result.ok).toBe(true);
+      expect(buildState(null).settings.profiles[0]?.block.length).toBeGreaterThan(50);
+    });
   });
 
   // Fix round 1: `granted` alanı BOŞ bırakılınca dört tüketici (`compile-config.ts`,
