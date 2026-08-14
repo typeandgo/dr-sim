@@ -41,7 +41,7 @@ Felaket senaryosu tatbikatlarında (DR testi) asıl merak edilen şudur: sistemi
 
 Panelde geçen birkaç terim var. Hepsi göründüğünden basit:
 
-- **Endpoint (kısaca EP)** — Uygulamanın arka plandan bir şey istediği tek bir adres. Panelde “GET /kullanicilar/mevcut” gibi görünür. Sayfanın attığı her ayrı soru bir EP’dir.
+- **Endpoint (kısaca EP)** — Uygulamanın arka plandan bir şey istediği tek bir adres. Panelde yalnızca adres olarak görünür, örneğin “/kullanicilar/mevcut”. Sayfanın attığı her ayrı soru bir EP’dir.
 - **Domain** — Bu soruların gittiği sunucu, örneğin api.sirket.com. DR-SIM yalnızca senin yazdığın domainlere giden istekleri yönetir; geri kalan her şeye dokunmaz.
 - **Kural** — Bir EP için verdiğin karar: İzinli (normal çalışsın) ya da Engelli (arıza dönsün).
 - **Varsayılan davranış** — Hakkında kural yazmadığın EP’lere ne olacağı. “Bloklansın” dersen listende olmayan her şey arıza döner; “Geçsin” dersen yalnızca tek tek engellediklerin arıza döner.
@@ -76,10 +76,11 @@ Envanterdeki her satır bir EP’dir. Satırın solundaki renkli çubuk iki ayr�
 - **Kesik çizgi** — Bu EP için kural yok; satır varsayılan davranışı izliyor. Varsayılanı “Bloklansın”dan “Geçsin”e çevirdiğinde bu satırların rengi de birlikte döner.
 - **✕ düğmesi** — Yazdığın kuralı siler ve satırı varsayılana iade eder — yani düz çizgiyi kesik çizgiye çevirir. Kuralı olmayan bir satırda basmak zararsızdır, hiçbir şey değişmez.
 
-Satırdaki küçük etiketler ise EP’nin nereden bilindiğini söyler:
+Satırdaki küçük etiketler ise EP’nin nereden bilindiğini ve nasıl çağrıldığını söyler:
 
 - **profil** — Bu EP yüklediğin profilde tanımlı — yani ekipçe üzerinde anlaştığınız senaryonun bir parçası.
 - **sayfa** — Bu EP sayfayı gezerken bulundu ama profilde yok. Profili tamamlamak, bu etiketleri teker teker azaltmak demektir.
+- **GET, POST, PUT…** — Sayfanın bu adrese hangi yöntemlerle gittiği. Yalnızca bilgi içindir: bir EP’ye yazdığın kural o adresin bütün yöntemleri için geçerlidir, GET’i açık bırakıp POST’u ayrıca kapatamazsın. Bir satırda birden fazla yöntem etiketi görürsen aynı adres farklı yöntemlerle çağrılmış demektir.
 - **sync XHR** — İstek beklenemeyen eski bir yöntemle yapılmış; DR-SIM onu engelleyemez, olduğu gibi geçirir. Bir EP bir türlü bloklanmıyorsa önce bu etikete bak.
 
 > Çubuk ile etiket ayrı sorulara cevap verir: çubuk “bu EP için kural yazdım mı”, etiket “bu EP profilimde tanımlı mı”. Bir EP’ye elle izin verip profiline hiç yazmamış olabilirsin.

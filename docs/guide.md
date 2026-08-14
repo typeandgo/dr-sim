@@ -41,7 +41,7 @@ In disaster recovery drills the real question is this: when one part of the syst
 
 A handful of terms come up in the panel. All of them are simpler than they look:
 
-- **Endpoint (EP for short)** — A single address the application asks for something from. It appears in the panel as something like “GET /users/current”. Every separate question the page asks is one EP.
+- **Endpoint (EP for short)** — A single address the application asks for something from. It appears in the panel as the address alone, for example “/users/current”. Every separate question the page asks is one EP.
 - **Domain** — The server those questions go to, for example api.company.com. DR-SIM only manages requests going to the domains you enter; it leaves everything else alone.
 - **Rule** — The decision you make for an EP: Allowed (let it work normally) or Blocked (return a fault).
 - **Default behaviour** — What happens to EPs you have written no rule for. Choose “Block” and everything outside your list returns a fault; choose “Pass” and only the ones you blocked individually return a fault.
@@ -76,10 +76,11 @@ Every row in the inventory is one EP. The coloured bar on the left of a row tell
 - **Dashed line** — There is no rule for this EP; the row is following the default behaviour. Switch the default from “Block” to “Pass” and the colour of these rows turns with it.
 - **The ✕ button** — Deletes the rule you wrote and hands the row back to the default — that is, it turns a solid line into a dashed one. Pressing it on a row that has no rule is harmless; nothing changes.
 
-The small labels on a row tell you where the EP is known from:
+The small labels on a row tell you where the EP is known from and how it was called:
 
 - **profile** — This EP is defined in the profile you loaded — part of the scenario your team agreed on.
 - **page** — This EP was found while browsing the page but is not in the profile. Completing your profile means reducing these labels one by one.
+- **GET, POST, PUT…** — Which methods the page used to call this address. They are there for information only: the rule you write for an EP applies to every method of that address; you cannot leave GET allowed and block POST separately. Several method labels on one row simply mean the same address was called in more than one way.
 - **sync XHR** — The request was made in an older way that cannot be awaited; DR-SIM cannot block it and passes it straight through. If an EP simply refuses to be blocked, check this label first.
 
 > The bar and the label answer different questions: the bar is “have I written a rule for this EP”, the label is “is this EP defined in my profile”. You may well have allowed an EP by hand and never written it into your profile.
