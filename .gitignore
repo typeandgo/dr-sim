@@ -14,10 +14,13 @@ dist.pem
 # Planlama ve tasarım dokümanları — yerelde tutulur, repoda yayınlanmaz
 dr-sim-extension/
 
-# Senaryo preset'leri: eklenti paketine hiç girmiyorlar (src/presets/'i hiçbir kaynak
-# import etmiyor), yalnızca ekip içi paylaşım için üretiliyorlar. Public repoda gerçek
-# bir ürünün endpoint yüzeyini taşıdıkları için takipten çıkarıldılar; dosyalar yerelde
-# durur ve `npm run preset` ile her an yeniden üretilebilir.
+# Senaryo preset'leri: eklenti paketine hiç girmiyorlar, yalnızca ekip içi paylaşım
+# için üretiliyorlar. Public repoda gerçek bir ürünün endpoint yüzeyini taşıdıkları
+# için takipten çıkarıldılar; dosyalar yerelde durur ve `npm run preset` ile her an
+# yeniden üretilebilir. `service-worker.spec.ts` içindeki bir test bunlardan birini
+# gerçekten import edip içe aktarımı doğruluyor (statik çözümlenen dinamik import) —
+# bu yüzden preset üretimi `pretypecheck`/`pretest` hook'larıyla test zincirine bağlı
+# (bkz. package.json), yoksa taze klonda hem `tsc` hem `vitest` modülü bulamaz.
 src/presets/*.json
 
 # SDD çalışma alanı — plan başına scratch, depoya girmez
