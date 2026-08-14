@@ -2,6 +2,11 @@
 // Kaynak liste bu script içinde gömülüdür (orijinal repo bağımlılığı yoktur).
 // Revizyon 34: tek 150 kurallık dosya yerine üç ayrı senaryo dosyası üretilir ve
 // hiçbiri eklentiye gömülmez — kullanıcı istediğini elle içe aktarır.
+//
+// Çıktı artık depoda izleniyor (Revizyon 63). `pretypecheck`/`pretest` hook'ları
+// yine de duruyor: üretici değişip dosyalar yeniden üretilmezse commit'lenmiş
+// JSON sessizce eskiyordu. Hook sayesinde test koşan herkes tazeliyor ve sapma
+// varsa `git status` onu gösteriyor.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
