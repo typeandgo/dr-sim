@@ -17,7 +17,7 @@
 - Yeni kural: **çakışmada `block` kazanır.** Bu karar tek bir fonksiyonda (`resolveConflict`, `core/rules.ts`) yaşar; ikinci bir yerde tekrar yazılmaz.
 - `core/i18n.ts` içinde EN sözlüğü tek doğruluk kaynağıdır; her eklenen/çıkarılan anahtar **iki dilde birden** işlenir yoksa derleme kırılır.
 - Literal hex yalnızca `_variables.scss` içinde bulunabilir (bu planda stil değişikliği yok, kural yine de geçerli).
-- Testler DOM ağacını değil, **gönderilen komutu ve payload'ı** doğrular (repo kuralı 400).
+- Testler DOM **yapısını** değil, gönderilen komutu ve payload'ı doğrular (repo kuralı 400). İstisna, mevcut spec'lerin de uyguladığı hâliyle: teslim edilen şeyin kendisi bir **gösterim** ise (satırda ne yazdığı, hangi etiketlerin çıktığı) o metin doğrulanır — bkz. `inventory.spec.ts:120,182`. Yapı (sarmalayıcı div'ler, sınıf hiyerarşisi) hiçbir koşulda doğrulanmaz.
 - Commit mesajları Türkçe, conventional prefix'li (`feat:` / `refactor:` / `docs:` / `chore:`).
 
 ---
@@ -105,24 +105,19 @@ Beklenen: PASS
 
 `src/core/compile-config.spec.ts` içine:
 
+Dosyanın tepesindeki `rule(key, state)` fixture'ını kullan (satır 7-14) — inline nesne kurma; Görev 2'de `Rule` küçüldüğünde tek bir yer değişsin diye:
+
 ```ts
   it('kurallar path’e anahtarlanır, method anahtara girmez', () => {
-    const compiled = compileRules([
-      { key: 'GET /orders', method: 'GET', path: '/orders', state: 'allow', source: 'manual', createdAt: 0 },
-    ]);
-
-    expect(compiled).toEqual({ '/orders': 'allow' });
+    expect(compileRules([rule('GET /orders', 'allow')])).toEqual({ '/orders': 'allow' });
   });
 
   it('aynı path’in iki kaydı çakışırsa block kazanır', () => {
-    const compiled = compileRules([
-      { key: 'GET /orders', method: 'GET', path: '/orders', state: 'allow', source: 'manual', createdAt: 0 },
-      { key: 'POST /orders', method: 'POST', path: '/orders', state: 'block', source: 'manual', createdAt: 0 },
-    ]);
-
-    expect(compiled).toEqual({ '/orders': 'block' });
+    expect(compileRules([rule('GET /orders', 'allow'), rule('POST /orders', 'block')])).toEqual({ '/orders': 'block' });
   });
 ```
+
+Mevcut `'kuralları anahtar → durum haritasına derler'` testi de `compiled['GET /a']` yerine `compiled['/a']` bekleyecek şekilde güncellenir.
 
 - [ ] **Adım 6: Testi çalıştır, düştüğünü gör**
 
@@ -276,7 +271,7 @@ git commit -m "feat: kural eşleşmesini path'e indir, method karara girmesin"
 - Değiştir: `src/ui/components/inventory.ts` (toggle/remove payload'ları)
 - Değiştir: `src/ui/components/log-list.ts` (hızlı izin payload'ı)
 - Değiştir: `src/core/i18n.ts` (`error.invalid-key` kalkar)
-- Test: `src/core/rules.spec.ts`, `src/background/stores/settings.store.spec.ts`, `src/background/service-worker.spec.ts`, `src/ui/components/inventory.spec.ts`, `src/ui/components/log-list.spec.ts`, `src/core/report.builder.spec.ts`
+- Test: `src/core/rules.spec.ts`, `src/core/compile-config.spec.ts` (fixture `Rule`'u küçültülür), `src/background/stores/settings.store.spec.ts`, `src/background/service-worker.spec.ts`, `src/ui/components/inventory.spec.ts`, `src/ui/components/log-list.spec.ts`, `src/core/report.builder.spec.ts`
 
 **Arayüzler:**
 - Tüketir: `resolveConflict` (Görev 1)
@@ -537,6 +532,14 @@ const remove = button('✕', () => void ctx.send(COMMANDS.REMOVE_RULE, { path: i
 ```
 
 - [ ] **Adım 12: Tam doğrulama**
+
+Önce `src/core/compile-config.spec.ts` içindeki `rule()` fixture'ını küçült:
+
+```ts
+const rule = (path: string, state: RuleState): Rule => ({ path, state, createdAt: 0 });
+```
+
+Çağrılarını `rule('/a', 'allow')` biçimine çevir (artık `'GET /a'` değil).
 
 Çalıştır: `npm run verify`
 Beklenen: yeşil. Kırmızıysa kalan `rule.key` / `rule.method` / `rule.source` okumalarını `grep -rn "rule\.key\|rule\.method\|rule\.source" src/` ile bul ve temizle.
@@ -1123,7 +1126,7 @@ Başka bir sayı çıkarsa `toPath` normalizasyonu ya da tekilleştirme yanlış
 
 ```ts
     it('depodaki preset dosyası olduğu gibi içe aktarılır', async () => {
-      const preset = await import('../../presets/dr-odeme-ve-satin-alma.json');
+      const preset = await import('../presets/dr-odeme-ve-satin-alma.json');
       const result = await run(COMMANDS.IMPORT_PROFILE, { json: JSON.stringify(preset.default) });
 
       expect(result.ok).toBe(true);
