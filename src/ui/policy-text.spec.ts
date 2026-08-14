@@ -4,14 +4,7 @@ import { createTranslator } from '@/core/i18n';
 import type { Rule, Settings } from '@/core/types';
 import { faultLabel, faultPresetId, policyStatusLine } from './policy-text';
 
-const rule = (key: string, state: 'allow' | 'block'): Rule => ({
-  key,
-  method: 'GET',
-  path: key.split(' ')[1] ?? '/',
-  state,
-  source: 'inventory',
-  createdAt: 0,
-});
+const rule = (path: string, state: 'allow' | 'block'): Rule => ({ path, state, createdAt: 0 });
 
 const t = createTranslator('tr');
 
@@ -57,7 +50,7 @@ describe('ui/policy-text', () => {
 
   describe('policyStatusLine — paneldeki tek satır', () => {
     it('blok politikasında arıza tipini ve kural sayısını yazar', () => {
-      const line = policyStatusLine(settings({ rules: [rule('GET /a', 'allow'), rule('GET /b', 'block')] }), t);
+      const line = policyStatusLine(settings({ rules: [rule('/a', 'allow'), rule('/b', 'block')] }), t);
       expect(line).toBe("Kural yazılmayan EP'ler bloklanıyor (503) · 2 kural");
     });
 

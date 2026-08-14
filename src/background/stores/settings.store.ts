@@ -4,7 +4,8 @@ import {
   SETTINGS_WRITE_DEBOUNCE_MS,
   STORAGE_KEYS,
 } from '@/core/constants';
-import type { Settings } from '@/core/types';
+import { resolveConflict } from '@/core/rules';
+import type { RuleState, Settings } from '@/core/types';
 
 // Kalıcı ayar/profil deposu — 01-architecture.md §5.
 // Bozuk veride varsayılana dönülür ve kullanıcıya bilgi verilir (fail-safe).
@@ -44,6 +45,28 @@ export const migrations: Record<number, Migration> = {
     locale: data.locale === 'en' ? 'en' : 'auto',
     schemaVersion: 4,
   }),
+  // v5: kural anahtarı METHOD+path'ten yalnız path'e indi (Revizyon 59).
+  // Aynı path'e inen kayıtlar birleşir; durum çakışırsa block kazanır ve
+  // createdAt en eski kayıttan devralınır — kuralın listeye ilk giriş anı odur.
+  4: (data) => {
+    const merged = new Map<string, { path: string; state: RuleState; createdAt: number }>();
+
+    (Array.isArray(data.rules) ? data.rules : []).forEach((raw) => {
+      const rule = raw as { path?: unknown; state?: unknown; createdAt?: unknown };
+      const path = typeof rule.path === 'string' ? rule.path : '';
+      if (!path) return;
+
+      const state: RuleState = rule.state === 'block' ? 'block' : 'allow';
+      const createdAt = typeof rule.createdAt === 'number' ? rule.createdAt : 0;
+      const existing = merged.get(path);
+
+      merged.set(path, existing
+        ? { path, state: resolveConflict(existing.state, state), createdAt: Math.min(existing.createdAt, createdAt) }
+        : { path, state, createdAt });
+    });
+
+    return { ...data, rules: [...merged.values()], schemaVersion: 5 };
+  },
 };
 
 export const migrate = (raw: Record<string, unknown>): Record<string, unknown> => {

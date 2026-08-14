@@ -82,12 +82,7 @@ export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kin
       const tag = h('span', { class: 'drsim-tag' });
 
       const quickAllow = button(ctx.t('common.allow'), () => {
-        void ctx.send(COMMANDS.SET_RULE_STATE, {
-          method: entry.method,
-          path: entry.path,
-          state: 'allow',
-          source: 'quick-allow',
-        });
+        void ctx.send(COMMANDS.SET_RULE_STATE, { path: entry.path, state: 'allow' });
       }, { class: 'drsim-button drsim-button--compact', dataset: { test: 'dr-sim-quick-allow' } });
 
       // Satır tıklaması yok (Revizyon 48): tıklayınca URL kopyalanıyordu, ama satır

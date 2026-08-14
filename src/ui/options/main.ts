@@ -262,7 +262,7 @@ const buildOptions = (mount: HTMLElement, t: Translate, pageLocale: Locale) => {
   let renderedRules = '';
 
   const renderRules = (rules: Settings['rules']): void => {
-    const signature = rules.map((rule) => `${rule.key}:${rule.state}`).join('|');
+    const signature = rules.map((rule) => `${rule.path}:${rule.state}`).join('|');
     if (signature === renderedRules) return;
     renderedRules = signature;
 
@@ -271,16 +271,16 @@ const buildOptions = (mount: HTMLElement, t: Translate, pageLocale: Locale) => {
       return;
     }
 
-    const sorted = [...rules].sort((a, b) => a.key.localeCompare(b.key));
+    const sorted = [...rules].sort((a, b) => a.path.localeCompare(b.path));
     ruleList.replaceChildren(...sorted.map((rule) => h('li', { class: 'drsim-item' }, [
       h('div', { class: 'drsim-item__main' }, [
-        h('span', { class: 'drsim-ep', text: rule.key }),
+        h('span', { class: 'drsim-ep', text: rule.path }),
         h('div', { class: 'drsim-item__actions' }, [
           h('span', {
             class: rule.state === 'allow' ? 'drsim-tag drsim-tag--allow' : 'drsim-tag drsim-tag--block',
             text: t(rule.state === 'allow' ? 'common.allowed' : 'common.blocked'),
           }),
-          button('✕', () => void connection.send(COMMANDS.REMOVE_RULE, { key: rule.key }), {
+          button('✕', () => void connection.send(COMMANDS.REMOVE_RULE, { path: rule.path }), {
             class: 'drsim-button drsim-button--compact drsim-button--bare',
             title: t('options.ruleRemove'),
           }),

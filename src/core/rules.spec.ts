@@ -9,12 +9,9 @@ import {
 } from './rules';
 import type { Rule } from './types';
 
-const rule = (key: string, state: 'allow' | 'block'): Rule => ({
-  key,
-  method: key.split(' ')[0] as Rule['method'],
-  path: key.split(' ')[1] ?? '/',
+const rule = (path: string, state: 'allow' | 'block'): Rule => ({
+  path,
   state,
-  source: 'inventory',
   createdAt: 1,
 });
 
@@ -45,30 +42,32 @@ describe('core/rules', () => {
   });
 
   describe('upsertRule', () => {
-    it('yeni kural ekler ve anahtarı normalize eder', () => {
-      const [added] = upsertRule([], { method: 'get', path: '/items/12/summary', state: 'allow', now: 5 });
-      expect(added).toMatchObject({ key: 'GET /items/:id/summary', state: 'allow', createdAt: 5 });
+    it('yeni kural ekler ve path’i normalize eder', () => {
+      const [added] = upsertRule([], { path: '/items/12/summary', state: 'allow', now: 5 });
+      expect(added).toMatchObject({ path: '/items/:id/summary', state: 'allow', createdAt: 5 });
     });
 
     it('mevcut kaydın durumunu günceller, createdAt’i korur', () => {
-      const rules = upsertRule([rule('GET /a', 'allow')], { method: 'GET', path: '/a', state: 'block', now: 99 });
+      const rules = upsertRule([rule('/a', 'allow')], { path: '/a', state: 'block', now: 99 });
       expect(rules).toHaveLength(1);
-      expect(rules[0]).toMatchObject({ state: 'block', createdAt: 1, source: 'inventory' });
-    });
-
-    it('not alanını taşır ve mevcut notu korur', () => {
-      const withNote = upsertRule([], { method: 'GET', path: '/a', state: 'block', note: 'DR' });
-      expect(withNote[0]?.note).toBe('DR');
-      const updated = upsertRule(withNote, { method: 'GET', path: '/a', state: 'allow' });
-      expect(updated[0]?.note).toBe('DR');
-    });
-
-    it('kaynak verilmezse manual varsayılır', () => {
-      expect(upsertRule([], { method: 'GET', path: '/a', state: 'allow' })[0]?.source).toBe('manual');
+      expect(rules[0]).toMatchObject({ state: 'block', createdAt: 1 });
     });
 
     it('varsayılan createdAt 0’dır', () => {
-      expect(upsertRule([], { method: 'GET', path: '/a', state: 'allow' })[0]?.createdAt).toBe(0);
+      expect(upsertRule([], { path: '/a', state: 'allow' })[0]?.createdAt).toBe(0);
+    });
+
+    it('aynı path ikinci kez yazılınca kayıt çoğalmaz, durum güncellenir', () => {
+      const first = upsertRule([], { path: '/orders', state: 'allow', now: 10 });
+      const second = upsertRule(first, { path: '/orders', state: 'block', now: 99 });
+
+      expect(second).toEqual([{ path: '/orders', state: 'block', createdAt: 10 }]);
+    });
+
+    it('path normalize edilerek anahtarlanır', () => {
+      const rules = upsertRule([], { path: '/orders/8842/detail', state: 'block', now: 0 });
+
+      expect(rules[0]!.path).toBe('/orders/:id/detail');
     });
   });
 
@@ -79,42 +78,30 @@ describe('core/rules', () => {
       [undefined, 'block', 'allow'],
       [undefined, 'pass', 'block'],
     ])('mevcut=%s politika=%s -> %s', (current, policy, expected) => {
-      const rules = current ? [rule('GET /a', current)] : [];
-      const next = toggleRule(rules, { key: 'GET /a', method: 'GET', path: '/a', defaultPolicy: policy });
+      const rules = current ? [rule('/a', current)] : [];
+      const next = toggleRule(rules, { path: '/a', defaultPolicy: policy });
       expect(next[0]?.state).toBe(expected);
-    });
-
-    it('kayıt yokken kaynak inventory olur', () => {
-      const next = toggleRule([], { key: 'GET /a', method: 'GET', path: '/a', defaultPolicy: 'block' });
-      expect(next[0]?.source).toBe('inventory');
-    });
-
-    it('verilen kaynak kullanılabilir', () => {
-      const next = toggleRule([], {
-        key: 'GET /a', method: 'GET', path: '/a', defaultPolicy: 'block', source: 'quick-allow',
-      });
-      expect(next[0]?.source).toBe('quick-allow');
     });
   });
 
   describe('liste yardımcıları', () => {
-    const rules = [rule('GET /a', 'allow'), rule('GET /b', 'block'), rule('GET /c', 'allow')];
+    const rules = [rule('/a', 'allow'), rule('/b', 'block'), rule('/c', 'allow')];
 
     it('kaydı bulur', () => {
-      expect(findRule(rules, 'GET /b')?.state).toBe('block');
+      expect(findRule(rules, '/b')?.state).toBe('block');
     });
 
     it('kaydı siler', () => {
-      expect(removeRule(rules, 'GET /a').map((entry) => entry.key)).toEqual(['GET /b', 'GET /c']);
+      expect(removeRule(rules, '/a').map((entry) => entry.path)).toEqual(['/b', '/c']);
     });
 
     it('var olan kaydı güncellerken kardeş kayıtlara dokunmaz', () => {
-      const next = upsertRule(rules, { method: 'GET', path: '/b', state: 'allow' });
+      const next = upsertRule(rules, { path: '/b', state: 'allow' });
 
-      expect(next.map((entry) => entry.key)).toEqual(['GET /a', 'GET /b', 'GET /c']);
-      expect(findRule(next, 'GET /b')?.state).toBe('allow');
-      expect(findRule(next, 'GET /a')).toBe(rules[0]);
-      expect(findRule(next, 'GET /c')).toBe(rules[2]);
+      expect(next.map((entry) => entry.path)).toEqual(['/a', '/b', '/c']);
+      expect(findRule(next, '/b')?.state).toBe('allow');
+      expect(findRule(next, '/a')).toBe(rules[0]);
+      expect(findRule(next, '/c')).toBe(rules[2]);
     });
   });
 

@@ -1,20 +1,17 @@
 import { nextRuleState } from './decision-engine';
-import { normalizeMethod, normalizePath, toEndpointKey } from './path.util';
-import type { DefaultPolicy, NormalizationRules, Rule, RuleSource, RuleState } from './types';
+import { normalizePath } from './path.util';
+import type { DefaultPolicy, NormalizationRules, Rule, RuleState } from './types';
 
 // Kural listesi mutasyonları — tek kaynak `Settings.rules` (01-architecture.md §3).
 // "İzin Verilen EP'ler" paneli ile envanter rozeti aynı listeden türetilir.
 
 export interface RuleInput {
-  method: string;
   path: string;
   state: RuleState;
-  source?: RuleSource;
-  note?: string;
   now?: number;
 }
 
-export const findRule = (rules: Rule[], key: string): Rule | undefined => rules.find((rule) => rule.key === key);
+export const findRule = (rules: Rule[], path: string): Rule | undefined => rules.find((rule) => rule.path === path);
 
 // Joker kural desteklenmez (T-804 backlog); `*` içeren girdi reddedilir.
 export const validateRulePath = (path: string): { ok: true; path: string } | { ok: false; error: string } => {
@@ -29,41 +26,25 @@ export const validateRulePath = (path: string): { ok: true; path: string } | { o
 };
 
 export const upsertRule = (rules: Rule[], input: RuleInput, normalization?: NormalizationRules): Rule[] => {
-  const method = normalizeMethod(input.method);
   const path = normalizePath(input.path, normalization);
-  const key = toEndpointKey(method, path, normalization);
-  const existing = findRule(rules, key);
+  const existing = findRule(rules, path);
+  const rule: Rule = { path, state: input.state, createdAt: existing?.createdAt ?? input.now ?? 0 };
 
-  const rule: Rule = {
-    key,
-    method,
-    path,
-    state: input.state,
-    source: input.source ?? existing?.source ?? 'manual',
-    createdAt: existing?.createdAt ?? input.now ?? 0,
-  };
-  if (input.note ?? existing?.note) rule.note = input.note ?? existing?.note;
-
-  return existing ? rules.map((item) => (item.key === key ? rule : item)) : [...rules, rule];
+  return existing ? rules.map((item) => (item.path === path ? rule : item)) : [...rules, rule];
 };
 
-export const removeRule = (rules: Rule[], key: string): Rule[] => rules.filter((rule) => rule.key !== key);
+export const removeRule = (rules: Rule[], path: string): Rule[] => rules.filter((rule) => rule.path !== path);
 
 // Toggle: efektif durumu tersine çevirir; kayıt yoksa varsayılan politikanın tersini yazar.
 export const toggleRule = (
   rules: Rule[],
-  input: { key: string; method: string; path: string; defaultPolicy: DefaultPolicy; source?: RuleSource; now?: number },
+  input: { path: string; defaultPolicy: DefaultPolicy; now?: number },
+  normalization?: NormalizationRules,
 ): Rule[] => {
-  const existing = findRule(rules, input.key);
-  const state = nextRuleState(existing?.state, input.defaultPolicy);
+  const path = normalizePath(input.path, normalization);
+  const existing = findRule(rules, path);
 
-  return upsertRule(rules, {
-    method: input.method,
-    path: input.path,
-    state,
-    source: existing?.source ?? input.source ?? 'inventory',
-    now: input.now,
-  });
+  return upsertRule(rules, { path, state: nextRuleState(existing?.state, input.defaultPolicy), now: input.now }, normalization);
 };
 
 // İki kural aynı path'e indiğinde durumu çözer. Block kazanır: DR aracında bir

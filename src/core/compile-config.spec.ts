@@ -2,16 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { activeDomainPatterns, compileConfig, compileRules } from './compile-config';
 import { createTranslator } from './i18n';
 import { DEFAULT_SETTINGS } from './constants';
-import type { Rule, Settings } from './types';
+import type { Rule, RuleState, Settings } from './types';
 
-const rule = (key: string, state: 'allow' | 'block'): Rule => ({
-  key,
-  method: 'GET',
-  path: key.split(' ')[1] ?? '/',
-  state,
-  source: 'inventory',
-  createdAt: 0,
-});
+const rule = (path: string, state: RuleState): Rule => ({ path, state, createdAt: 0 });
 
 const settings = (over: Partial<Settings> = {}): Settings => ({ ...DEFAULT_SETTINGS, ...over });
 
@@ -21,17 +14,17 @@ describe('core/compile-config', () => {
   });
 
   it('kuralları anahtar → durum haritasına derler', () => {
-    const compiled = compileRules([rule('GET /a', 'allow'), rule('POST /b', 'block')]);
+    const compiled = compileRules([rule('/a', 'allow'), rule('/b', 'block')]);
     expect(compiled['/a']).toBe('allow');
     expect(compiled['/b']).toBe('block');
   });
 
-  it('kurallar path’e anahtarlanır, method anahtara girmez', () => {
-    expect(compileRules([rule('GET /orders', 'allow')])).toEqual({ '/orders': 'allow' });
+  it('kurallar path’e anahtarlanır', () => {
+    expect(compileRules([rule('/orders', 'allow')])).toEqual({ '/orders': 'allow' });
   });
 
   it('aynı path’in iki kaydı çakışırsa block kazanır', () => {
-    expect(compileRules([rule('GET /orders', 'allow'), rule('POST /orders', 'block')])).toEqual({ '/orders': 'block' });
+    expect(compileRules([rule('/orders', 'allow'), rule('/orders', 'block')])).toEqual({ '/orders': 'block' });
   });
 
   it('derlenmiş harita prototip zinciri taşımaz', () => {
@@ -53,7 +46,7 @@ describe('core/compile-config', () => {
   });
 
   it('runtime config ayarları ve revizyonu taşır', () => {
-    const config = compileConfig(settings({ enabled: true, rules: [rule('GET /x', 'allow')] }), 7, createTranslator('tr'));
+    const config = compileConfig(settings({ enabled: true, rules: [rule('/x', 'allow')] }), 7, createTranslator('tr'));
     expect(config).toMatchObject({ enabled: true, defaultPolicy: 'block', revision: 7 });
     expect(config.rulesByKey['/x']).toBe('allow');
   });

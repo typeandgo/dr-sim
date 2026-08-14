@@ -84,7 +84,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
   const syncProfileKeys = (): void => {
     const settings = state?.settings;
     const active = settings?.profiles.find((entry) => entry.id === settings.activeProfileId);
-    profileKeys = new Set(active?.rules.map((rule) => rule.key));
+    profileKeys = new Set(active?.rules.map((rule) => rule.path));
   };
 
   // Panelin gördüğü tablo ile karar motorunun gördüğü tablo AYNI fonksiyondan
@@ -108,7 +108,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
         dataset: { test: 'dr-sim-state-toggle' },
         on: {
           click: () => {
-            void ctx.send(COMMANDS.TOGGLE_RULE_STATE, { key: item.key, source: 'inventory' });
+            void ctx.send(COMMANDS.TOGGLE_RULE_STATE, { path: item.path });
           },
         },
       });
@@ -116,7 +116,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
       // "Bu satırı varsayılan davranışa döndür" — her satırda, çerçeveli (Revizyon 26).
       // Kaydı olmayan satırda basılması zararsızdır: `removeRule` saf bir filtre,
       // satır zaten varsayılandaysa hiçbir şey değişmez.
-      const remove = button('✕', () => void ctx.send(COMMANDS.REMOVE_RULE, { key: item.key }), {
+      const remove = button('✕', () => void ctx.send(COMMANDS.REMOVE_RULE, { path: item.path }), {
         class: 'drsim-button drsim-button--compact',
         title: ctx.t('inventory.removeRule'),
         dataset: { test: 'dr-sim-rule-remove' },
@@ -170,7 +170,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
       // hemen üstteki durum satırında yazan "simüle" ile BİREBİR aynıydı — aynı
       // bilgi aynı satırda iki kez duruyordu.
       const wanted = [
-        ctx.t(profileKeys.has(item.key) ? 'tag.profile' : 'tag.page'),
+        ctx.t(profileKeys.has(item.path) ? 'tag.profile' : 'tag.page'),
         item.origin === 'xhr' ? ctx.t('tag.xhr') : null,
         item.lastReason === 'sync-xhr' ? ctx.t('tag.syncXhr') : null,
       ].filter((label): label is string => label !== null);

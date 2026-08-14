@@ -37,8 +37,8 @@ describe('background/settings.store', () => {
     });
 
     it('v0 verisini güncel sürüme migrate eder', () => {
-      expect(migrate({ enabled: true }).schemaVersion).toBe(4);
-      expect(normalizeSettings({ enabled: true }).schemaVersion).toBe(4);
+      expect(migrate({ enabled: true }).schemaVersion).toBe(5);
+      expect(normalizeSettings({ enabled: true }).schemaVersion).toBe(5);
     });
 
     it('v1 verisindeki DomainScope.enabled alanı düşürülür (Revizyon 3)', () => {
@@ -67,6 +67,27 @@ describe('background/settings.store', () => {
 
     it('bilinmeyen sürümde zinciri durdurur', () => {
       expect(migrate({ schemaVersion: 99 }).schemaVersion).toBe(99);
+    });
+
+    it('v5: kurallar path’e iner, çakışan durumda block kazanır', () => {
+      const migrated = migrate({
+        schemaVersion: 4,
+        rules: [
+          { key: 'GET /orders', method: 'GET', path: '/orders', state: 'allow', source: 'manual', note: 'x', createdAt: 100 },
+          { key: 'POST /orders', method: 'POST', path: '/orders', state: 'block', source: 'preset', createdAt: 50 },
+          { key: 'GET /users', method: 'GET', path: '/users', state: 'allow', source: 'manual', createdAt: 200 },
+        ],
+      });
+
+      expect(migrated.schemaVersion).toBe(5);
+      expect(migrated.rules).toEqual([
+        { path: '/orders', state: 'block', createdAt: 50 },
+        { path: '/users', state: 'allow', createdAt: 200 },
+      ]);
+    });
+
+    it('v5: kural listesi yoksa boş dizi üretir', () => {
+      expect(migrate({ schemaVersion: 4 }).rules).toEqual([]);
     });
   });
 

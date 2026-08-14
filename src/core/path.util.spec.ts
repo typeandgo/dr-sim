@@ -5,7 +5,6 @@ import {
   normalizeMethod,
   normalizePath,
   resetPathCaches,
-  toEndpointKey,
 } from './path.util';
 
 const rules = (over: Partial<typeof DEFAULT_NORMALIZATION> = {}) => ({ ...DEFAULT_NORMALIZATION, ...over });
@@ -101,20 +100,6 @@ describe('core/path.util', () => {
 
     it('argümansız çağrıldığında GET döner', () => {
       expect(normalizeMethod()).toBe('GET');
-    });
-  });
-
-  describe('toEndpointKey', () => {
-    it('method + normalize path anahtarı üretir', () => {
-      expect(toEndpointKey('get', '/items/12/summary')).toBe('GET /items/:id/summary');
-    });
-
-    it('aynı EP’nin farklı id’leri tek anahtar üretir', () => {
-      expect(toEndpointKey('GET', '/items/1/summary')).toBe(toEndpointKey('GET', '/items/999/summary'));
-    });
-
-    it('aynı path farklı method ayrı anahtar üretir', () => {
-      expect(toEndpointKey('GET', '/offers')).not.toBe(toEndpointKey('POST', '/offers'));
     });
   });
 });

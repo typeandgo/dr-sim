@@ -6,14 +6,7 @@ import { emptyState } from '../state/connection';
 import { mountPolicy } from './policy';
 import type { ComponentContext } from './types';
 
-const rule = (key: string, state: 'allow' | 'block'): Rule => ({
-  key,
-  method: 'GET',
-  path: key.split(' ')[1] ?? '/',
-  state,
-  source: 'inventory',
-  createdAt: 0,
-});
+const rule = (path: string, state: 'allow' | 'block'): Rule => ({ path, state, createdAt: 0 });
 
 const state = (settings: Partial<Settings> = {}): UiState => ({
   ...emptyState(),
@@ -85,7 +78,7 @@ describe('ui/policy', () => {
 
   it('durum satırı politikayı ve kural sayısını yazar', () => {
     const { root, component } = setup();
-    component.update(state({ rules: [rule('GET /a', 'allow')] }));
+    component.update(state({ rules: [rule('/a', 'allow')] }));
 
     expect(root.querySelector('[data-test="dr-sim-policy-status"]')!.textContent)
       .toBe("Kural yazılmayan EP'ler bloklanıyor (503) · 1 kural");
@@ -101,7 +94,7 @@ describe('ui/policy', () => {
   it('onay verilirse CLEAR_RULES gönderir', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     const { root, ctx, component } = setup();
-    component.update(state({ rules: [rule('GET /a', 'allow')] }));
+    component.update(state({ rules: [rule('/a', 'allow')] }));
 
     resetOf(root).click();
 
@@ -111,7 +104,7 @@ describe('ui/policy', () => {
   it('onay verilmezse hiçbir komut gitmez', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false);
     const { root, ctx, component } = setup();
-    component.update(state({ rules: [rule('GET /a', 'allow')] }));
+    component.update(state({ rules: [rule('/a', 'allow')] }));
 
     resetOf(root).click();
 
@@ -128,7 +121,7 @@ describe('ui/policy', () => {
       locale: 'en',
     };
     const component = mountPolicy(root, ctx);
-    component.update(state({ rules: [rule('GET /a', 'allow')] }));
+    component.update(state({ rules: [rule('/a', 'allow')] }));
 
     expect(root.querySelector('[data-test="dr-sim-policy-status"]')!.textContent)
       .toBe('EPs without a rule are blocked (503) · 1 rules');

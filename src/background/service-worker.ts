@@ -176,19 +176,14 @@ const setEnabled = async ({ payload }: CommandContext): Promise<CommandResult> =
 };
 
 const toggleRuleState = async ({ payload }: CommandContext): Promise<CommandResult> => {
-  const key = asString(payload.key);
-  if (!key) return { ok: false, error: 'invalid-key' };
-
-  const [method = 'GET', path = '/'] = [key.split(' ')[0], key.split(' ').slice(1).join(' ')];
+  const validation = validateRulePath(asString(payload.path));
+  if (!validation.ok) return { ok: false, error: validation.error };
 
   await settingsStore.mutate((current) => ({
     ...current,
     rules: toggleRule(current.rules, {
-      key,
-      method,
-      path,
+      path: validation.path,
       defaultPolicy: current.defaultPolicy,
-      source: (payload.source as never) ?? 'inventory',
       now: Date.now(),
     }),
   }));
@@ -200,15 +195,11 @@ const setRuleState = async ({ payload }: CommandContext): Promise<CommandResult>
   const validation = validateRulePath(asString(payload.path));
   if (!validation.ok) return { ok: false, error: validation.error };
 
-  const state = payload.state === 'block' ? 'block' : 'allow';
-
   await settingsStore.mutate((current) => ({
     ...current,
     rules: upsertRule(current.rules, {
-      method: asString(payload.method, 'GET'),
       path: validation.path,
-      state,
-      source: (payload.source as never) ?? 'manual',
+      state: payload.state === 'block' ? 'block' : 'allow',
       now: Date.now(),
     }),
   }));
@@ -347,7 +338,7 @@ const handlers: Record<string, (ctx: CommandContext) => CommandResult | Promise<
   [COMMANDS.TOGGLE_RULE_STATE]: toggleRuleState,
   [COMMANDS.SET_RULE_STATE]: setRuleState,
   [COMMANDS.REMOVE_RULE]: async ({ payload }) => {
-    await settingsStore.mutate((current) => ({ ...current, rules: removeRule(current.rules, asString(payload.key)) }));
+    await settingsStore.mutate((current) => ({ ...current, rules: removeRule(current.rules, asString(payload.path)) }));
     return { ok: true };
   },
   [COMMANDS.CLEAR_RULES]: async () => {

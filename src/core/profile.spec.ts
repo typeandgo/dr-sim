@@ -7,14 +7,7 @@ import type { Profile, Rule, Settings } from './types';
 const tr = createTranslator('tr');
 const en = createTranslator('en');
 
-const rule = (key: string): Rule => ({
-  key,
-  method: 'GET',
-  path: key.split(' ')[1] ?? '/',
-  state: 'allow',
-  source: 'inventory',
-  createdAt: 0,
-});
+const rule = (path: string): Rule => ({ path, state: 'allow', createdAt: 0 });
 
 const settings = (over: Partial<Settings> = {}): Settings => ({ ...DEFAULT_SETTINGS, ...over });
 
@@ -23,7 +16,7 @@ const profile = (over: Partial<Profile> = {}): Profile => ({
   name: 'Ödeme kapalı',
   defaultPolicy: 'block',
   domains: [],
-  rules: [rule('GET /a')],
+  rules: [rule('/a')],
   fault: DEFAULT_SETTINGS.fault,
   updatedAt: 7,
   ...over,
@@ -76,7 +69,7 @@ describe('core/profile', () => {
     it('mevcut ayarların kurulum alanlarını kopyalar', () => {
       const now = 42;
       const snapshot = snapshotProfile(
-        settings({ defaultPolicy: 'pass', rules: [rule('GET /b')] }),
+        settings({ defaultPolicy: 'pass', rules: [rule('/b')] }),
         'current',
         'DR-SIM profili',
         now,

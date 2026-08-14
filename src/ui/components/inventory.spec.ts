@@ -119,7 +119,7 @@ describe('ui/inventory', () => {
     const tagsOf = (root: HTMLElement): string[] => [...root.querySelectorAll('.drsim-tags .drsim-tag')]
       .map((tag) => tag.textContent ?? '');
 
-    const profile = (keys: string[]): Partial<Settings> => ({
+    const profile = (paths: string[]): Partial<Settings> => ({
       activeProfileId: 'p1',
       profiles: [{
         id: 'p1',
@@ -128,20 +128,13 @@ describe('ui/inventory', () => {
         domains: [],
         fault: DEFAULT_SETTINGS.fault,
         updatedAt: 0,
-        rules: keys.map((key) => ({
-          key,
-          method: 'GET' as const,
-          path: key.split(' ')[1]!,
-          state: 'block' as const,
-          source: 'preset' as const,
-          createdAt: 0,
-        })),
+        rules: paths.map((path) => ({ path, state: 'block' as const, createdAt: 0 })),
       }],
     });
 
     it('profilde tanımlı EP "profil" etiketi taşır', () => {
       const { root, component } = setup();
-      component.update(state(profile(['GET /offers'])));
+      component.update(state(profile(['/offers'])));
 
       expect(tagsOf(root)).toContain('profil');
       expect(tagsOf(root)).not.toContain('sayfa');
@@ -149,7 +142,7 @@ describe('ui/inventory', () => {
 
     it('profilde olmayan EP "sayfa" etiketi taşır', () => {
       const { root, component } = setup();
-      component.update(state(profile(['GET /baska'])));
+      component.update(state(profile(['/baska'])));
 
       expect(tagsOf(root)).toContain('sayfa');
       expect(tagsOf(root)).not.toContain('profil');
@@ -165,7 +158,7 @@ describe('ui/inventory', () => {
     it('profil değişince etiket tazelenir', () => {
       const { root, component } = setup();
 
-      component.update(state(profile(['GET /offers'])));
+      component.update(state(profile(['/offers'])));
       expect(tagsOf(root)).toContain('profil');
 
       component.update(state(profile([])));
@@ -190,13 +183,13 @@ describe('ui/inventory', () => {
     });
   });
 
-  it('toggle TOGGLE_RULE_STATE komutunu EP anahtarıyla gönderir', () => {
+  it('toggle TOGGLE_RULE_STATE komutunu path ile gönderir', () => {
     const { root, ctx, component } = setup();
     component.update(state());
 
     toggleOf(root).click();
 
-    expect(ctx.send).toHaveBeenCalledWith(COMMANDS.TOGGLE_RULE_STATE, { key: 'GET /offers', source: 'inventory' });
+    expect(ctx.send).toHaveBeenCalledWith(COMMANDS.TOGGLE_RULE_STATE, { path: '/offers' });
   });
 
   it('varsayılan politikaya göre efektif durumu gösterir', () => {
@@ -219,7 +212,7 @@ describe('ui/inventory', () => {
 
     component.update(state({
       defaultPolicy: 'block',
-      rules: [{ key: 'GET /offers', method: 'GET', path: '/offers', state: 'block', source: 'inventory', createdAt: 0 }],
+      rules: [{ path: '/offers', state: 'block', createdAt: 0 }],
     }));
     expect(row.className).toContain('drsim-item--blocked');
     expect(row.className).not.toContain('drsim-item--default-blocked');
@@ -250,7 +243,7 @@ describe('ui/inventory', () => {
     expect(remove.className).not.toContain('drsim-button--bare');
 
     component.update(state({
-      rules: [{ key: 'GET /offers', method: 'GET', path: '/offers', state: 'allow', source: 'inventory', createdAt: 0 }],
+      rules: [{ path: '/offers', state: 'allow', createdAt: 0 }],
     }));
     expect(root.querySelector<HTMLElement>('[data-test="dr-sim-rule-remove"]')!.hidden).toBe(false);
   });
@@ -261,7 +254,7 @@ describe('ui/inventory', () => {
 
     root.querySelector<HTMLElement>('[data-test="dr-sim-rule-remove"]')!.click();
 
-    expect(ctx.send).toHaveBeenCalledWith(COMMANDS.REMOVE_RULE, { key: 'GET /offers' });
+    expect(ctx.send).toHaveBeenCalledWith(COMMANDS.REMOVE_RULE, { path: '/offers' });
     const row = root.querySelector<HTMLElement>('[data-test="dr-sim-inventory-item"]')!;
     expect(row.className).toContain('drsim-item--default-blocked');
   });
@@ -269,12 +262,12 @@ describe('ui/inventory', () => {
   it('✕ kaydı siler, EP varsayılan davranışa döner', () => {
     const { root, ctx, component } = setup();
     component.update(state({
-      rules: [{ key: 'GET /offers', method: 'GET', path: '/offers', state: 'allow', source: 'inventory', createdAt: 0 }],
+      rules: [{ path: '/offers', state: 'allow', createdAt: 0 }],
     }));
 
     root.querySelector<HTMLElement>('[data-test="dr-sim-rule-remove"]')!.click();
 
-    expect(ctx.send).toHaveBeenCalledWith(COMMANDS.REMOVE_RULE, { key: 'GET /offers' });
+    expect(ctx.send).toHaveBeenCalledWith(COMMANDS.REMOVE_RULE, { path: '/offers' });
   });
 
   it('ham örnek URL satırda yazılmaz, hover’da kalır (Revizyon 17)', () => {

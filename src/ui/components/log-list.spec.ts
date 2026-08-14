@@ -93,17 +93,15 @@ describe('ui/log-list', () => {
     expect(row.querySelector('.drsim-log__ep')).not.toBeNull();
   });
 
-  it('hızlı izin EP’yi allow yapar ve kaynağı quick-allow olur', () => {
+  it('hızlı izin EP’yi path ile allow yapar', () => {
     const { root, ctx, component } = setup('fail');
     component.update(state());
 
     quickAllow(root).click();
 
     expect(ctx.send).toHaveBeenCalledWith(COMMANDS.SET_RULE_STATE, {
-      method: 'POST',
       path: '/auth/refresh',
       state: 'allow',
-      source: 'quick-allow',
     });
   });
 

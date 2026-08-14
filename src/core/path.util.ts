@@ -72,6 +72,3 @@ export const normalizePath = (url = '', rules: NormalizationRules = DEFAULT_NORM
 
 // Method'u normalize eder; bilinmeyen değer büyük harfe çevrilir
 export const normalizeMethod = (method = 'GET'): HttpMethod => String(method || 'GET').toUpperCase() as HttpMethod;
-
-// Kural/envanter anahtarı: `METHOD /normalize/edilmis/path`
-export const toEndpointKey = (method: string, path: string, rules?: NormalizationRules): string => `${normalizeMethod(method)} ${normalizePath(path, rules)}`;

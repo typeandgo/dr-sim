@@ -6,16 +6,11 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 
 
 export type RuleState = 'allow' | 'block';
 
-export type RuleSource = 'inventory' | 'manual' | 'preset' | 'quick-allow';
-
-// Tek kural kaydı: bir EP'nin açık durumu. Joker yok, tam eşleşme.
+// Tek kural kaydı: bir PATH'in açık durumu. Joker yok, method yok — bir path'in
+// tek bir durumu vardır ve o durum bütün method'ları için geçerlidir (Revizyon 59).
 export interface Rule {
-  key: string; // `${method} ${normalizedPath}` — birincil anahtar
-  method: HttpMethod;
   path: string; // normalize edilmiş: /items/:id/summary
   state: RuleState;
-  source: RuleSource;
-  note?: string;
   createdAt: number;
 }
 

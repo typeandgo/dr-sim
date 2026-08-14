@@ -167,26 +167,36 @@ describe('background/service-worker — komut yüzeyi', () => {
 
   describe('kurallar', () => {
     it('toggle varsayılan politikanın tersini yazar', async () => {
-      expect(await run(COMMANDS.TOGGLE_RULE_STATE, { key: 'GET /orders' })).toEqual({ ok: true });
+      expect(await run(COMMANDS.TOGGLE_RULE_STATE, { path: '/orders' })).toEqual({ ok: true });
 
       // Varsayılan politika 'block' → ilk toggle 'allow' üretir
-      expect(buildState(null).settings.rules[0]).toMatchObject({ key: 'GET /orders', state: 'allow' });
+      expect(buildState(null).settings.rules[0]).toMatchObject({ path: '/orders', state: 'allow' });
 
-      await run(COMMANDS.TOGGLE_RULE_STATE, { key: 'GET /orders' });
+      await run(COMMANDS.TOGGLE_RULE_STATE, { path: '/orders' });
       expect(buildState(null).settings.rules[0]?.state).toBe('block');
     });
 
-    it('anahtarsız toggle reddedilir', async () => {
-      expect(await run(COMMANDS.TOGGLE_RULE_STATE, {})).toEqual({ ok: false, error: 'invalid-key' });
+    it('geçersiz path kural yazmaz', async () => {
+      expect(await run(COMMANDS.SET_RULE_STATE, { path: '/*', state: 'block' }))
+        .toEqual({ ok: false, error: 'path-wildcard' });
+      expect(await run(COMMANDS.TOGGLE_RULE_STATE, { path: '' }))
+        .toEqual({ ok: false, error: 'path-empty' });
+    });
+
+    it('toggle method’suz çalışır ve tek kayıt üretir', async () => {
+      await run(COMMANDS.TOGGLE_RULE_STATE, { path: '/orders' });
+
+      expect(buildState(null).settings.rules).toEqual([
+        { path: '/orders', state: 'allow', createdAt: expect.any(Number) },
+      ]);
     });
 
     it('SET_RULE_STATE path’i normalize eder', async () => {
-      expect(await run(COMMANDS.SET_RULE_STATE, { method: 'get', path: '/orders/8842/detail', state: 'allow' }))
+      expect(await run(COMMANDS.SET_RULE_STATE, { path: '/orders/8842/detail', state: 'allow' }))
         .toEqual({ ok: true });
 
       expect(buildState(null).settings.rules[0]).toMatchObject({
-        key: 'GET /orders/:id/detail',
-        method: 'GET',
+        path: '/orders/:id/detail',
         state: 'allow',
       });
     });
@@ -197,11 +207,11 @@ describe('background/service-worker — komut yüzeyi', () => {
     });
 
     it('kural silinir ve liste sıfırlanır', async () => {
-      await run(COMMANDS.SET_RULE_STATE, { method: 'GET', path: '/a', state: 'allow' });
-      await run(COMMANDS.SET_RULE_STATE, { method: 'GET', path: '/b', state: 'block' });
+      await run(COMMANDS.SET_RULE_STATE, { path: '/a', state: 'allow' });
+      await run(COMMANDS.SET_RULE_STATE, { path: '/b', state: 'block' });
 
-      await run(COMMANDS.REMOVE_RULE, { key: 'GET /a' });
-      expect(buildState(null).settings.rules.map((rule) => rule.key)).toEqual(['GET /b']);
+      await run(COMMANDS.REMOVE_RULE, { path: '/a' });
+      expect(buildState(null).settings.rules.map((rule) => rule.path)).toEqual(['/b']);
 
       await run(COMMANDS.CLEAR_RULES);
       expect(buildState(null).settings.rules).toHaveLength(0);
@@ -212,7 +222,7 @@ describe('background/service-worker — komut yüzeyi', () => {
     const profileJson = JSON.stringify({
       name: 'DR — ödeme',
       defaultPolicy: 'pass',
-      rules: [{ key: 'GET /a', method: 'GET', path: '/a', state: 'allow', source: 'preset', createdAt: 0 }],
+      rules: [{ path: '/a', state: 'allow', createdAt: 0 }],
     });
 
     it('profil içe aktarılır ve uygulanır', async () => {
@@ -325,7 +335,7 @@ describe('background/service-worker — komut yüzeyi', () => {
   describe('HARD_RESET', () => {
     const seed = async (): Promise<void> => {
       await run(COMMANDS.ADD_DOMAIN, { pattern: 'api.example.com' });
-      await run(COMMANDS.SET_RULE_STATE, { method: 'GET', path: '/a', state: 'allow' });
+      await run(COMMANDS.SET_RULE_STATE, { path: '/a', state: 'allow' });
       await run(COMMANDS.SET_DEFAULT_POLICY, { policy: 'pass' });
       await run(COMMANDS.UPDATE_SETTINGS, { settings: { locale: 'tr', maxLogEntries: 42 } });
       await run(COMMANDS.IMPORT_PROFILE, { json: JSON.stringify({ name: 'p', rules: [] }) });
