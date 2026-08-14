@@ -280,15 +280,22 @@ const applyProfile = async ({ payload }: CommandContext): Promise<CommandResult>
 
   if (!profile) return { ok: false, error: 'not-found' };
 
+  // `granted` alanı BOŞ bırakılamaz: dört tüketici (`compile-config.ts`,
+  // `scope.manager.ts`, `scope.ts` iki yerde) `granted !== false` okuyor —
+  // yani alan `undefined` kalırsa domain HER YERDE izinliymiş gibi davranır.
+  // "Yazmamak" güvenli taraf değildir; dosyadaki değer YOK SAYILIP yerel izin
+  // burada, mutate'ten önce, gerçekten ölçülür (bkz. `addDomain`'deki desen).
+  const measured = await Promise.all(
+    profile.domains.map(async (pattern) => [pattern, await hasDomainPermission(pattern)] as const),
+  );
+
   await settingsStore.mutate((current) => ({
     ...current,
     defaultPolicy: profile.defaultPolicy,
     rules: profileToRules(profile, Date.now()),
     fault: profile.fault,
-    // `granted` yazılmaz: yerel izin durumu `syncPermissions` ile ayrıca ölçülür.
-    // Aksi hâlde paylaşılan profil, PAYLAŞANIN izin durumunu taşırdı.
-    domains: profile.domains.length
-      ? profile.domains.map((pattern) => ({ id: crypto.randomUUID(), pattern }))
+    domains: measured.length
+      ? measured.map(([pattern, granted]) => ({ id: crypto.randomUUID(), pattern, granted }))
       : current.domains,
     activeProfileId: profile.id,
   }));

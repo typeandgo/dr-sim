@@ -327,6 +327,60 @@ describe('background/service-worker — komut yüzeyi', () => {
     });
   });
 
+  // Fix round 1: `granted` alanı BOŞ bırakılınca dört tüketici (`compile-config.ts`,
+  // `scope.manager.ts`, `scope.ts` iki yerde) `granted !== false` okuduğu için domain
+  // HİÇ izin istenmeden izinliymiş gibi davranıyordu. Düzeltme: `applyProfile` artık
+  // her domain pattern'i için izni YERELDE ölçüyor, dosyadan hiçbir izin varsayımı almıyor.
+  describe('profil uygulanınca domain izni yerel ölçülür', () => {
+    it('izin verilmemiş domain içeren profil uygulanınca granted false yazılır, izinliymiş gibi davranılmaz', async () => {
+      chromeMock.permissions.contains.mockResolvedValue(false);
+
+      const imported = await run(COMMANDS.IMPORT_PROFILE, {
+        json: JSON.stringify({ name: 'yeni domain', allow: [], block: ['/x'], domains: ['newapi.com'] }),
+      });
+      const { id } = imported.data as { id: string };
+
+      await run(COMMANDS.APPLY_PROFILE, { id });
+
+      expect(buildState(null).settings.domains).toEqual([
+        { id: expect.any(String), pattern: 'newapi.com', granted: false },
+      ]);
+    });
+
+    it('izin verilmiş domain içeren profil uygulanınca granted true yazılır', async () => {
+      chromeMock.permissions.contains.mockResolvedValue(true);
+
+      const imported = await run(COMMANDS.IMPORT_PROFILE, {
+        json: JSON.stringify({ name: 'izinli domain', allow: [], block: ['/x'], domains: ['granted-api.com'] }),
+      });
+      const { id } = imported.data as { id: string };
+
+      await run(COMMANDS.APPLY_PROFILE, { id });
+
+      expect(buildState(null).settings.domains).toEqual([
+        { id: expect.any(String), pattern: 'granted-api.com', granted: true },
+      ]);
+    });
+
+    // Sızıntının asıl kapanma noktası: şema `domains`'i yalnızca string kabul eder
+    // (`asDomainList`). Eski/bozuk bir dosya domain'i nesne olarak (`{ pattern, granted:
+    // true }`) taşımaya çalışsa bile nesne elenir, pattern hiç profile girmez — dosyadan
+    // gelen HİÇBİR izin iddiası ayakta kalmaz, sonuç her koşulda yerel ölçüme dayanır.
+    it('dosyadaki domain nesnesine iliştirilmiş granted:true iddiası yok sayılır — yalnızca string pattern kabul edilir', async () => {
+      const json = JSON.stringify({
+        name: 'sızıntı denemesi',
+        allow: [],
+        block: ['/x'],
+        domains: [{ pattern: 'leaky.com', granted: true }],
+      });
+
+      const imported = await run(COMMANDS.IMPORT_PROFILE, { json });
+
+      expect(imported.ok).toBe(true);
+      expect(buildState(null).settings.profiles[0]?.domains).toEqual([]);
+    });
+  });
+
   describe('rapor', () => {
     it('oturum yokken bile markdown üretir', async () => {
       const result = await run(COMMANDS.EXPORT_REPORT, { format: 'markdown' });
