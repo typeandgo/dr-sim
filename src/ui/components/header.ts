@@ -42,7 +42,7 @@ export const mountHeader = (root: HTMLElement, ctx: ComponentContext): Component
   // Kılavuz başlığın yanında (Revizyon 52): ilk kez açan kullanıcının ihtiyacı
   // olan tek şey bu ve panelin en üstünde. Yeni sekmede açılır — panelde
   // gezinmek çalışma yüzeyini kaybettirirdi.
-  const guide = button(ctx.t('guide.open'), () => void openGuide(), {
+  const guide = button(ctx.t('guide.open'), () => void openGuide(ctx.locale), {
     class: 'drsim-header__link',
     title: ctx.t('guide.openTitle'),
     dataset: { test: 'dr-sim-open-guide' },

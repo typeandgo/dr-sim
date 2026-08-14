@@ -31,9 +31,10 @@ const save = (patch: Partial<Settings>): void => {
 // Dil adları çevrilmez: kullanıcı kendi dilini kendi dilinde arar
 const LANGUAGE_NAMES: Record<Locale, string> = { en: 'English', tr: 'Türkçe' };
 
-// `locale` parametresi kalktı: dile bağlı tek içerik (kılavuz + örnek profil)
-// kendi sayfasına taşındı, burada kalan her metin `t` üzerinden geliyor.
-const buildOptions = (mount: HTMLElement, t: Translate) => {
+// Çözülen dil parametre olarak gelir: sayfadaki metinlerin hepsi `t` üzerinden
+// üretilir, ama kılavuz bağlantısı depodaki İKİ ayrı dosyadan birine gittiği
+// için ham locale'e de ihtiyaç var (Revizyon 58).
+const buildOptions = (mount: HTMLElement, t: Translate, pageLocale: Locale) => {
   const section = (title: string, children: HTMLElement[]): HTMLElement => h('section', { class: 'drsim-section' }, [
     h('div', { class: 'drsim-section__head' }, [h('span', { class: 'drsim-section__title', text: title })]),
     ...children,
@@ -183,12 +184,12 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
 
   mount.replaceChildren(
     h('h1', { class: 'drsim-header__title', text: t('options.title') }),
-    // Kılavuz ve örnek profil ayrı sayfada (Revizyon 52): burası ayarlanacak
-    // yüzey, orası okunacak içerik. Burada yalnızca kapı duruyor.
+    // Kılavuz depoda (Revizyon 58): burası ayarlanacak yüzey, orası okunacak
+    // içerik. Burada yalnızca kapı duruyor — yeni sekmede açılır.
     section(t('options.guide'), [
       h('p', { class: 'drsim-hint', text: t('options.guideHint') }),
       h('div', { class: 'drsim-section__actions' }, [
-        button(t('guide.open'), () => void openGuide(), {
+        button(t('guide.open'), () => void openGuide(pageLocale), {
           class: 'drsim-button drsim-button--compact',
           dataset: { test: 'dr-sim-open-guide' },
         }),
@@ -346,7 +347,7 @@ connection.store.subscribe((state) => {
     const t = translatorFor(state.settings.locale);
     document.documentElement.lang = next;
     document.title = t('options.title');
-    sync = buildOptions(root, t);
+    sync = buildOptions(root, t, next);
   }
 
   sync(state);

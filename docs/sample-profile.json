@@ -1,0 +1,50 @@
+{
+  "id": "ornek-profil",
+  "name": "Sample — payment closed",
+  "defaultPolicy": "block",
+  "domains": [
+    {
+      "id": "d1",
+      "pattern": "api.example.com"
+    }
+  ],
+  "rules": [
+    {
+      "key": "GET /users/current",
+      "method": "GET",
+      "path": "/users/current",
+      "state": "allow",
+      "source": "preset",
+      "note": "needed for login, must stay open",
+      "createdAt": 0
+    },
+    {
+      "key": "GET /orders/:id/detail",
+      "method": "GET",
+      "path": "/orders/:id/detail",
+      "state": "allow",
+      "source": "preset",
+      "note": "record id normalized with :id",
+      "createdAt": 0
+    },
+    {
+      "key": "POST /payments/checkout",
+      "method": "POST",
+      "path": "/payments/checkout",
+      "state": "block",
+      "source": "preset",
+      "note": "the endpoint being tested for the DR scenario",
+      "createdAt": 0
+    }
+  ],
+  "fault": {
+    "kind": "http",
+    "status": 503,
+    "statusText": "Service Unavailable",
+    "body": "{\"message\":\"DR simulated unavailable\"}",
+    "headers": {},
+    "delayMs": 0,
+    "timeoutMs": 30000
+  },
+  "updatedAt": 0
+}

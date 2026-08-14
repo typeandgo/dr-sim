@@ -1,10 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { LOCALES } from '@/core/i18n';
 import { installChromeMock, type ChromeMock } from '@/test/chrome-mock';
-import { GUIDE_PATH, openGuide } from './open-guide';
+import { GUIDE_URLS, guideUrl, openGuide } from './open-guide';
 
 let chromeMock: ChromeMock;
-
-const URL = `chrome-extension://drsim/${GUIDE_PATH}`;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -12,10 +11,30 @@ beforeEach(() => {
 });
 
 describe('ui/open-guide', () => {
-  it('kılavuz açık değilse yeni sekmede açar', async () => {
-    await openGuide();
+  // Kılavuz eklenti paketinden çıkıp depoya taşındı (Revizyon 58): artık
+  // `chrome-extension://` değil, dile göre iki ayrı GitHub adresi var.
+  it('her dil için bir kılavuz adresi vardır', () => {
+    LOCALES.forEach((locale) => {
+      expect(guideUrl(locale)).toMatch(/^https:\/\/github\.com\/.+\/docs\/guide(\.tr)?\.md$/);
+    });
 
-    expect(chromeMock.tabs.create).toHaveBeenCalledWith({ url: URL });
+    expect(new Set(Object.values(GUIDE_URLS)).size).toBe(LOCALES.length);
+  });
+
+  it('arayüz dilindeki kılavuzu açar', async () => {
+    await openGuide('tr');
+
+    expect(chromeMock.tabs.create).toHaveBeenCalledWith({ url: GUIDE_URLS.tr });
+
+    await openGuide('en');
+
+    expect(chromeMock.tabs.create).toHaveBeenCalledWith({ url: GUIDE_URLS.en });
+  });
+
+  it('kılavuz açık değilse yeni sekmede açar', async () => {
+    await openGuide('en');
+
+    expect(chromeMock.tabs.create).toHaveBeenCalledWith({ url: GUIDE_URLS.en });
     expect(chromeMock.tabs.update).not.toHaveBeenCalled();
   });
 
@@ -23,7 +42,7 @@ describe('ui/open-guide', () => {
   it('açık kılavuz sekmesi varsa yenisini açmaz, mevcut olanı öne getirir', async () => {
     chromeMock.tabs.query.mockResolvedValueOnce([{ id: 7, windowId: 3 }] as never);
 
-    await openGuide();
+    await openGuide('en');
 
     expect(chromeMock.tabs.create).not.toHaveBeenCalled();
     expect(chromeMock.tabs.update).toHaveBeenCalledWith(7, { active: true });
@@ -33,7 +52,7 @@ describe('ui/open-guide', () => {
   it('sekmenin penceresi bilinmiyorsa yalnızca sekme öne getirilir', async () => {
     chromeMock.tabs.query.mockResolvedValueOnce([{ id: 7 }] as never);
 
-    await openGuide();
+    await openGuide('en');
 
     expect(chromeMock.tabs.update).toHaveBeenCalledWith(7, { active: true });
     expect(chromeMock.windows.update).not.toHaveBeenCalled();
@@ -42,6 +61,6 @@ describe('ui/open-guide', () => {
   it('sekme API’si hata verirse sessiz geçer — panel çalışmaya devam eder', async () => {
     chromeMock.tabs.query.mockRejectedValueOnce(new Error('no permission'));
 
-    await expect(openGuide()).resolves.toBeUndefined();
+    await expect(openGuide('en')).resolves.toBeUndefined();
   });
 });

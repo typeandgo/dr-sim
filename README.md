@@ -2,6 +2,8 @@
 
 Web uygulamalarında **hangi backend endpoint'lerinin çalışmadığını simüle eden** Chrome eklentisi (MV3). Hedef uygulamada tek satır kod değişikliği gerektirmez; `fetch` ve `XMLHttpRequest` üzerinden giden tüm JS kaynaklı trafiği kapsar.
 
+**Kullanım kılavuzu:** [Türkçe](./docs/guide.tr.md) · [English](./docs/guide.md) — DR-SIM nedir, nasıl kullanılır ve profil dosyasının anatomisi. Teknik bilgi gerektirmez; panelden de aynı bağlantı açılır.
+
 Gizlilik politikası: [`PRIVACY.md`](./PRIVACY.md)
 
 ## Çekirdek kural modeli
@@ -122,6 +124,8 @@ Eklentinin kendisi Chrome Web Store üzerinden serbestçe kurulabilir — bu kı
 # DR-SIM (English)
 
 A Chrome extension (MV3) that **simulates which backend endpoints are down** in a web application. It needs no code change in the target app and covers all JS-originated traffic going through `fetch` and `XMLHttpRequest`.
+
+**User guide:** [English](./docs/guide.md) · [Türkçe](./docs/guide.tr.md) — what DR-SIM is, how it is used, and the anatomy of a profile file. No technical background required; the panel opens the same page.
 
 Privacy policy: [`PRIVACY.md`](./PRIVACY.md)
 

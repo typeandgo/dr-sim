@@ -1,16 +1,28 @@
-// Kılavuz ayrı bir eklenti sayfasıdır; hem panelin header'ından hem Ayarlar'dan
-// buradan açılır.
+import type { Locale } from '@/core/i18n';
+
+// Kılavuz artık eklenti paketinde DEĞİL, depoda duruyor (Revizyon 58).
+//
+// Gerekçe: kılavuz okunacak bir metin, eklenti ise çalıştırılacak bir araç.
+// Paketin içindeyken her yazım düzeltmesi yeni bir sürüm yayını gerektiriyordu
+// ve metin yalnızca eklentiyi kurmuş kişiye görünüyordu. Depoda GitHub kendi
+// içindekiler menüsünü, geçmişini ve arama kutusunu bedavaya veriyor.
 //
 // Neden `<a href>` değil: side panel'de bağlantıya tıklamak panelin KENDİSİNİ
 // gezdirir, kullanıcı çalışma yüzeyini kaybeder. Bu yüzden her zaman yeni sekme.
 //
 // Açık bir kılavuz sekmesi varsa yenisi açılmaz, mevcut olan öne getirilir —
 // panelden birkaç kez tıklamak sekme yığmasın.
-export const GUIDE_PATH = 'ui/guide/index.html';
 
-export const openGuide = async (): Promise<void> => {
+export const GUIDE_URLS: Record<Locale, string> = {
+  en: 'https://github.com/typeandgo/dr-sim/blob/main/docs/guide.md',
+  tr: 'https://github.com/typeandgo/dr-sim/blob/main/docs/guide.tr.md',
+};
+
+export const guideUrl = (locale: Locale): string => GUIDE_URLS[locale] ?? GUIDE_URLS.en;
+
+export const openGuide = async (locale: Locale): Promise<void> => {
   try {
-    const url = chrome.runtime.getURL(GUIDE_PATH);
+    const url = guideUrl(locale);
     const [existing] = await chrome.tabs.query({ url });
 
     if (existing?.id !== undefined) {
