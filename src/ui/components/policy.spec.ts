@@ -47,7 +47,21 @@ describe('ui/policy', () => {
     expect(group.getAttribute('role')).toBe('radiogroup');
     expect(blockOption!.getAttribute('aria-checked')).toBe('true');
     expect(passOption!.getAttribute('aria-checked')).toBe('false');
-    expect(blockOption!.className).toContain('drsim-chip-button--active');
+    expect(blockOption!.className).toContain('drsim-segmented__option--active');
+  });
+
+  // Revizyon 55: filtrelerle aynı nötr çipleri kullandığı için bu bölüm "listeyi
+  // süz" gibi okunuyordu. Segment yapısı ortak, anlam rengi bu bölüme özel.
+  it('seçenekler filtrelerden ayrışsın diye anlam rengi taşır', () => {
+    const { root, component } = setup();
+    component.update(state({ defaultPolicy: 'block' }));
+
+    const [blockOption, passOption] = [
+      ...root.querySelector<HTMLElement>('[data-test="dr-sim-default-policy"]')!.children,
+    ] as HTMLElement[];
+
+    expect(blockOption!.className).toContain('drsim-segmented__option--block');
+    expect(passOption!.className).toContain('drsim-segmented__option--pass');
   });
 
   it('seçeneğe basınca SET_DEFAULT_POLICY gider', () => {

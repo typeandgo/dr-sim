@@ -87,6 +87,7 @@ export const EN = {
   'inventory.empty': 'No requests yet. Reload the page or interact with it.',
   'inventory.noMatch': 'No EP matches the filter.',
   'inventory.searchPlaceholder': 'search…',
+  'inventory.filterAria': 'EP filter',
   'inventory.removeRule': 'Delete the rule — the EP returns to the default behaviour',
 
   // --- loglar
@@ -94,17 +95,17 @@ export const EN = {
   'log.failTitle': 'Recent failures ({count})',
   'log.successEmpty': 'No successes yet.',
   'log.failEmpty': 'No failures.',
+  'log.filterAria': 'Source filter',
   'log.filterReal': 'Real',
   'log.filterSimulated': 'Simulated',
   'log.tagSimulated': 'simulated',
   'log.tagReal': 'real',
 
   // --- etiketler
-  'tag.inventory': 'inventory',
-  'tag.manual': 'manual',
+  'tag.page': 'page',
+  'tag.profile': 'profile',
   'tag.xhr': 'xhr',
   'tag.syncXhr': 'sync XHR',
-  'tag.simulatedFail': 'simulated fail',
   'tag.simulated': 'simulated',
 
   // --- profil
@@ -224,6 +225,7 @@ export const EN = {
   'options.maxLogEntries': 'Max log entries',
   'options.maxInventoryItems': 'Max inventory rows',
   'options.keepInventory': 'Keep inventory across navigation',
+  'options.keepInventoryHint': 'The inventory is normally cleared on every page load. With this on it is kept, and a “Clear” button appears in the panel’s inventory section — that button is then the only way to empty it.',
   'options.security': 'Security',
   'options.autoOff': 'Auto-off (min) — 0 = disabled',
   'options.autoOffHint': 'Disabled by default: the simulation stays on until you turn it off. If you enter a duration, it turns off automatically after that.',
@@ -330,22 +332,23 @@ export const TR: Record<MessageKey, string> = {
   'inventory.empty': 'Henüz istek yok. Sayfayı yenile veya etkileşim yap.',
   'inventory.noMatch': 'Filtreyle eşleşen EP yok.',
   'inventory.searchPlaceholder': 'ara…',
+  'inventory.filterAria': 'EP filtresi',
   'inventory.removeRule': 'Kuralı sil — EP varsayılan davranışa döner',
 
   'log.successTitle': 'Son Success’ler ({count})',
   'log.failTitle': 'Son Fail’ler ({count})',
   'log.successEmpty': 'Henüz success yok.',
   'log.failEmpty': 'Fail yok.',
+  'log.filterAria': 'Kaynak filtresi',
   'log.filterReal': 'Gerçek',
   'log.filterSimulated': 'Simüle',
   'log.tagSimulated': 'simüle',
   'log.tagReal': 'gerçek',
 
-  'tag.inventory': 'envanter',
-  'tag.manual': 'manuel',
+  'tag.page': 'sayfa',
+  'tag.profile': 'profil',
   'tag.xhr': 'xhr',
   'tag.syncXhr': 'sync XHR',
-  'tag.simulatedFail': 'simüle fail',
   'tag.simulated': 'simüle',
 
   'profile.title': 'Profil',
@@ -455,6 +458,7 @@ export const TR: Record<MessageKey, string> = {
   'options.maxLogEntries': 'Max log kaydı',
   'options.maxInventoryItems': 'Max envanter satırı',
   'options.keepInventory': 'Navigasyonda envanteri koru',
+  'options.keepInventoryHint': 'Envanter normalde her sayfa yüklemesinde temizlenir. Bu seçenek açıkken korunur ve panelin envanter bölümünde “Temizle” düğmesi belirir — envanteri boşaltmanın tek yolu o düğmedir.',
   'options.security': 'Güvenlik',
   'options.autoOff': 'Auto-off (dk) — 0 = kapalı',
   'options.autoOffHint': 'Varsayılan kapalı: simülasyon sen kapatana kadar açık kalır. Bir süre girersen o süre sonunda otomatik kapanır.',

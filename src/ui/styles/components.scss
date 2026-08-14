@@ -54,6 +54,11 @@
   border: 0;
   background: transparent;
   cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 // Ürünün en önemli kontrolü; hedef boyutu asgarinin altına düşmemeli
@@ -212,25 +217,53 @@
   align-items: flex-start;
 }
 
-.drsim-filters {
+// Tekli seçim grubu — filtreler, dil ve varsayılan davranış (Revizyon 55).
+// Önceki ayrık pill'ler her seçeneği bağımsız bir EYLEM gibi gösteriyordu; oysa
+// hepsinde seçim tekli: biri açılınca diğeri kapanır. Çerçeve artık parçalara
+// değil grubun kendisine ait — bitişik segmentler bunun tek bir kontrol
+// olduğunu tek bakışta söylüyor.
+.drsim-segmented {
   display: inline-flex;
-  gap: 2px;
+  padding: 2px;
+  border: 1px solid $drsim-border;
+  border-radius: $drsim-radius;
+  background: $drsim-bg-surface;
 }
 
-.drsim-chip-button {
+.drsim-segmented__option {
   @include compact-button;
 
-  border: 1px solid $drsim-border-strong;
-  border-radius: $drsim-radius-pill;
-  background: $drsim-bg-surface;
-  color: $drsim-text-subtle;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: $drsim-text-muted;
   cursor: pointer;
+
+  &:hover {
+    color: $drsim-text-subtle;
+  }
 }
 
-.drsim-chip-button--active {
-  background: $drsim-tag-default;
-  border-color: $drsim-tag-default;
-  color: $drsim-tag-default-fg;
+// Seçili parça yüzeyle ayrışır, renkle bağırmaz: filtre neyin GÖRÜNDÜĞÜNÜ
+// değiştirir, ürünün ne YAPTIĞINI değil — kontrast farkı bunun için yeterli.
+.drsim-segmented__option--active {
+  background: $drsim-border;
+  color: $drsim-text;
+  font-weight: 600;
+}
+
+// Varsayılan davranış filtre değil, eklentinin ne yapacağını belirleyen ayardır
+// (Revizyon 55): seçili parça kural etiketleriyle AYNI anlam rengini taşır —
+// panelde turuncu zaten "blok", teal zaten "izin" demek. Nötr gri kalan filtre
+// gruplarından bu yüzden bir bakışta ayrılır.
+.drsim-segmented__option--block.drsim-segmented__option--active {
+  background: $drsim-tag-block;
+  color: $drsim-tag-block-fg;
+}
+
+.drsim-segmented__option--pass.drsim-segmented__option--active {
+  background: $drsim-tag-allow;
+  color: $drsim-tag-allow-fg;
 }
 
 .drsim-list--tall {
@@ -299,12 +332,15 @@
   gap: 3px;
 }
 
+// Pill değil buton yarıçapı (Revizyon 57): bu satırın TEK tıklanabilir durum
+// kontrolü, hemen yanındaki `✕` ile aynı ailedendir. Pill hâli onu rozet gibi
+// gösteriyordu — oysa satırdaki gerçek rozetler (`.drsim-tag`) pill ve tıklanmaz.
 .drsim-toggle {
   @include compact-button;
 
   min-width: 74px;
   border: 1px solid $drsim-success-line;
-  border-radius: $drsim-radius-pill;
+  border-radius: $drsim-radius;
   background: $drsim-success;
   color: $drsim-success-fg;
   cursor: pointer;

@@ -26,7 +26,6 @@ const item = (key: string, reason: DecisionReason): InventoryItem => ({
   lastReason: reason,
   origin: 'fetch',
   frameId: 0,
-  manual: false,
 });
 
 const log = (simulated: boolean): LogEntry => ({

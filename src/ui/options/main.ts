@@ -211,7 +211,14 @@ const buildOptions = (mount: HTMLElement, t: Translate) => {
       captureHeaders.row,
       h('p', { class: 'drsim-hint', text: t('options.privacyHint') }),
     ]),
-    section(t('options.limits'), [maxLogEntries.row, maxInventoryItems.row, keepInventory.row]),
+    // Envanteri koruma seçeneği panelde bir düğme AÇIYOR (Revizyon 56); bunu
+    // yazmazsak kullanıcı düğmenin nereden geldiğini bilmiyor.
+    section(t('options.limits'), [
+      maxLogEntries.row,
+      maxInventoryItems.row,
+      keepInventory.row,
+      h('p', { class: 'drsim-hint', text: t('options.keepInventoryHint') }),
+    ]),
     section(t('options.security'), [
       autoOffMinutes.row,
       h('p', { class: 'drsim-hint', text: t('options.autoOffHint') }),

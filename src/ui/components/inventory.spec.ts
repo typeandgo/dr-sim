@@ -23,7 +23,6 @@ const item = (over: Partial<InventoryItem> = {}): InventoryItem => ({
   lastReason: 'allowed',
   origin: 'fetch',
   frameId: 0,
-  manual: false,
   ...over,
 });
 
@@ -62,6 +61,133 @@ describe('ui/inventory', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     document.body.replaceChildren();
+  });
+
+  // Revizyon 56: envanter normalde her sayfa yüklemesinde kendiliğinden
+  // sıfırlanıyor, o yüzden "Temizle" gereksiz bir düğmeydi. Ama
+  // `keepInventoryOnNavigate` açıkken sıfırlama YAPILMIYOR ve envanteri
+  // boşaltmanın başka yolu kalmıyor — düğme yalnızca o durumda görünür.
+  describe('Temizle düğmesi', () => {
+    const clearOf = (root: HTMLElement): HTMLButtonElement => root.querySelector<HTMLButtonElement>('[data-test="dr-sim-clear-inventory"]')!;
+
+    it('otomatik sıfırlama açıkken gizlidir', () => {
+      const { root, component } = setup();
+      component.update(state({ keepInventoryOnNavigate: false }));
+
+      expect(clearOf(root).hidden).toBe(true);
+    });
+
+    it('envanter korunuyorken ve silinecek kayıt varken görünür', () => {
+      const { root, component } = setup();
+      component.update(state({ keepInventoryOnNavigate: true }));
+
+      expect(clearOf(root).hidden).toBe(false);
+    });
+
+    it('envanter boşken görünmez — temizlenecek bir şey yok', () => {
+      const { root, component } = setup();
+      component.update(state({ keepInventoryOnNavigate: true }, []));
+
+      expect(clearOf(root).hidden).toBe(true);
+    });
+
+    it('ayar kapatılınca tekrar gizlenir', () => {
+      const { root, component } = setup();
+
+      component.update(state({ keepInventoryOnNavigate: true }));
+      component.update(state({ keepInventoryOnNavigate: false }));
+
+      expect(clearOf(root).hidden).toBe(true);
+    });
+
+    it('basınca CLEAR_INVENTORY gider', () => {
+      const { root, ctx, component } = setup();
+      component.update(state({ keepInventoryOnNavigate: true }));
+
+      clearOf(root).click();
+
+      expect(ctx.send).toHaveBeenCalledWith(COMMANDS.CLEAR_INVENTORY);
+    });
+  });
+
+  // Revizyon 57: envanter yalnızca sayfa trafiğinden dolduğu için eski
+  // "envanter"/"manuel" çifti her satırda aynı sabit metni yazıyordu: ayrımı
+  // taşıyan `manual` alanını hiçbir yer true yapmıyordu, o yüzden alan da
+  // silindi. Etiket artık gerçek bir soruya cevap veriyor: bu EP profilimde
+  // tanımlı mı, yoksa sayfada yeni mi bulundu?
+  describe('kaynak etiketi', () => {
+    const tagsOf = (root: HTMLElement): string[] => [...root.querySelectorAll('.drsim-tags .drsim-tag')]
+      .map((tag) => tag.textContent ?? '');
+
+    const profile = (keys: string[]): Partial<Settings> => ({
+      activeProfileId: 'p1',
+      profiles: [{
+        id: 'p1',
+        name: 'DR',
+        defaultPolicy: 'block',
+        domains: [],
+        fault: DEFAULT_SETTINGS.fault,
+        updatedAt: 0,
+        rules: keys.map((key) => ({
+          key,
+          method: 'GET' as const,
+          path: key.split(' ')[1]!,
+          state: 'block' as const,
+          source: 'preset' as const,
+          createdAt: 0,
+        })),
+      }],
+    });
+
+    it('profilde tanımlı EP "profil" etiketi taşır', () => {
+      const { root, component } = setup();
+      component.update(state(profile(['GET /offers'])));
+
+      expect(tagsOf(root)).toContain('profil');
+      expect(tagsOf(root)).not.toContain('sayfa');
+    });
+
+    it('profilde olmayan EP "sayfa" etiketi taşır', () => {
+      const { root, component } = setup();
+      component.update(state(profile(['GET /baska'])));
+
+      expect(tagsOf(root)).toContain('sayfa');
+      expect(tagsOf(root)).not.toContain('profil');
+    });
+
+    it('etkin profil yokken her satır "sayfa" olur', () => {
+      const { root, component } = setup();
+      component.update(state());
+
+      expect(tagsOf(root)).toContain('sayfa');
+    });
+
+    it('profil değişince etiket tazelenir', () => {
+      const { root, component } = setup();
+
+      component.update(state(profile(['GET /offers'])));
+      expect(tagsOf(root)).toContain('profil');
+
+      component.update(state(profile([])));
+      expect(tagsOf(root)).toContain('sayfa');
+    });
+
+    // Koşulu durum satırındaki "simüle" ile birebir aynıydı — aynı bilgi
+    // aynı satırda iki kez duruyordu.
+    it('"simüle fail" etiketi artık yazılmaz, bilgi durum satırında kalır', () => {
+      const { root, component } = setup();
+      component.update(state({}, [item({ simulatedCount: 3 })]));
+
+      expect(tagsOf(root)).not.toContain('simüle fail');
+      expect(root.querySelector('.drsim-item__status')!.textContent).toContain('simüle');
+    });
+
+    it('xhr ve sync XHR etiketleri korunur', () => {
+      const { root, component } = setup();
+      component.update(state({}, [item({ origin: 'xhr', lastReason: 'sync-xhr' })]));
+
+      expect(tagsOf(root)).toEqual(['sayfa', 'xhr', 'sync XHR']);
+    });
   });
 
   it('toggle TOGGLE_RULE_STATE komutunu EP anahtarıyla gönderir', () => {

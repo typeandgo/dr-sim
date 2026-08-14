@@ -149,7 +149,6 @@ export const createSessionStore = (now: () => number = Date.now): SessionStore =
       lastReason: record.reason,
       origin: record.origin,
       frameId: 0,
-      manual: existing?.manual ?? false,
     };
 
     const pruned = pruneInventory(session.inventory, settings.maxInventoryItems);

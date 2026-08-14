@@ -66,10 +66,16 @@ describe('ui/log-list', () => {
     component.update(state());
 
     const head = root.querySelector<HTMLElement>('.drsim-section__head')!;
-    const filters = head.querySelector<HTMLElement>('.drsim-filters')!;
+    const filters = head.querySelector<HTMLElement>('.drsim-segmented')!;
 
     expect(filters).not.toBeNull();
     expect(filters.children).toHaveLength(3);
+
+    // Revizyon 55: panel değiştiren sekme değil, tekli seçim grubu
+    expect(filters.getAttribute('role')).toBe('radiogroup');
+    expect(filters.getAttribute('aria-label')).toBe('Kaynak filtresi');
+    expect([...filters.children].map((option) => option.getAttribute('aria-checked')))
+      .toEqual(['true', 'false', 'false']);
     expect(root.querySelector('[data-test="dr-sim-clear-log"]')).toBeNull();
     expect(root.querySelector('[data-test="dr-sim-clear-success-log"]')).toBeNull();
   });

@@ -79,17 +79,28 @@ export const mountHeader = (root: HTMLElement, ctx: ComponentContext): Component
 
   return {
     update: (state: UiState) => {
-      enabled = state.settings.enabled;
+      // Eklentinin çalışamadığı sayfada (chrome://, mağaza vb.) anahtar kapalı
+      // görünür ve tıklanamaz: global ayar açık olsa bile burada hiçbir istek
+      // değiştirilmiyor, ON göstermek olmayan bir simülasyonu vaat etmek olurdu.
+      const usable = state.supported;
+      enabled = usable && state.settings.enabled;
+
+      toggle.disabled = !usable;
 
       setText(switchText, ctx.t(enabled ? 'header.on' : 'header.off'));
       toggleClass(toggle, 'drsim-switch--on', enabled);
       toggle.setAttribute('aria-checked', String(enabled));
-      const toggleLabel = ctx.t(enabled ? 'header.disable' : 'header.enable');
+      const toggleLabel = usable
+        ? ctx.t(enabled ? 'header.disable' : 'header.enable')
+        : ctx.t('header.unsupported');
       toggle.setAttribute('aria-label', toggleLabel);
       toggle.title = toggleLabel;
 
+      // Desteklenmeyen sayfada "istekler kaydediliyor" demek yanlış olurdu;
+      // hemen altındaki uyarı zaten durumu anlatıyor.
       setText(mode, ctx.t(enabled ? 'header.modeOn' : 'header.modeOff'));
       toggleClass(mode, 'drsim-header__mode--on', enabled);
+      mode.hidden = !usable;
 
       const remaining = enabled ? remainingText(state.autoOffAt, ctx) : '';
       setText(autoOff, remaining);

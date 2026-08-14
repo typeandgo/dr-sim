@@ -376,6 +376,9 @@ const handlers: Record<string, (ctx: CommandContext) => CommandResult | Promise<
     await settingsStore.update({ fault });
     return { ok: true };
   },
+  // Yalnızca "navigasyonda envanteri koru" açıkken panelde bir düğmesi var
+  // (Revizyon 56): o ayar açıkken envanter sayfa yüklemesinde sıfırlanmadığı
+  // için elle boşaltmak tek çıkış yolu.
   [COMMANDS.CLEAR_INVENTORY]: ({ tabId, payload }) => {
     const target = tabId ?? asNumber(payload.tabId, -1);
     if (target < 0) return { ok: false, error: 'no-tab' };

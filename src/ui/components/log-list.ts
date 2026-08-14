@@ -38,13 +38,13 @@ export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kin
     filter = entry.id;
     syncFilters();
     render();
-  }, { class: 'drsim-chip-button', role: 'tab' }));
+  }, { class: 'drsim-segmented__option', role: 'radio' }));
 
   const syncFilters = (): void => {
     filterButtons.forEach((element, index) => {
       const active = FILTERS[index]?.id === filter;
-      toggleClass(element, 'drsim-chip-button--active', active);
-      element.setAttribute('aria-selected', String(active));
+      toggleClass(element, 'drsim-segmented__option--active', active);
+      element.setAttribute('aria-checked', String(active));
     });
   };
   syncFilters();
@@ -55,9 +55,16 @@ export const mountLogList = (root: HTMLElement, ctx: ComponentContext, kind: Kin
       // loglar artık her sayfa yüklemesinde kendiliğinden sıfırlanıyor, elle
       // temizlemenin bir karşılığı kalmadı. Boşalan sağ taraf filtrelere gitti
       // ve bölüm bir satır kısaldı — politika bölümü de aynı düzeni kullanıyor.
+      // Rol `tablist` değil `radiogroup` (Revizyon 55): bunlar panel değiştiren
+      // sekmeler değil, aynı listeyi süzen tekli seçim — ekran okuyucuya
+      // olmayan bir sekme yapısı vadetmemeli.
       h('div', { class: 'drsim-section__head' }, [
         title,
-        h('div', { class: 'drsim-filters', role: 'tablist' }, filterButtons),
+        h('div', {
+          class: 'drsim-segmented',
+          role: 'radiogroup',
+          aria: { label: ctx.t('log.filterAria') },
+        }, filterButtons),
       ]),
       list,
       empty,

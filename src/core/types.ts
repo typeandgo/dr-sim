@@ -143,7 +143,6 @@ export interface InventoryItem {
   lastReason: DecisionReason;
   origin: RequestOrigin;
   frameId: number;
-  manual: boolean;
 }
 
 export interface LogEntry {

@@ -62,15 +62,20 @@ export const mountFooter = (root: HTMLElement, ctx: ComponentContext): Component
     if (locale === ctx.locale) return;
     void ctx.send(COMMANDS.UPDATE_SETTINGS, { settings: { locale } });
   }, {
-    class: ctx.locale === locale ? 'drsim-chip-button drsim-chip-button--active' : 'drsim-chip-button',
+    class: ctx.locale === locale
+      ? 'drsim-segmented__option drsim-segmented__option--active'
+      : 'drsim-segmented__option',
     title: ctx.t('footer.switchTo', { language: LANGUAGE_NAMES[locale] }),
-    aria: { pressed: String(ctx.locale === locale) },
+    // `pressed` değil `checked` (Revizyon 55): iki dilden tam olarak biri
+    // seçilidir, bunlar birbirinden bağımsız basılı düğmeler değil.
+    role: 'radio',
+    aria: { checked: String(ctx.locale === locale) },
     dataset: { test: `dr-sim-language-${locale}` },
   }));
 
   const language = h('div', {
-    class: 'drsim-filters',
-    role: 'group',
+    class: 'drsim-segmented',
+    role: 'radiogroup',
     aria: { label: ctx.t('footer.language') },
   }, languageButtons);
 

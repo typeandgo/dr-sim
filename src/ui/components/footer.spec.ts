@@ -38,9 +38,10 @@ describe('ui/footer', () => {
     const { root, component } = setup('tr');
     component.update(state());
 
-    expect(langButton(root, 'tr').className).toContain('drsim-chip-button--active');
-    expect(langButton(root, 'tr').getAttribute('aria-pressed')).toBe('true');
-    expect(langButton(root, 'en').className).not.toContain('drsim-chip-button--active');
+    expect(langButton(root, 'tr').className).toContain('drsim-segmented__option--active');
+    expect(langButton(root, 'tr').getAttribute('aria-checked')).toBe('true');
+    expect(langButton(root, 'en').className).not.toContain('drsim-segmented__option--active');
+    expect(langButton(root, 'en').getAttribute('aria-checked')).toBe('false');
   });
 
   it('diğer dile basınca açık tercih yazılır — kalıcıdır', () => {
@@ -56,7 +57,7 @@ describe('ui/footer', () => {
     const { root, component } = setup('en');
     component.update(state({ locale: 'auto' }));
 
-    expect(langButton(root, 'en').className).toContain('drsim-chip-button--active');
+    expect(langButton(root, 'en').className).toContain('drsim-segmented__option--active');
   });
 
   it('zaten etkin olan dile basmak komut göndermez', () => {

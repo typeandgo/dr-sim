@@ -36,33 +36,55 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
     filter = entry.id;
     syncFilters();
     render();
-  }, { class: 'drsim-chip-button', role: 'tab' }));
+  }, { class: 'drsim-segmented__option', role: 'radio' }));
 
   const syncFilters = (): void => {
     filterButtons.forEach((element, index) => {
       const active = FILTERS[index]?.id === filter;
-      toggleClass(element, 'drsim-chip-button--active', active);
-      element.setAttribute('aria-selected', String(active));
+      toggleClass(element, 'drsim-segmented__option--active', active);
+      element.setAttribute('aria-checked', String(active));
     });
   };
   syncFilters();
 
+  // "Temizle" yalnızca "navigasyonda envanteri koru" AÇIKKEN görünür
+  // (Revizyon 56). Ayar kapalıyken envanter her sayfa yüklemesinde kendiliğinden
+  // sıfırlanıyor ve buton hiçbir işe yaramıyordu — loglarda Revizyon 53'te
+  // kaldırılma gerekçesinin aynısı. Ayar açıkken ise sıfırlama yapılmadığı için
+  // envanteri boşaltmanın tek yolu bu düğme; o yüzden büsbütün silinmedi.
+  const clear = button(ctx.t('common.clear'), () => void ctx.send(COMMANDS.CLEAR_INVENTORY), {
+    class: 'drsim-button drsim-button--compact',
+    dataset: { test: 'dr-sim-clear-inventory' },
+  });
+  clear.hidden = true;
+
   root.appendChild(
     h('section', { class: 'drsim-section' }, [
-      h('div', { class: 'drsim-section__head' }, [
-        title,
-        button(ctx.t('common.clear'), () => void ctx.send(COMMANDS.CLEAR_INVENTORY), {
-          class: 'drsim-button drsim-button--compact',
-          dataset: { test: 'dr-sim-clear-inventory' },
-        }),
-      ]),
-      h('div', { class: 'drsim-row' }, [search, h('div', { class: 'drsim-filters', role: 'tablist' }, filterButtons)]),
+      h('div', { class: 'drsim-section__head' }, [title, clear]),
+      h('div', { class: 'drsim-row' }, [search, h('div', {
+        class: 'drsim-segmented',
+        role: 'radiogroup',
+        aria: { label: ctx.t('inventory.filterAria') },
+      }, filterButtons)]),
       list,
       empty,
     ]),
   );
 
   let state: UiState | null = null;
+
+  // Envanter YALNIZCA sayfa trafiğinden dolar — profil satır üretmez. "profil"
+  // etiketi bu yüzden "bu EP etkin profilde TANIMLI" demektir (Revizyon 57):
+  // liste artık "profilimin kapsadığı EP'ler" ile "sayfada bulunan ama profilde
+  // olmayan EP'ler" diye okunuyor. DR turunda profili tamamlamak zaten tam
+  // olarak bu farkı kapatmak demek.
+  let profileKeys = new Set<string>();
+
+  const syncProfileKeys = (): void => {
+    const settings = state?.settings;
+    const active = settings?.profiles.find((entry) => entry.id === settings.activeProfileId);
+    profileKeys = new Set(active?.rules.map((rule) => rule.key));
+  };
 
   const rulesByKey = (): Record<string, RuleState> => {
     const map: Record<string, RuleState> = {};
@@ -146,20 +168,18 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
       toggleClass(element, 'drsim-item--default-blocked', blocked && explicit === undefined);
       toggleClass(element, 'drsim-item--default-allowed', !blocked && explicit === undefined);
 
-      const simulatedFail = ctx.t('tag.simulatedFail');
+      // "simüle fail" etiketi kaldırıldı (Revizyon 57): koşulu (`simulatedCount > 0`)
+      // hemen üstteki durum satırında yazan "simüle" ile BİREBİR aynıydı — aynı
+      // bilgi aynı satırda iki kez duruyordu.
       const wanted = [
-        ctx.t(item.manual ? 'tag.manual' : 'tag.inventory'),
+        ctx.t(profileKeys.has(item.key) ? 'tag.profile' : 'tag.page'),
         item.origin === 'xhr' ? ctx.t('tag.xhr') : null,
         item.lastReason === 'sync-xhr' ? ctx.t('tag.syncXhr') : null,
-        item.simulatedCount > 0 ? simulatedFail : null,
       ].filter((label): label is string => label !== null);
 
       if (tags && tags.dataset.tags !== wanted.join(',')) {
         tags.dataset.tags = wanted.join(',');
-        tags.replaceChildren(...wanted.map((label) => h('span', {
-          class: label === simulatedFail ? 'drsim-tag drsim-tag--simulated' : 'drsim-tag',
-          text: label,
-        })));
+        tags.replaceChildren(...wanted.map((label) => h('span', { class: 'drsim-tag', text: label })));
       }
     },
   );
@@ -188,6 +208,12 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
     const blockedCount = all.filter((item) => effectiveState(rules[item.key], policy) === 'block').length;
 
     setText(title, ctx.t('inventory.title', { blocked: blockedCount, total: all.length }));
+    // Boş envanteri temizlemek de anlamsız: buton yalnızca silinecek bir şey
+    // VARKEN ve otomatik sıfırlama kapalıyken görünür.
+    clear.hidden = !state?.settings.keepInventoryOnNavigate || !all.length;
+
+    // Satır başına profil araması yapmamak için render başına bir kez kurulur
+    syncProfileKeys();
     renderer.render(items);
 
     empty.hidden = items.length > 0;

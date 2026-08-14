@@ -21,7 +21,7 @@ const setup = () => {
   return { root, ctx, component: mountHeader(root, ctx) };
 };
 
-const toggleOf = (root: HTMLElement): HTMLElement => root.querySelector<HTMLElement>('[data-test="dr-sim-toggle"]')!;
+const toggleOf = (root: HTMLElement): HTMLButtonElement => root.querySelector<HTMLButtonElement>('[data-test="dr-sim-toggle"]')!;
 
 describe('ui/header', () => {
   beforeEach(() => {
@@ -76,6 +76,32 @@ describe('ui/header', () => {
 
     component.update(state({ enabled: true }));
     expect(root.textContent).toContain('istekler değiştiriliyor');
+  });
+
+  it('desteklenmeyen sayfada anahtar kapalı ve devre dışıdır', () => {
+    const { root, component } = setup();
+
+    component.update({ ...state({ enabled: true }), supported: false });
+
+    const toggle = toggleOf(root);
+    expect(toggle.disabled).toBe(true);
+    expect(toggle.textContent).toBe('OFF');
+    expect(toggle.className).not.toContain('drsim-switch--on');
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
+    expect(toggle.getAttribute('aria-label')).toBe('Bu sayfa türünde eklenti çalışamaz.');
+    expect(root.querySelector<HTMLElement>('.drsim-header__mode')!.hidden).toBe(true);
+  });
+
+  it('desteklenen sayfaya dönünce anahtar yeniden kullanılabilir', () => {
+    const { root, component } = setup();
+
+    component.update({ ...state({ enabled: true }), supported: false });
+    component.update(state({ enabled: true }));
+
+    const toggle = toggleOf(root);
+    expect(toggle.disabled).toBe(false);
+    expect(toggle.textContent).toBe('ON');
+    expect(root.querySelector<HTMLElement>('.drsim-header__mode')!.hidden).toBe(false);
   });
 
   it('auto-off geri sayımı yalnızca simülasyon açıkken görünür', () => {

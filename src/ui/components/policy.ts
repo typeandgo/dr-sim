@@ -25,10 +25,13 @@ export const mountPolicy = (root: HTMLElement, ctx: ComponentContext): Component
   });
   status.id = 'drsim-policy-status';
 
+  // Seçili parça anlam rengini taşır (Revizyon 55): blok turuncu, geç teal —
+  // kural etiketlerinin sözlüğünün aynısı. Filtre grupları nötr gri kaldığı için
+  // bu bölüm artık "listeyi süz" değil "davranışı seç" gibi okunuyor.
   const choices = OPTIONS.map((option) => button(ctx.t(option.key), () => {
     void ctx.send(COMMANDS.SET_DEFAULT_POLICY, { policy: option.value });
   }, {
-    class: 'drsim-chip-button',
+    class: `drsim-segmented__option drsim-segmented__option--${option.value}`,
     role: 'radio',
     aria: { checked: 'false' },
   }));
@@ -49,7 +52,7 @@ export const mountPolicy = (root: HTMLElement, ctx: ComponentContext): Component
       h('div', { class: 'drsim-section__head' }, [
         h('span', { class: 'drsim-section__title', text: ctx.t('policy.title') }),
         h('div', {
-          class: 'drsim-filters',
+          class: 'drsim-segmented',
           role: 'radiogroup',
           dataset: { test: 'dr-sim-default-policy' },
           aria: { label: ctx.t('policy.aria'), describedby: 'drsim-policy-status' },
@@ -67,7 +70,7 @@ export const mountPolicy = (root: HTMLElement, ctx: ComponentContext): Component
 
       choices.forEach((element, index) => {
         const active = OPTIONS[index]?.value === state.settings.defaultPolicy;
-        toggleClass(element, 'drsim-chip-button--active', active);
+        toggleClass(element, 'drsim-segmented__option--active', active);
         element.setAttribute('aria-checked', String(active));
       });
     },
