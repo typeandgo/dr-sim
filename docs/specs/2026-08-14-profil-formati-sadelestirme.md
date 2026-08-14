@@ -121,15 +121,15 @@ interface InventoryItem {
 
 `session.store` verisi `chrome.storage.session`'da yaşıyor ve `startDocument` her sayfa yüklemesinde envanteri sıfırlıyor; ayrıca bir session migration'ına gerek yok. `hydrate()` eski şekilli bir kayıt okursa `methods` alanı boş kalır — satır yine çizilir, ilk telemetride düzelir.
 
-## Depolanan ayarlar için v5 migration
+## Depolanan ayarlar: göç yok, sıfırlama var
 
-`SCHEMA_VERSION` 4 → 5. `settings.store.ts` içindeki mevcut zincire (0→4) yeni adım eklenir:
+`SCHEMA_VERSION` 5. **Göç zinciri kaldırıldı** (Revizyon 60, ürün kararı): profil biçimi son hâliyle sabit, önceki biçimler desteklenmiyor.
 
-1. Her kuralın `path`'i alınır, `method` / `key` / `source` / `note` atılır.
-2. Aynı path'e inen kurallar birleşir; durum çakışırsa `block` kazanır.
-3. `createdAt` en eski kayıttan devralınır.
+`normalizeSettings` depodaki kaydın `schemaVersion`'ı güncel değilse — eski, ileri ya da hiç yok — kaydı onarmaya çalışmaz, **tamamen atar** ve varsayılanlara döner. Eski sürümden güncelleme alan kullanıcı domainlerini, kurallarını, profillerini ve tüm ayarlarını kaybeder; her şeye son biçimle sıfırdan başlar.
 
-`domains` içindeki `granted` **korunur** — o yerel ve doğru bilgi. Sızıntı yalnızca dosya üzerinden oluyordu, o da yeni formatta kapanıyor.
+Sıfırlama sessiz değil: `load()` bu durumda `settings-reset` bildirimi kurar ve panel bunu bir kez gösterir (`error.settings-reset`, iki dilde).
+
+Bunun bedeli bilinçli olarak kabul edildi. Alternatif, her şema değişikliğinde geriye dönük bir dönüşüm yolunu daha doğru tutmak ve test etmekti; ürün bu yükü taşımak istemiyor.
 
 ## Preset'ler
 

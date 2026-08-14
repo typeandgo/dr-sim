@@ -71,8 +71,8 @@ export const profileToRules = (profile: Profile, now: number): Rule[] => {
   // Listeler savunmacı okunur: göçü kaçırmış eski bir kayıt (v4 profili
   // `rules[]` taşırdı) buraya kadar gelirse boş liste gibi davranır. Alternatifi
   // ham bir TypeError'ın panelde İngilizce metin olarak görünmesiydi.
-  add(profile.allow ?? [], 'allow');
-  add(profile.block ?? [], 'block');
+  add(profile.allow, 'allow');
+  add(profile.block, 'block');
 
   return [...merged].map(([path, state]) => ({ path, state, createdAt: now }));
 };

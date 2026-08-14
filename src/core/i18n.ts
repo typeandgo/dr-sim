@@ -176,6 +176,7 @@ export const EN = {
   'error.profile-schema': 'Does not match the profile schema (no allow or block list).',
   'error.settings-write': 'Settings could not be saved (storage may be full).',
   'error.settings-read': 'Settings could not be read, defaults restored.',
+  'error.settings-reset': 'This version uses a new settings format. Your previous setup was cleared — add your domain and rules again.',
 
   // --- ayarlar sayfası
   'options.title': 'DR-SIM — Settings',
@@ -393,6 +394,7 @@ export const TR: Record<MessageKey, string> = {
   'error.profile-schema': 'Profil şemasına uymuyor (allow veya block listesi yok).',
   'error.settings-write': 'Ayarlar kaydedilemedi (depolama dolu olabilir).',
   'error.settings-read': 'Ayarlar okunamadı, varsayılanlara dönüldü.',
+  'error.settings-reset': 'Bu sürüm yeni bir ayar biçimi kullanıyor. Önceki kurulumun temizlendi — domain ve kurallarını yeniden ekle.',
 
   'options.title': 'DR-SIM — Ayarlar',
   'guide.open': 'Kılavuz',
