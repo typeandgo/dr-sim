@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>DR-SIM test hedefi</title>
+    <title>DR-SIM test target</title>
     <style>
       body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
              margin: 0; padding: 24px; background: #0b1220; color: #e5e7eb; }
@@ -21,26 +21,26 @@
     </style>
   </head>
   <body>
-    <h1>DR-SIM test hedefi</h1>
+    <h1>DR-SIM test target</h1>
     <p class="hint">
-      Uygulama <code>localhost:__APP_PORT__</code> · API <code>localhost:__API_PORT__</code> ·
-      Sonuçlar ayrıca <code>window.__results</code> içinde.
+      App <code>localhost:__APP_PORT__</code> · API <code>localhost:__API_PORT__</code> ·
+      Results are also available in <code>window.__results</code>.
     </p>
 
     <div class="row">
-      <button id="load">Sayfa yükleme isteklerini at (6 EP)</button>
-      <button id="single">Tek EP: GET /offers/active</button>
-      <button id="xhr">XHR ile: GET /credit-cards</button>
+      <button id="load">Fire page-load requests (6 EPs)</button>
+      <button id="single">Single EP: GET /offers/active</button>
+      <button id="xhr">Over XHR: GET /credit-cards</button>
       <button id="post">POST /auth/refresh</button>
-      <button id="ids">Farklı id'li 3 istek (/items/N/summary)</button>
-      <button id="storm">30 istek at (blok fırtınası)</button>
-      <button id="nav">SPA gezinme (pushState)</button>
-      <button id="clear">Tabloyu temizle</button>
+      <button id="ids">3 requests with different ids (/items/N/summary)</button>
+      <button id="storm">Fire 30 requests (block storm)</button>
+      <button id="nav">SPA navigation (pushState)</button>
+      <button id="clear">Clear the table</button>
     </div>
 
     <table>
       <thead>
-        <tr><th>#</th><th>EP</th><th>Durum</th><th>Kaynak</th><th>Gövde</th></tr>
+        <tr><th>#</th><th>EP</th><th>Status</th><th>Source</th><th>Body</th></tr>
       </thead>
       <tbody id="rows"></tbody>
     </table>
@@ -68,7 +68,7 @@
           String(window.__results.length),
           method + ' ' + path,
           String(status),
-          simulated ? 'simüle' : 'gerçek',
+          simulated ? 'simulated' : 'real',
           body,
         ];
         cells.forEach((value, index) => {
@@ -111,7 +111,7 @@
         for (let i = 0; i < 30; i += 1) call('/widgets/' + i);
       };
       document.getElementById('nav').onclick = () => {
-        const next = location.pathname === '/app/detay' ? '/app/liste' : '/app/detay';
+        const next = location.pathname === '/app/detail' ? '/app/list' : '/app/detail';
         history.pushState({}, '', next);
         call('/page-data' + next);
       };
