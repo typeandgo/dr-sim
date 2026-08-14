@@ -2,7 +2,7 @@ import { ALARM_AUTO_OFF } from '@/core/constants';
 import { parseDomainPattern } from '@/core/matcher';
 import type { DomainScope } from '@/core/types';
 
-// Yanlışlıkla açık kalma koruması — 00-scope-and-gaps.md §6.1.
+// Yanlışlıkla açık kalma koruması.
 // `chrome.alarms` kullanılır: SW terminate olsa bile zamanlayıcı çalışır.
 
 let autoOffAt: number | null = null;

@@ -4,7 +4,7 @@ import { button, h, setText, toggleClass } from '../dom/h';
 import { openGuide } from '../open-guide';
 import type { Component, ComponentContext } from './types';
 
-// 02-ui-spec.md §3.1 — header, ON/OFF rozeti, master toggle, gözlem modu bilgisi.
+// Header: ON/OFF rozeti, master toggle, gözlem modu bilgisi.
 // UI görünürlüğü ile simülasyon durumu tamamen bağımsızdır (as-is kusuru A-1 giderildi).
 
 const remainingText = (autoOffAt: number | null, ctx: ComponentContext): string => {

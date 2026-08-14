@@ -2,7 +2,7 @@ import { DEFAULT_SETTINGS, PORT_NAMES, UI_MESSAGES } from '@/core/constants';
 import type { UiState } from '@/core/types';
 import { createStore, type Store } from './store';
 
-// SW port köprüsü — 01-architecture.md §4.3.
+// SW port köprüsü.
 // SW uykudaysa `connect` onu uyandırır; port koparsa backoff ile yeniden bağlanır.
 
 export const emptyState = (): UiState => ({

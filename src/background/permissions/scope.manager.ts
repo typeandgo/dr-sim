@@ -2,7 +2,6 @@ import { SCRIPT_IDS } from '@/core/constants';
 import { toMatchPattern, toOriginPattern } from '@/core/matcher';
 import type { DomainScope } from '@/core/types';
 
-// Dinamik scope ve izin yönetimi — 01-architecture.md §2.2 / §6.
 // Statik host izni yoktur; domain eklendikçe izin istenir ve content script kaydı güncellenir.
 
 const MAIN_SCRIPT = {

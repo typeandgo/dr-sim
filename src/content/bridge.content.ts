@@ -2,7 +2,7 @@ import { PORT_NAMES, SW_MESSAGES } from '@/core/constants';
 import { MESSAGE_TYPES, createRateLimiter, validateInboundMessage } from '@/core/message.schema';
 import type { RuntimeConfig } from '@/core/types';
 
-// ISOLATED world köprüsü — 01-architecture.md §4.1/§4.2.
+// ISOLATED world köprüsü.
 // Sayfadan gelen hiçbir veri `chrome.*` çağrılarına ham parametre olmaz;
 // yalnızca şema doğrulamasından geçmiş alanlar iletilir.
 

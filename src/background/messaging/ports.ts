@@ -1,7 +1,6 @@
 import { PORT_NAMES, SW_MESSAGES, UI_MESSAGES, UI_SNAPSHOT_THROTTLE_MS } from '@/core/constants';
 import type { RuntimeConfig, UiState } from '@/core/types';
 
-// Port yönetimi — 01-architecture.md §4.2 / §4.3.
 // SW 30 sn boşta sonlanabilir; portlar kopunca bridge/UI yeniden bağlanır.
 
 interface ContentPortEntry {

@@ -15,7 +15,6 @@ import type {
   TelemetryRecord,
 } from '@/core/types';
 
-// Sekme oturumu deposu — 01-architecture.md §5.
 // Bellek `Map` + `chrome.storage.session` mirror; SW uyanınca rehydrate edilir.
 // Ring buffer + TTL ile budanır (as-is kusuru A-4).
 

@@ -1,7 +1,7 @@
 import { MAX_MESSAGE_BYTES, MAX_MESSAGES_PER_SECOND } from './constants';
 import type { DecisionReason, RequestOrigin, RouteInfo, TelemetryRecord } from './types';
 
-// Bridge sertleştirme — 04-test-release-security.md §4.1.
+// Bridge sertleştirme.
 // Sayfadan gelen hiçbir veriye güvenilmez: tip whitelist'i + şema doğrulaması +
 // prototype pollution filtresi + boyut ve hız limiti.
 

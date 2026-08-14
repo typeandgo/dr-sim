@@ -1,4 +1,4 @@
-// Domain scope eşleşmesi — 01-architecture.md §8 (derlenmiş RegExp cache).
+// Domain scope eşleşmesi (derlenmiş RegExp cache).
 // Fail-safe ilke: scope listesi boşsa hiçbir URL kapsamda değildir.
 
 export interface ParsedDomain {

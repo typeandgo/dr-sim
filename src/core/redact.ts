@@ -1,6 +1,6 @@
 import { REDACTED_FIELDS } from './constants';
 
-// Gizlilik — 04-test-release-security.md §4.3. Yakalama varsayılan kapalıdır;
+// Gizlilik. Yakalama varsayılan kapalıdır;
 // açıldığında bu modülden geçmeden hiçbir header kaydedilmez.
 //
 // Gövde yakalama üründen kaldırıldı: interceptor hiçbir zaman gövde toplamıyordu,

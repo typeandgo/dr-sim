@@ -2,7 +2,7 @@ import type { Locale, Translate } from '@/core/i18n';
 import type { UiState } from '@/core/types';
 import type { CommandResponse } from '../state/connection';
 
-// Component sözleşmesi — 01-architecture.md §7.1: mount(root, ctx) → { update, destroy }
+// Component sözleşmesi: mount(root, ctx) → { update, destroy }
 // `update` idempotent olmalıdır: DOM'u baştan kurmaz, değişen alanı yazar.
 
 export interface ComponentContext {

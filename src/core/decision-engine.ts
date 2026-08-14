@@ -2,7 +2,7 @@ import { isInScope } from './matcher';
 import { normalizeMethod, normalizePath } from './path.util';
 import type { Decision, RequestInfo, RuntimeConfig } from './types';
 
-// Karar motoru — 01-architecture.md §2.3.
+// Karar motoru.
 //
 // KRİTİK SÖZLEŞME: allow/block önceliği hesaplayan bir dal YOKTUR. Her EP'nin
 // tek bir durumu vardır; kayıt yoksa varsayılan politika uygulanır. Bu dosyaya
@@ -44,7 +44,7 @@ export const decide = (req: RequestInfo, config: RuntimeConfig): Decision => {
 // Kapsamdaki her istek envantere/loglara yazılır; kapsam dışı hiç yazılmaz.
 export const shouldRecord = (decision: Decision): boolean => decision.inScope;
 
-// Toggle semantiği: efektif durumun tersini yazar (01-architecture.md §4.3).
+// Toggle semantiği: efektif durumun tersini yazar.
 // Kayıt yokken `block` politikada `allow`, `pass` politikada `block` üretir.
 export const nextRuleState = (
   current: 'allow' | 'block' | undefined,

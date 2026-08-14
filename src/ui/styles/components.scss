@@ -1,8 +1,8 @@
 @use "variables" as *;
 @use "mixins" as *;
 
-// Görsel imzalar 06-design-reference.md §B.2'den korunur: koyu slate zemin,
-// 12px taban tipografi, pill tag'ler, bloklanan satırda sol iç çubuk.
+// Görsel imzalar: koyu slate zemin, 12px taban tipografi, pill tag'ler,
+// bloklanan satırda sol iç çubuk.
 
 .drsim-header {
   display: flex;

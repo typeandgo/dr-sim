@@ -1,4 +1,4 @@
-// Çok dilli metinler — 02-ui-spec.md §4.9.
+// Çok dilli metinler.
 //
 // `chrome.i18n` NEDEN KULLANILMIYOR: tarayıcı arayüz diline kilitlidir ve
 // çalışma anında değiştirilemez. Ürün gereksinimi kullanıcıya EN/TR seçimi

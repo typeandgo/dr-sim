@@ -10,7 +10,7 @@ import { applyFetchFault, applyXhrFault, serializeHeaders } from '@/core/fault.f
 import { MESSAGE_TYPES } from '@/core/message.schema';
 import type { Decision, DecisionReason, RuntimeConfig, TelemetryRecord } from '@/core/types';
 
-// MAIN world interceptor — 01-architecture.md §2.
+// MAIN world interceptor.
 // Kural: burada atılan HİÇBİR hata sayfanın isteğini bozmamalı; her yol
 // try/catch ile orijinal fetch/XHR'a düşer (global kill-switch).
 

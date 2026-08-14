@@ -4,7 +4,7 @@ import type { UiState } from '@/core/types';
 import { button, h, setText } from '../dom/h';
 import type { Component, ComponentContext } from './types';
 
-// 02-ui-spec.md §3.10 — motor, sürüm, rapor export, budama bilgisi.
+// Motor, sürüm, rapor export, budama bilgisi.
 
 const download = (content: string, extension: string, name: string): void => {
   const blob = new Blob([content], { type: extension === 'json' ? 'application/json' : 'text/markdown' });

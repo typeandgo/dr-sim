@@ -7,7 +7,7 @@ import { button, h, setText, toggleClass } from '../dom/h';
 import { createList } from '../dom/list';
 import type { Component, ComponentContext } from './types';
 
-// 02-ui-spec.md §3.6 — satır anatomisi + TEK durum toggle'ı.
+// Satır anatomisi + TEK durum toggle'ı.
 // Toggle her zaman efektif durumu tersine çevirir; kullanıcı kayıt var mı diye düşünmez.
 
 type Filter = 'all' | 'blocked' | 'allowed';

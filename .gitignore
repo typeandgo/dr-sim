@@ -11,9 +11,5 @@ dist.pem
 # Kişisel Claude Code ayarları (proje ayarları .claude/settings.json'da)
 .claude/settings.local.json
 
-# Planlama ve tasarım dokümanları — yerelde tutulur, repoda yayınlanmaz
-dr-sim-extension/
-
-
 # SDD çalışma alanı — plan başına scratch, depoya girmez
 .superpowers/

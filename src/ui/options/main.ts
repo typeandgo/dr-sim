@@ -15,7 +15,7 @@ import { createConnection } from '../state/connection';
 import '../styles/main.scss';
 import '../styles/components.scss';
 
-// 02-ui-spec.md §4 — options page bölümleri.
+// Options page bölümleri.
 //
 // Sayfa, ilk state gelene kadar KURULMAZ (Revizyon 41): dil tercihi ayarlarda
 // tutulduğu için DOM'u kurmadan önce hangi dilde kuracağımızı bilmemiz gerekir.

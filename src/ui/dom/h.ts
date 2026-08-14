@@ -1,4 +1,4 @@
-// Element factory — 01-architecture.md §7.1.
+// Element factory.
 // Metin her zaman `textContent` ile yazılır; `innerHTML` hiçbir yerde kullanılmaz (kural 900).
 
 type Child = Node | string | number | null | undefined | false;

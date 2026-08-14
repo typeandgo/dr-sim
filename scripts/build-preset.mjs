@@ -1,5 +1,5 @@
-// 07-preset-and-templates.md §C.1 listesini §C.2 kurallarıyla preset JSON'larına çevirir.
-// Kaynak liste bu script içinde gömülüdür (orijinal repo bağımlılığı yoktur).
+// Senaryo preset'lerini üretir. Kaynak liste bu script içinde gömülüdür;
+// dışarıdan hiçbir belgeye ya da repoya bağımlı değildir.
 // Revizyon 34: tek 150 kurallık dosya yerine üç ayrı senaryo dosyası üretilir ve
 // hiçbiri eklentiye gömülmez — kullanıcı istediğini elle içe aktarır.
 //

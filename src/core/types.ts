@@ -1,5 +1,5 @@
 import type { LocalePreference } from './i18n';
-// Veri modeli — 01-architecture.md §3.
+// Veri modeli.
 // Not: "Strategy" / "profil bazlı dallanma" kavramı yoktur; tek kural listesi + varsayılan politika.
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';

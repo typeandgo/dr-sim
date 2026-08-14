@@ -5,7 +5,7 @@ import { button, h, setText, toggleClass } from '../dom/h';
 import { policyStatusLine } from '../policy-text';
 import type { Component, ComponentContext } from './types';
 
-// 02-ui-spec.md §3.3 — varsayılan davranış anahtarı + tek satırlık durum + döngü eylemi.
+// Varsayılan davranış anahtarı + tek satırlık durum + döngü eylemi.
 //
 // Revizyon 19'da Ayarlar'a taşınmıştı, Revizyon 44'te panele geri döndü ve Ayarlar'daki
 // kopyası kaldırıldı (R-38: aynı iş iki yerde durmaz). Radyo çifti yerine segment

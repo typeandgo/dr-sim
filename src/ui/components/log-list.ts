@@ -6,7 +6,7 @@ import { button, h, setText, toggleClass } from '../dom/h';
 import { createList } from '../dom/list';
 import type { Component, ComponentContext } from './types';
 
-// 02-ui-spec.md §3.8 / §3.9 — Son Success'ler (yeşil) ve Son Fail'ler (kırmızı).
+// Son Success'ler (yeşil) ve Son Fail'ler (kırmızı).
 // Fail satırındaki "İzin ver" ürünün ana çalışma döngüsüdür: blokla → çöken yeri gör → izin ver → yenile.
 
 type Kind = 'success' | 'fail';

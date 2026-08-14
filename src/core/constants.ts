@@ -21,7 +21,7 @@ export const SCRIPT_IDS = {
 
 export const ALARM_AUTO_OFF = 'drsim-auto-off';
 
-// bridge ⇄ service worker (01-architecture.md §4.2)
+// bridge ⇄ service worker
 export const SW_MESSAGES = {
   CONTENT_READY: 'CONTENT_READY',
   TELEMETRY_BATCH: 'TELEMETRY_BATCH',
@@ -29,7 +29,7 @@ export const SW_MESSAGES = {
   CONFIG_UPDATED: 'CONFIG_UPDATED',
 } as const;
 
-// UI ⇄ service worker (01-architecture.md §4.3)
+// UI ⇄ service worker
 export const UI_MESSAGES = {
   STATE_SNAPSHOT: 'STATE_SNAPSHOT',
   COMMAND_RESULT: 'COMMAND_RESULT',
@@ -61,7 +61,7 @@ export const COMMANDS = {
 
 export const SIMULATED_HEADER = 'x-drsim-simulated';
 
-// Interception zamanlaması (01-architecture.md §2.2, §8)
+// Interception zamanlaması
 export const CONFIG_READY_TIMEOUT_MS = 1500;
 export const TELEMETRY_DEBOUNCE_MS = 50;
 export const TELEMETRY_MAX_BATCH = 200;
@@ -128,7 +128,7 @@ export const DEFAULT_SETTINGS: Settings = {
   locale: 'auto',
 };
 
-// Fault tipi seçenekleri (02-ui-spec.md §3.3)
+// Fault tipi seçenekleri
 export const FAULT_PRESETS = [
   { id: 'http-503', label: '503 Service Unavailable', kind: 'http', status: 503, statusText: 'Service Unavailable' },
   { id: 'http-500', label: '500 Internal Server Error', kind: 'http', status: 500, statusText: 'Internal Server Error' },

@@ -49,7 +49,7 @@
   line-height: 1.5;
 }
 
-// Klavye odağı — a11y (02-ui-spec.md §5)
+// Klavye odağı — a11y
 @mixin focus-ring {
   outline: 2px solid $drsim-warning-line;
   outline-offset: 1px;

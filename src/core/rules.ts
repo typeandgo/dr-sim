@@ -2,7 +2,7 @@ import { nextRuleState } from './decision-engine';
 import { normalizePath } from './path.util';
 import type { DefaultPolicy, NormalizationRules, Rule, RuleState } from './types';
 
-// Kural listesi mutasyonları — tek kaynak `Settings.rules` (01-architecture.md §3).
+// Kural listesi mutasyonları — tek kaynak `Settings.rules`.
 // "İzin Verilen EP'ler" paneli ile envanter rozeti aynı listeden türetilir.
 
 export interface RuleInput {

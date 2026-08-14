@@ -1,7 +1,7 @@
 import { SIMULATED_HEADER } from './constants';
 import type { FaultConfig } from './types';
 
-// Arıza üretimi — 01-architecture.md §2.4. Arıza ayarı globaldir; kural bazlı arıza yoktur.
+// Arıza üretimi. Arıza ayarı globaldir; kural bazlı arıza yoktur.
 
 export interface SimulatedHttpResponse {
   status: number;

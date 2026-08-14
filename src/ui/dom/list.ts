@@ -1,4 +1,4 @@
-// Key bazlı liste reconcile — tüm listeyi yeniden kurmaz (01-architecture.md §7.1).
+// Key bazlı liste reconcile — tüm listeyi yeniden kurmaz.
 // 200+ satırda basit windowing devreye girer.
 
 const WINDOW_THRESHOLD = 200;

@@ -1,7 +1,7 @@
 import { isMessageKey, type MessageKey, type Translate } from './i18n';
 import type { DecisionReason, InventoryItem, Settings, TabSession } from './types';
 
-// Rapor üretimi — 07-preset-and-templates.md §C.3 / §C.4.
+// Rapor üretimi.
 
 const BLOCKED_REASONS: DecisionReason[] = ['blocked', 'default-block'];
 const PASSED_REASONS: DecisionReason[] = ['allowed', 'default-pass'];
@@ -96,7 +96,7 @@ export const buildJsonReport = ({ session, settings, now = 0 }: ReportInput): st
 );
 
 // Formata göre içerik + dosya kimliği (Revizyon 30). Walkthrough Revizyon 35'te
-// üründen çıkarıldı; şablonun kendisi 07-preset-and-templates.md §C.3'te duruyor.
+// üründen çıkarıldı.
 export interface ReportFile {
   content: string;
   extension: string;
@@ -110,7 +110,7 @@ export const buildReportFile = (format: string, input: ReportInput): ReportFile 
   return { content: buildResultReport(input), extension: 'md', name };
 };
 
-// Fail satırındaki sebep etiketi (02-ui-spec.md §3.9). Sözlükte karşılığı olmayan
+// Fail satırındaki sebep etiketi. Sözlükte karşılığı olmayan
 // bir sebep gelirse ham kod gösterilir — boş etiketten iyidir.
 export const reasonLabel = (reason: DecisionReason, t: Translate): string => {
   const key: string = `reason.${reason}`;

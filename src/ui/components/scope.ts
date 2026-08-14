@@ -7,7 +7,7 @@ import { createList } from '../dom/list';
 import { requestOriginPermission, requestOriginPermissions } from '../permissions';
 import type { Component, ComponentContext } from './types';
 
-// 02-ui-spec.md §3.2 — domain chip listesi, izin akışı, aktif sayfa path'i.
+// Domain chip listesi, izin akışı, aktif sayfa path'i.
 
 const hostOf = (url: string): string => {
   try {

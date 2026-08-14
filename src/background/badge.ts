@@ -1,4 +1,4 @@
-// Toolbar durum göstergesi — 02-ui-spec.md §2. Simülasyon açıkken kırmızı ON badge + aktif ikon.
+// Toolbar durum göstergesi. Simülasyon açıkken kırmızı ON badge + aktif ikon.
 
 const ON_COLOR = '#b91c1c';
 

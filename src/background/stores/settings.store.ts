@@ -6,7 +6,6 @@ import {
 } from '@/core/constants';
 import type { Settings } from '@/core/types';
 
-// Kalıcı ayar/profil deposu — 01-architecture.md §5.
 // Bozuk veride varsayılana dönülür ve kullanıcıya bilgi verilir (fail-safe).
 
 // Eksik alanlar varsayılanla tamamlanır; tip uyuşmazlığında varsayılan kazanır.

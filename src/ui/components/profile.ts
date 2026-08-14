@@ -3,7 +3,7 @@ import type { UiState } from '@/core/types';
 import { button, clear, h } from '../dom/h';
 import type { Component, ComponentContext } from './types';
 
-// 02-ui-spec.md §3.4 — profil = kaydedilmiş kural listesi + domainler + politika + arıza.
+// Profil = kaydedilmiş kural listesi + domainler + politika + arıza.
 
 const download = (content: string, extension: string, name: string): void => {
   const blob = new Blob([content], { type: extension === 'json' ? 'application/json' : 'text/markdown' });

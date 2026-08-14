@@ -47,7 +47,7 @@ import {
 import { sessionStore } from './stores/session.store';
 import { settingsStore } from './stores/settings.store';
 
-// Service worker — 01-architecture.md §4. Tüm komutlar `{ ok, error? }` ile yanıtlanır;
+// Service worker. Tüm komutlar `{ ok, error? }` ile yanıtlanır;
 // hiçbir handler hatası SW'yi çökertmez.
 
 const UNSUPPORTED_URL = /^(chrome|edge|about|devtools|chrome-extension|moz-extension):|^https:\/\/chromewebstore\.google\.com/;

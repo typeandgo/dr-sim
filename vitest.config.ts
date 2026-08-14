@@ -14,7 +14,7 @@ export default defineConfig({
       include: ['src/core/**/*.ts'],
       exclude: ['src/core/types.ts', 'src/core/**/*.spec.ts'],
       thresholds: {
-        // core/ hedefi: dosya bazında %100 (03-task-plan.md → Genel DoD)
+        // core/ hedefi: dosya bazında %100
         perFile: true,
         branches: 100,
         functions: 100,
