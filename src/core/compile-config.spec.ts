@@ -22,8 +22,16 @@ describe('core/compile-config', () => {
 
   it('kuralları anahtar → durum haritasına derler', () => {
     const compiled = compileRules([rule('GET /a', 'allow'), rule('POST /b', 'block')]);
-    expect(compiled['GET /a']).toBe('allow');
-    expect(compiled['POST /b']).toBe('block');
+    expect(compiled['/a']).toBe('allow');
+    expect(compiled['/b']).toBe('block');
+  });
+
+  it('kurallar path’e anahtarlanır, method anahtara girmez', () => {
+    expect(compileRules([rule('GET /orders', 'allow')])).toEqual({ '/orders': 'allow' });
+  });
+
+  it('aynı path’in iki kaydı çakışırsa block kazanır', () => {
+    expect(compileRules([rule('GET /orders', 'allow'), rule('POST /orders', 'block')])).toEqual({ '/orders': 'block' });
   });
 
   it('derlenmiş harita prototip zinciri taşımaz', () => {
@@ -47,6 +55,6 @@ describe('core/compile-config', () => {
   it('runtime config ayarları ve revizyonu taşır', () => {
     const config = compileConfig(settings({ enabled: true, rules: [rule('GET /x', 'allow')] }), 7, createTranslator('tr'));
     expect(config).toMatchObject({ enabled: true, defaultPolicy: 'block', revision: 7 });
-    expect(config.rulesByKey['GET /x']).toBe('allow');
+    expect(config.rulesByKey['/x']).toBe('allow');
   });
 });

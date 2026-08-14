@@ -32,28 +32,28 @@ describe('core/decision-engine', () => {
       ['kapsam dışı URL', {}, 'https://other.com/offers', false, 'out-of-scope'],
       [
         "kayıt allow + politika block",
-        { rulesByKey: { 'GET /offers': 'allow' as RuleState } },
+        { rulesByKey: { '/offers': 'allow' as RuleState } },
         '/offers',
         false,
         'allowed',
       ],
       [
         "kayıt allow + politika pass",
-        { defaultPolicy: 'pass', rulesByKey: { 'GET /offers': 'allow' as RuleState } },
+        { defaultPolicy: 'pass', rulesByKey: { '/offers': 'allow' as RuleState } },
         '/offers',
         false,
         'allowed',
       ],
       [
         "kayıt block + politika block",
-        { rulesByKey: { 'GET /offers': 'block' as RuleState } },
+        { rulesByKey: { '/offers': 'block' as RuleState } },
         '/offers',
         true,
         'blocked',
       ],
       [
         "kayıt block + politika pass",
-        { defaultPolicy: 'pass', rulesByKey: { 'GET /offers': 'block' as RuleState } },
+        { defaultPolicy: 'pass', rulesByKey: { '/offers': 'block' as RuleState } },
         '/offers',
         true,
         'blocked',
@@ -84,14 +84,8 @@ describe('core/decision-engine', () => {
       expect(shouldRecord(decision)).toBe(true);
     });
 
-    it('aynı path farklı method ayrı değerlendirilir', () => {
-      const cfg = config({ rulesByKey: { 'GET /offers': 'allow' } });
-      expect(decide({ method: 'GET', url: url('/offers') }, cfg).block).toBe(false);
-      expect(decide({ method: 'POST', url: url('/offers') }, cfg).block).toBe(true);
-    });
-
     it('farklı id’li aynı EP tek kayıtla eşleşir', () => {
-      const cfg = config({ rulesByKey: { 'GET /items/:id/summary': 'allow' } });
+      const cfg = config({ rulesByKey: { '/items/:id/summary': 'allow' } });
       expect(decide({ method: 'GET', url: url('/items/1/summary') }, cfg).reason).toBe('allowed');
       expect(decide({ method: 'GET', url: url('/items/8842/summary') }, cfg).reason).toBe('allowed');
     });
@@ -104,12 +98,28 @@ describe('core/decision-engine', () => {
     });
 
     it('açık kayıt her iki politikada da aynı davranır', () => {
-      const withBlockPolicy = decide({ method: 'GET', url: url('/x') }, config({ rulesByKey: { 'GET /x': 'allow' } }));
+      const withBlockPolicy = decide({ method: 'GET', url: url('/x') }, config({ rulesByKey: { '/x': 'allow' } }));
       const withPassPolicy = decide(
         { method: 'GET', url: url('/x') },
-        config({ defaultPolicy: 'pass', rulesByKey: { 'GET /x': 'allow' } }),
+        config({ defaultPolicy: 'pass', rulesByKey: { '/x': 'allow' } }),
       );
       expect(withBlockPolicy.reason).toBe(withPassPolicy.reason);
+    });
+
+    it('kural path’e yazılınca o path’in HER method’u aynı kararı alır', () => {
+      const cfg = config({ rulesByKey: { '/orders': 'allow' } });
+
+      expect(decide({ method: 'GET', url: url('/orders') }, cfg).reason).toBe('allowed');
+      expect(decide({ method: 'POST', url: url('/orders') }, cfg).reason).toBe('allowed');
+      expect(decide({ method: 'DELETE', url: url('/orders') }, cfg).reason).toBe('allowed');
+    });
+
+    it('karar path’e bakar ama Decision.key method’u taşımaya devam eder', () => {
+      const decision = decide({ method: 'POST', url: url('/orders') }, config({ rulesByKey: { '/orders': 'block' } }));
+
+      expect(decision.block).toBe(true);
+      expect(decision.key).toBe('POST /orders');
+      expect(decision.method).toBe('POST');
     });
   });
 

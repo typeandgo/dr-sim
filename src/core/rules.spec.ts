@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   findRule,
   removeRule,
+  resolveConflict,
   toggleRule,
   upsertRule,
   validateRulePath,
@@ -114,6 +115,18 @@ describe('core/rules', () => {
       expect(findRule(next, 'GET /b')?.state).toBe('allow');
       expect(findRule(next, 'GET /a')).toBe(rules[0]);
       expect(findRule(next, 'GET /c')).toBe(rules[2]);
+    });
+  });
+
+  describe('resolveConflict', () => {
+    it('block her zaman kazanır — DR aracında güvenli taraf kesmektir', () => {
+      expect(resolveConflict('allow', 'block')).toBe('block');
+      expect(resolveConflict('block', 'allow')).toBe('block');
+      expect(resolveConflict('block', 'block')).toBe('block');
+    });
+
+    it('iki taraf da allow ise allow kalır', () => {
+      expect(resolveConflict('allow', 'allow')).toBe('allow');
     });
   });
 });

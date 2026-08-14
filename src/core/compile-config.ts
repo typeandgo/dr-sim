@@ -1,11 +1,15 @@
 import type { Translate } from './i18n';
+import { resolveConflict } from './rules';
 import type { Rule, RuleState, RuntimeConfig, Settings } from './types';
 
 // Kurallar SW'de bir kez derlenir; MAIN world karar anında yalnızca tek lookup yapar (01 §8).
+// Anahtar PATH'tir (Revizyon 59): bir EP'nin tek durumu vardır ve o durum path'in
+// bütün method'ları için geçerlidir.
 export const compileRules = (rules: Rule[]): Record<string, RuleState> => {
   const compiled: Record<string, RuleState> = Object.create(null) as Record<string, RuleState>;
   rules.forEach((rule) => {
-    compiled[rule.key] = rule.state;
+    const existing = compiled[rule.path];
+    compiled[rule.path] = existing === undefined ? rule.state : resolveConflict(existing, rule.state);
   });
   return compiled;
 };

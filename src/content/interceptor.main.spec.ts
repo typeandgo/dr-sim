@@ -80,7 +80,7 @@ describe('content/interceptor.main', () => {
   });
 
   it('izin listesindeki EP gerçek response döner', async () => {
-    await load(runtimeConfig({ rulesByKey: { 'GET /offers': 'allow' } }));
+    await load(runtimeConfig({ rulesByKey: { '/offers': 'allow' } }));
 
     const response = await window.fetch('https://api.example.com/offers');
 
@@ -115,7 +115,7 @@ describe('content/interceptor.main', () => {
   });
 
   it('farklı id’li aynı EP tek kuralla eşleşir', async () => {
-    await load(runtimeConfig({ rulesByKey: { 'GET /items/:id/summary': 'allow' } }));
+    await load(runtimeConfig({ rulesByKey: { '/items/:id/summary': 'allow' } }));
 
     const first = await window.fetch('https://api.example.com/items/1/summary');
     const second = await window.fetch('https://api.example.com/items/8842/summary');
@@ -212,7 +212,7 @@ describe('content/interceptor.main', () => {
 
   it('gerçek hata durumunda istek bozulmaz ve fail kaydı üretilir', async () => {
     originalFetch.mockResolvedValueOnce(new Response('boom', { status: 502 }));
-    await load(runtimeConfig({ rulesByKey: { 'GET /real-error-ep': 'allow' } }));
+    await load(runtimeConfig({ rulesByKey: { '/real-error-ep': 'allow' } }));
 
     const response = await window.fetch('https://api.example.com/real-error-ep');
     expect(response.status).toBe(502);

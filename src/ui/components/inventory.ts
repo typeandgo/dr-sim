@@ -1,3 +1,4 @@
+import { compileRules } from '@/core/compile-config';
 import { COMMANDS } from '@/core/constants';
 import { effectiveState } from '@/core/decision-engine';
 import type { Locale, MessageKey } from '@/core/i18n';
@@ -86,13 +87,10 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
     profileKeys = new Set(active?.rules.map((rule) => rule.key));
   };
 
-  const rulesByKey = (): Record<string, RuleState> => {
-    const map: Record<string, RuleState> = {};
-    state?.settings.rules.forEach((rule) => {
-      map[rule.key] = rule.state;
-    });
-    return map;
-  };
+  // Panelin gördüğü tablo ile karar motorunun gördüğü tablo AYNI fonksiyondan
+  // gelir (Revizyon 59): ikisi ayrı kurulsaydı çakışma çözümü iki yerde yaşar ve
+  // panel "İzinli" derken motor bloklayabilirdi.
+  const rulesByPath = (): Record<string, RuleState> => compileRules(state?.settings.rules ?? []);
 
   const renderer = createList<InventoryItem>(
     list,
@@ -138,7 +136,7 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
       const actions = footer?.lastElementChild as HTMLElement;
       const toggle = actions?.firstElementChild as HTMLElement;
 
-      const explicit = rulesByKey()[item.key];
+      const explicit = rulesByPath()[item.path];
       const effective = effectiveState(explicit, state?.settings.defaultPolicy ?? 'block');
       const blocked = effective === 'block';
 
@@ -187,14 +185,14 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
   function visibleItems(): InventoryItem[] {
     const items = Object.values(state?.session?.inventory ?? {});
     const query = search.value.trim().toLowerCase();
-    const rules = rulesByKey();
+    const rules = rulesByPath();
     const policy = state?.settings.defaultPolicy ?? 'block';
 
     return items
       .filter((item) => {
         if (query && !item.key.toLowerCase().includes(query)) return false;
         if (filter === 'all') return true;
-        const blocked = effectiveState(rules[item.key], policy) === 'block';
+        const blocked = effectiveState(rules[item.path], policy) === 'block';
         return filter === 'blocked' ? blocked : !blocked;
       })
       .sort((a, b) => b.lastAt - a.lastAt);
@@ -203,9 +201,9 @@ export const mountInventory = (root: HTMLElement, ctx: ComponentContext): Compon
   function render(): void {
     const items = visibleItems();
     const all = Object.values(state?.session?.inventory ?? {});
-    const rules = rulesByKey();
+    const rules = rulesByPath();
     const policy = state?.settings.defaultPolicy ?? 'block';
-    const blockedCount = all.filter((item) => effectiveState(rules[item.key], policy) === 'block').length;
+    const blockedCount = all.filter((item) => effectiveState(rules[item.path], policy) === 'block').length;
 
     setText(title, ctx.t('inventory.title', { blocked: blockedCount, total: all.length }));
     // Boş envanteri temizlemek de anlamsız: buton yalnızca silinecek bir şey

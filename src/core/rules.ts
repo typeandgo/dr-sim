@@ -65,3 +65,9 @@ export const toggleRule = (
     now: input.now,
   });
 };
+
+// İki kural aynı path'e indiğinde durumu çözer. Block kazanır: DR aracında bir
+// EP'yi yanlışlıkla AÇIK bırakmak, yanlışlıkla kapatmaktan daha kötü bir teşhis
+// hatası üretir — kapalı EP hemen görülür, açık kalan EP testi sessizce yalancı
+// yeşile çevirir. Import, migration ve derleme aynı bu fonksiyonu kullanır.
+export const resolveConflict = (a: RuleState, b: RuleState): RuleState => (a === 'block' || b === 'block' ? 'block' : 'allow');
