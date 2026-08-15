@@ -29,11 +29,24 @@ Sürüm numarası `package.json`'dan gelir; `scripts/build.mjs` her build'de `ma
 
 | Seçenek | Ne demek | DR-SIM için |
 | --- | --- | --- |
-| **Public** | Mağaza aramasında çıkar | Önerilmez |
-| **Unlisted** | Yalnızca bağlantıyı bilen kurar | **Önerilen** |
+| **Public** | Mağaza aramasında ve kategoride çıkar | **Seçilen** |
+| **Unlisted** | Yalnızca bağlantıyı bilen kurar | İlk yayın böyleydi |
 | **Private** | Google Workspace domainiyle sınırlı | Şirket içi dağıtım için ideal |
 
-**Neden Public önerilmiyor:** DR-SIM ağ yanıtlarını değiştirir ve `*://*/*` isteyebilir. Bu meşru bir geliştirici aracı davranışıdır ama kötü niyetli eklentilerin de imzasıdır; herkese açık incelemede ek sorgulama ve gecikme getirir. Unlisted aynı kurulum kolaylığını verir, bu riski azaltır.
+DR-SIM ilk kez **unlisted** olarak yayınlandı ve onaylandı; sonrasında görünürlük **Public**'e çevrildi. Gerekçe: unlisted kurulum kolaylığını veriyordu ama keşfedilebilirlik vermiyordu — aracı arayarak bulabilecek geliştirici/QA kitlesine ulaşmanın tek yolu mağaza araması ve Developer Tools kategorisi.
+
+### 3.1 Unlisted → Public geçişi
+
+Developer Dashboard → öğe → **Distribution** sekmesi → **Visibility: Public** → sağ üstten **Submit for review**.
+
+Bilinmesi gerekenler:
+
+- Görünürlük değişikliği yeni bir gönderim sayılır; öğe tekrar "Pending review"a düşer. **Onaylanana kadar mevcut sürüm unlisted olarak yayında kalır** — kesinti olmaz.
+- **Unlisted onayı public onayı anlamına gelmez.** Unlisted öğeler daha hafif incelemeden geçer; public'te tam inceleme uygulanır. DR-SIM ağ yanıtlarını değiştirdiği ve `*://*/*` opsiyonel host izni istediği için tam olarak ek sorgulama çeken profildir — gecikme ve red ihtimali unlisted'a göre yüksektir.
+- Tam inceleme yalnızca değişikliğe değil, hâlihazırda yayında olan öğeye de bakar. Politika itirazı çıkarsa öğenin tamamen kaldırılması ihtimali düşük ama gerçektir.
+- Geri dönüş mümkün: Public → Unlisted de aynı akışla yapılır, o da bir gönderimdir.
+
+İncelemeden gelebilecek itirazlar ve hazır cevaplar §8'de.
 
 ---
 
@@ -277,14 +290,14 @@ Kullanıcı bunları panelden `⤓ İçe` ile yükler. Jenerik bir başlangıç 
 - [ ] Manifest'te kullanıcıya görünen hiçbir metin sabit kodlanmamış (hepsi `__MSG_*__`)
 - [ ] `npm run store:assets` çalıştı, `store-assets/` güncel (5 ekran görüntüsü + 2 kapak)
 - [ ] Gizlilik politikası bir URL'de yayında (`PRIVACY.md`, repo public)
-- [ ] Görünürlük seçildi (Unlisted önerilir)
+- [ ] Görünürlük **Public** (§3.1) — public listing için store listing eksiksiz olmalı: 132 karakterlik kısa açıklama, uzun açıklama, en az 1 ekran görüntüsü, kategori, dil
 - [ ] `dist.pem` commit edilmemiş — `.gitignore`'da
 
 ---
 
 ## 8. İnceleme sonrası
 
-İnceleme tipik olarak birkaç saat ile birkaç gün sürer; geniş host izni isteyen eklentilerde uzayabilir. Red gelirse gerekçe e-postayla bildirilir; en olası itiraz noktaları ve hazır cevapları:
+İnceleme tipik olarak birkaç saat ile birkaç gün sürer; geniş host izni isteyen eklentilerde ve **public gönderimlerde** uzayabilir. Red gelirse gerekçe e-postayla bildirilir; en olası itiraz noktaları ve hazır cevapları:
 
 | Olası itiraz | Cevap |
 | --- | --- |
