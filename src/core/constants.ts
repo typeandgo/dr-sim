@@ -1,3 +1,4 @@
+import type { MessageKey } from './i18n';
 import type { FaultConfig, HttpMethod, NormalizationRules, Settings } from './types';
 
 export const SCHEMA_VERSION = 5;
@@ -128,12 +129,22 @@ export const DEFAULT_SETTINGS: Settings = {
   locale: 'auto',
 };
 
-// Fault tipi seçenekleri
+// Fault tipi seçenekleri.
+//
+// Etiket ARTIK ÇEVİRİLİR ve tipin GÖZLEMLENEBİLİR sonucunu söyler (Revizyon 62):
+// iki aile arasındaki fark ("sunucu yanıt veriyor" vs "istek hiç ulaşmıyor")
+// uygulamanın 5xx yollarını tetikleyip tetiklemediğini belirliyor. Çıplak
+// "503 Service Unavailable" etiketi bunu anlatmıyordu ve DevTools'un
+// "Block Request URL"i ile aynı şey sanılıyordu.
 export const FAULT_PRESETS = [
-  { id: 'http-503', label: '503 Service Unavailable', kind: 'http', status: 503, statusText: 'Service Unavailable' },
-  { id: 'http-500', label: '500 Internal Server Error', kind: 'http', status: 500, statusText: 'Internal Server Error' },
-  { id: 'http-429', label: '429 Too Many Requests', kind: 'http', status: 429, statusText: 'Too Many Requests' },
-  { id: 'network', label: 'Network error', kind: 'network', status: 0, statusText: '' },
-  { id: 'timeout', label: 'Timeout', kind: 'timeout', status: 0, statusText: '' },
-] as const;
+  { id: 'http-503', labelKey: 'fault.preset.http503', kind: 'http', status: 503, statusText: 'Service Unavailable' },
+  { id: 'http-500', labelKey: 'fault.preset.http500', kind: 'http', status: 500, statusText: 'Internal Server Error' },
+  { id: 'http-429', labelKey: 'fault.preset.http429', kind: 'http', status: 429, statusText: 'Too Many Requests' },
+  // 404, network error'ın "kodu" DEĞİLDİR — network error'da status hiç yoktur (0).
+  // Ayrı bir HTTP arızası olarak duruyor çünkü uygulamada üçüncü bir yolu test
+  // eder: 5xx global hata sayfasını tetiklerken 404 genelde tetiklemez.
+  { id: 'http-404', labelKey: 'fault.preset.http404', kind: 'http', status: 404, statusText: 'Not Found' },
+  { id: 'network', labelKey: 'fault.preset.network', kind: 'network', status: 0, statusText: '' },
+  { id: 'timeout', labelKey: 'fault.preset.timeout', kind: 'timeout', status: 0, statusText: '' },
+] as const satisfies ReadonlyArray<{ id: string; labelKey: MessageKey; kind: FaultConfig['kind']; status: number; statusText: string }>;
 

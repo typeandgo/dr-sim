@@ -12,6 +12,7 @@ DR-SIM nedir, nasıl kullanılır ve profil dosyasının anatomisi. İlk kez kul
 - [İlk kullanım: dört adım](#i̇lk-kullanım-dört-adım)
 - [Günlük kullanım: dört adımlık döngü](#günlük-kullanım-dört-adımlık-döngü)
 - [Envanteri okumak](#envanteri-okumak)
+- [Arıza tipi: 503 mü, ağ hatası mı?](#arıza-tipi-503-mü-ağ-hatası-mı)
 - [En sık yapılan hata: iki farklı adres](#en-sık-yapılan-hata-iki-farklı-adres)
 - [Profiller: kurulumunu paylaş](#profiller-kurulumunu-paylaş)
 - [Raporlar](#raporlar)
@@ -45,7 +46,7 @@ Panelde geçen birkaç terim var. Hepsi göründüğünden basit:
 - **Domain** — Bu soruların gittiği sunucu, örneğin api.sirket.com. DR-SIM yalnızca senin yazdığın domainlere giden istekleri yönetir; geri kalan her şeye dokunmaz.
 - **Kural** — Bir EP için verdiğin karar: İzinli (normal çalışsın) ya da Engelli (arıza dönsün).
 - **Varsayılan davranış** — Hakkında kural yazmadığın EP’lere ne olacağı. “Bloklansın” dersen listende olmayan her şey arıza döner; “Geçsin” dersen yalnızca tek tek engellediklerin arıza döner.
-- **Arıza** — Engellenen bir isteğin nasıl başarısız olacağı: sunucu hatası (503), ağ hatası ya da hiç cevap vermeyip zaman aşımına düşmesi.
+- **Arıza** — Engellenen bir isteğin nasıl başarısız olacağı: sunucu hatası (503), ağ hatası ya da hiç cevap vermeyip zaman aşımına düşmesi. Bu seçim sonucu değiştirir; [aşağıda ayrı bir bölüm](#arıza-tipi-503-mü-ağ-hatası-mı) var.
 
 ## İlk kullanım: dört adım
 
@@ -84,6 +85,24 @@ Satırdaki küçük etiketler ise EP’nin nereden bilindiğini ve nasıl çağr
 - **sync XHR** — İstek beklenemeyen eski bir yöntemle yapılmış; DR-SIM onu engelleyemez, olduğu gibi geçirir. Bir EP bir türlü bloklanmıyorsa önce bu etikete bak.
 
 > Çubuk ile etiket ayrı sorulara cevap verir: çubuk “bu EP için kural yazdım mı”, etiket “bu EP profilimde tanımlı mı”. Bir EP’ye elle izin verip profiline hiç yazmamış olabilirsin.
+
+## Arıza tipi: 503 mü, ağ hatası mı?
+
+“Engelli” tek bir şey demiyor. Ayarlar’daki **Arıza tipi** iki aileye ayrılır ve uygulama ikisine bambaşka tepki verir:
+
+| Arıza tipi | Uygulama ne görür | Tipik sonuç |
+| --- | --- | --- |
+| **503 / 500** (HTTP) | Sunucu bir sunucu hatası döndü | Çoğu uygulamada “5xx gelirse hata sayfası göster” kuralı vardır → **tüm sayfa** hata layout’una düşer |
+| **429 / 404** (HTTP) | Sunucu yanıt verdi ama sunucu hatası değil | O koda özel bir yol varsa çalışır (yeniden dene, “bulunamadı” mesajı); genelde sayfa ayakta kalır |
+| **Network error / Timeout** | İstek hiç ulaşmadı, **durum kodu yok** | Tepki verilecek bir kod olmadığı için global yol tetiklenmez → genelde **yalnızca o widget** kırılır, sayfanın kalanı ayakta kalır |
+
+> Network error bir durum kodu **değildir**: 404 onun kodu falan değil, ayrı bir arızadır. Network error’da uygulamanın elinde `status` diye bir şey olmaz (0), panelde de durum kolonunda `—` görürsün.
+
+Bu yüzden aynı EP’yi iki tipte de denemeye değer: biri “bu servis düşerse sayfa komple gider mi?”, diğeri “bu servis düşerse sayfa kısmi çalışır mı?” sorusunu cevaplar.
+
+> **Chrome DevTools’tan alıştıysan:** Network sekmesindeki **Block request URL** ağ seviyesinde bloklar, yani DR-SIM’in **Network error** tipiyle aynı şeydir — 503 ile değil. DevTools’taki davranışı birebir tekrarlamak istiyorsan arıza tipini Network error yap. Varsayılan 503’tür, çünkü gerçek bir kesintide istek genelde gateway’e ulaşır ve gateway 503 döner.
+
+Seçili tip panelin durum satırında yazar (“engelli EP’ler 503 alıyor”), değiştirmek Ayarlar → Arıza’dadır. Ayar globaldir: EP başına ayrı arıza yoktur.
 
 ## En sık yapılan hata: iki farklı adres
 

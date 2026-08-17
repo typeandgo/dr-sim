@@ -83,7 +83,7 @@ const buildOptions = (mount: HTMLElement, t: Translate, pageLocale: Locale) => {
         setFault({ kind: chosen.kind, status: chosen.status, statusText: chosen.statusText });
       },
     },
-  }, FAULT_PRESETS.map((entry) => h('option', { value: entry.id, text: entry.label })));
+  }, FAULT_PRESETS.map((entry) => h('option', { value: entry.id, text: t(entry.labelKey) })));
 
   const faultBody = h('textarea', {
     class: 'drsim-textarea',

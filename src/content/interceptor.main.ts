@@ -406,7 +406,10 @@ if (!scope.__DRSIM__) {
       }),
     );
 
-    xhr.onreadystatechange?.call(xhr, new Event('readystatechange'));
+    // `onreadystatechange` ELLE ÇAĞRILMAZ: o da bir event handler attribute'u,
+    // yani `dispatchEvent` onu zaten tetikler. İkisi birlikte yapılınca property
+    // ile kurulmuş handler tek durum geçişinde İKİ KEZ çalışıyordu (XHR adapter'lı
+    // istemcilerde — axios dahil — çift settle/çift yan etki).
     xhr.dispatchEvent(new Event('readystatechange'));
 
     if (outcome.type === 'load') {

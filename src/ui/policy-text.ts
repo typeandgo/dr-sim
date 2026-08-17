@@ -18,12 +18,18 @@ export const faultPresetId = (fault: FaultConfig): string => {
   return `http-${fault.status}`;
 };
 
-// Panelde görünen tek satır: ne olduğu + kural sayısı
+// Panelde görünen tek satır: varsayılan davranış + engellinin ne döndürdüğü + kural sayısı
+//
+// Arıza etiketi POLİTİKADAN BAĞIMSIZ yazılır (Revizyon 62). Önce yalnızca
+// `block` politikasında yazılıyordu; oysa arıza, açık `engelli` kurallarına da
+// uygulanır. `Geçsin` politikasında tek bir EP'yi engelleyen kullanıcı panelde
+// arıza tipini hiç görmüyor, "engelledim" deyip DevTools'un "Block Request
+// URL"i gibi davranmasını bekliyordu — arada 503 yanıtı ile ağ hatası kadar
+// fark var.
 export const policyStatusLine = (settings: Settings, t: Translate): string => {
   const total = settings.rules.length;
-  const behaviour = settings.defaultPolicy === 'block'
-    ? t('policy.statusBlock', { fault: faultLabel(settings.fault, t) })
-    : t('policy.statusPass');
+  const behaviour = settings.defaultPolicy === 'block' ? t('policy.statusBlock') : t('policy.statusPass');
+  const fault = t('policy.faultNote', { fault: faultLabel(settings.fault, t) });
 
-  return `${behaviour} · ${t('policy.ruleCount', { count: total })}`;
+  return `${behaviour} · ${fault} · ${t('policy.ruleCount', { count: total })}`;
 };

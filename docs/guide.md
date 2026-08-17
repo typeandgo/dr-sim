@@ -12,6 +12,7 @@ What DR-SIM is, how it is used, and the anatomy of a profile file. Written for f
 - [First run: four steps](#first-run-four-steps)
 - [Everyday use: a four-step loop](#everyday-use-a-four-step-loop)
 - [Reading the inventory](#reading-the-inventory)
+- [Fault type: 503 or network error?](#fault-type-503-or-network-error)
 - [The most common mistake: two different addresses](#the-most-common-mistake-two-different-addresses)
 - [Profiles: share your setup](#profiles-share-your-setup)
 - [Reports](#reports)
@@ -45,7 +46,7 @@ A handful of terms come up in the panel. All of them are simpler than they look:
 - **Domain** — The server those questions go to, for example api.company.com. DR-SIM only manages requests going to the domains you enter; it leaves everything else alone.
 - **Rule** — The decision you make for an EP: Allowed (let it work normally) or Blocked (return a fault).
 - **Default behaviour** — What happens to EPs you have written no rule for. Choose “Block” and everything outside your list returns a fault; choose “Pass” and only the ones you blocked individually return a fault.
-- **Fault** — How a blocked request fails: a server error (503), a network error, or no answer at all until it times out.
+- **Fault** — How a blocked request fails: a server error (503), a network error, or no answer at all until it times out. This choice changes the outcome; [it has its own section below](#fault-type-503-or-network-error).
 
 ## First run: four steps
 
@@ -84,6 +85,24 @@ The small labels on a row tell you where the EP is known from and how it was cal
 - **sync XHR** — The request was made in an older way that cannot be awaited; DR-SIM cannot block it and passes it straight through. If an EP simply refuses to be blocked, check this label first.
 
 > The bar and the label answer different questions: the bar is “have I written a rule for this EP”, the label is “is this EP defined in my profile”. You may well have allowed an EP by hand and never written it into your profile.
+
+## Fault type: 503 or network error?
+
+“Blocked” is not one single thing. The **Fault type** in Settings splits into two families, and applications react to them very differently:
+
+| Fault type | What the app sees | Typical outcome |
+| --- | --- | --- |
+| **503 / 500** (HTTP) | The server answered with a server error | Most apps have a “on 5xx, show the error page” rule → the **whole page** drops to an error layout |
+| **429 / 404** (HTTP) | The server answered, but not with a server error | Whatever path the app has for that code runs (retry, a “not found” message); the page usually stays up |
+| **Network error / Timeout** | The request never landed; there is **no status code** | Nothing for the global path to react to → usually **only that widget** breaks and the rest of the page stays up |
+
+> A network error is **not** a status code: 404 is not “its code”, it is a separate fault. On a network error the app has no `status` to read (it is 0), and the panel shows `—` in the status column.
+
+That is why the same EP is worth trying with both: one answers “if this service goes down, does the whole page go with it?”, the other “if this service goes down, does the page degrade gracefully?”.
+
+> **If you are used to Chrome DevTools:** **Block request URL** in the Network tab blocks at the network level, so it is the same thing as DR-SIM’s **Network error** type — not 503. To reproduce the DevTools behaviour exactly, set the fault type to Network error. The default is 503, because in a real outage the request usually does reach the gateway and the gateway answers 503.
+
+The selected type is written in the panel’s status line (“blocked EPs return 503”); you change it in Settings → Fault. The setting is global: there is no per-EP fault.
 
 ## The most common mistake: two different addresses
 

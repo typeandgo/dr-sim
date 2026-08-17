@@ -81,7 +81,7 @@ describe('ui/policy', () => {
     component.update(state({ rules: [rule('/a', 'allow')] }));
 
     expect(root.querySelector('[data-test="dr-sim-policy-status"]')!.textContent)
-      .toBe("Kural yazılmayan EP'ler bloklanıyor (503) · 1 kural");
+      .toBe("Kural yazılmayan EP'ler bloklanıyor · engelli EP'ler 503 alıyor · 1 kural");
   });
 
   it('kural yokken sıfırlama pasiftir', () => {
@@ -124,7 +124,7 @@ describe('ui/policy', () => {
     component.update(state({ rules: [rule('/a', 'allow')] }));
 
     expect(root.querySelector('[data-test="dr-sim-policy-status"]')!.textContent)
-      .toBe('EPs without a rule are blocked (503) · 1 rules');
+      .toBe('EPs without a rule are blocked · blocked EPs return 503 · 1 rules');
     expect(resetOf(root).textContent).toBe('Reset');
   });
 

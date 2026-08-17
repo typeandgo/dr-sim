@@ -30,6 +30,7 @@ describe('ui/policy-text', () => {
     it.each<[Partial<Settings['fault']>, string]>([
       [{}, 'http-503'],
       [{ status: 429 }, 'http-429'],
+      [{ status: 404 }, 'http-404'],
       [{ kind: 'network' }, 'network'],
       [{ kind: 'timeout' }, 'timeout'],
     ])('%j -> %s', (over, expected) => {
@@ -51,11 +52,23 @@ describe('ui/policy-text', () => {
   describe('policyStatusLine — paneldeki tek satır', () => {
     it('blok politikasında arıza tipini ve kural sayısını yazar', () => {
       const line = policyStatusLine(settings({ rules: [rule('/a', 'allow'), rule('/b', 'block')] }), t);
-      expect(line).toBe("Kural yazılmayan EP'ler bloklanıyor (503) · 2 kural");
+      expect(line).toBe("Kural yazılmayan EP'ler bloklanıyor · engelli EP'ler 503 alıyor · 2 kural");
     });
 
-    it('geçiş politikasında arıza tipi yazılmaz', () => {
-      expect(policyStatusLine(settings({ defaultPolicy: 'pass' }), t)).toBe("Kural yazılmayan EP'ler geçiyor · 0 kural");
+    // Arıza, açık `engelli` kurallarına da uygulanır: `Geçsin` politikasında tek
+    // bir EP'yi engelleyen kullanıcı da hangi arızayı aldığını görmek zorunda.
+    it('geçiş politikasında da arıza tipi yazılır', () => {
+      expect(policyStatusLine(settings({ defaultPolicy: 'pass', rules: [rule('/b', 'block')] }), t))
+        .toBe("Kural yazılmayan EP'ler geçiyor · engelli EP'ler 503 alıyor · 1 kural");
+    });
+
+    it('network arızasında 503 yerine arızanın adı yazılır', () => {
+      const line = policyStatusLine(settings({
+        defaultPolicy: 'pass',
+        fault: { ...DEFAULT_SETTINGS.fault, kind: 'network' },
+      }), t);
+
+      expect(line).toBe("Kural yazılmayan EP'ler geçiyor · engelli EP'ler network error alıyor · 0 kural");
     });
   });
 });

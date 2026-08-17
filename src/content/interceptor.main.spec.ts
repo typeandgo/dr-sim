@@ -221,4 +221,56 @@ describe('content/interceptor.main', () => {
       expect(telemetryFor('/real-error-ep')[0]?.records[0]?.reason).toBe('real-error');
     });
   });
+
+  // Simüle XHR, gerçek XHR'ın event sözleşmesine uymak zorundadır: XHR adapter'lı
+  // istemciler (axios) kararını bu event'lerden okur.
+  describe('simüle XHR', () => {
+    const openXhr = (): XMLHttpRequest => {
+      const xhr = new XMLHttpRequest();
+      // Handler'lar open()'DAN SONRA kurulur: open() readyState 1 geçişini kendi
+      // yayınlar ve sayaçları kirletirdi. Gerçek istemciler de bu sırayı izler.
+      xhr.open('GET', 'https://api.example.com/offers');
+      return xhr;
+    };
+
+    it('readystatechange tek durum geçişi için tek kez tetiklenir', async () => {
+      await load(runtimeConfig());
+      const xhr = openXhr();
+
+      let viaProperty = 0;
+      let viaListener = 0;
+      xhr.onreadystatechange = () => { viaProperty += 1; };
+      xhr.addEventListener('readystatechange', () => { viaListener += 1; });
+
+      xhr.send();
+      await tick();
+      await tick();
+
+      expect(xhr.readyState).toBe(4);
+      expect(xhr.status).toBe(503);
+      expect(xhr.responseText).toBe(DEFAULT_FAULT.body);
+      // Handler'ı hem elle çağırıp hem dispatch etmek property ile kurulmuş
+      // handler'ı iki kez çalıştırıyordu → çift settle, çift yan etki.
+      expect(viaProperty).toBe(1);
+      expect(viaListener).toBe(1);
+    });
+
+    it('network arızası transport hatası taklit eder: status yok, error event var', async () => {
+      await load(runtimeConfig({ fault: { ...DEFAULT_FAULT, kind: 'network' } }));
+      const xhr = openXhr();
+
+      const events: string[] = [];
+      (['readystatechange', 'load', 'error', 'timeout', 'loadend'] as const)
+        .forEach((type) => xhr.addEventListener(type, () => events.push(type)));
+
+      xhr.send();
+      await tick();
+      await tick();
+
+      // DevTools'un "Block Request URL"i ile aynı sözleşme: HTTP yanıtı YOKTUR,
+      // dolayısıyla uygulamanın status'a bakan global 5xx yolları tetiklenmez.
+      expect(xhr.status).toBe(0);
+      expect(events).toEqual(['readystatechange', 'error', 'loadend']);
+    });
+  });
 });
